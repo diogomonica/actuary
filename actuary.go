@@ -4,9 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"github.com/diogomonica/actuary/tests/dockerhost"
-	"github.com/naoina/toml"
 	"github.com/docker/engine-api/client"
-    //"github.com/docker/engine-api/types"
+	"github.com/naoina/toml"
+	//"github.com/docker/engine-api/types"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -16,15 +16,14 @@ import (
 var profile string
 var hash string
 
-
 //Audits are the benchmark categories (e.g Host Configuration, Docker conf etc.).
 //A profile consists of a list of audits
 type Profile struct {
-    Audit []struct {
-        Name string
-        Checklist []string
-        }
-    }
+	Audit []struct {
+		Name      string
+		Checklist []string
+	}
+}
 
 // read audit profile from local file
 func parseProfile(profile string) Profile {
@@ -68,12 +67,12 @@ func main() {
 		if os.IsNotExist(err) {
 			log.Fatalf("Invalid profile path: %s", profile)
 		}
-	//initialize docker client	
-    defaultHeaders := map[string]string{"User-Agent": "engine-api-cli-1.0"}
-    cli, err := client.NewClient("unix:///var/run/docker.sock", "v1.20", nil, defaultHeaders)
-    if err != nil {
-        log.Fatalf("Unable to connect to Docker daemon:", err)
-    }
+		//initialize docker client
+		defaultHeaders := map[string]string{"User-Agent": "engine-api-cli-1.0"}
+		cli, err := client.NewClient("unix:///var/run/docker.sock", "v1.20", nil, defaultHeaders)
+		if err != nil {
+			log.Fatalf("Unable to connect to Docker daemon:", err)
+		}
 		tomlProfile := parseProfile(profile)
 		//loop through the audits
 		for category := range tomlProfile.Audit {
