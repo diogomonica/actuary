@@ -1,0 +1,7 @@
+[[Audit]]
+
+Name = "Host Configuration"
+Checklist = [ 
+		"kernel_version",
+        "seperate_partition",
+        ]
