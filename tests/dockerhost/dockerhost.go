@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"strings"
 	"github.com/docker/engine-api/client"
+	 version "github.com/hashicorp/go-version"
   //  "github.com/docker/engine-api/types"
 
 )
@@ -45,10 +46,18 @@ func CheckSeperatePartion(client *client.Client) {
 	fmt.Println("Containers NOT in seperate partition")
 }
 
-
+//1.2 Use the updated Linux Kernel 
 func CheckKernelVersion(client *client.Client) {
+	constraints, _ := version.NewConstraint(">= 3.10")
 	info, _ := client.Info()
-	fmt.Println(info.KernelVersion)
+	hostVersion,_ := version.NewVersion(info.KernelVersion)
+	if constraints.Check(hostVersion) {
+		fmt.Println("Host is using an updated kernel")
+	} else {
+		fmt.Println("Host is not using an updated kernel")
+	}
+
+
 
 }
 
