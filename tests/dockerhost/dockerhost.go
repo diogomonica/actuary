@@ -25,6 +25,8 @@ var checks = map[string]Check{
 	"kernel_version":     CheckKernelVersion,
 	"seperate_partition": CheckSeperatePartion,
 	"running_services":   CheckRunningServices,
+	"server_version": CheckDockerVersion,
+
 }
 
 func GetAuditDefinitions() map[string]Check {
@@ -95,3 +97,29 @@ func CheckRunningServices(client *client.Client) Result {
 	res.Output = fmt.Sprintf("Host listening on %d ports: %d", len(openPorts), openPorts)
 	return res
 }
+
+func CheckDockerVersion(client *client.Client) Result {
+	var res Result
+	res.Name = "1.6 Keep Docker up to date"
+	constraints, _ := version.NewConstraint(">= 1.10.0")
+	info, err := client.ServerVersion()
+	if err != nil {
+		log.Fatalf("Could not retrieve info for Docker host")
+	}
+
+	hostVersion, _ := version.NewVersion(info.Version)
+	if constraints.Check(hostVersion) {
+		res.Status = "PASS"
+		res.Output = "Host is using an updated kernel"
+	} else {
+		res.Status = "WARN"
+		res.Output = "Host is using an outdated Docker server: " + info.Version
+	}
+
+	return res
+}
+
+// func CheckTrustedUsers(client *client.Client) Result {
+// 	var res Result
+// 	res.Name = "1.7 Only allow trusted users to control Docker daemon"
+// }
