@@ -78,19 +78,20 @@ func main() {
 		//loop through the audits
 		for category := range tomlProfile.Audit {
 			if tomlProfile.Audit[category].Name == "Host Configuration" {
-				fmt.Println("Running Host Configuration checks")
+				log.Printf("Running Host Configuration checks")
 				checks := tomlProfile.Audit[category].Checklist
 				actions := dockerhost.GetAuditDefinitions()
 				//cross-reference checks
 				for _, check := range checks {
 					if _, ok := actions[check]; ok {
-						actions[check](cli)
+						res := actions[check](cli)
+						log.Printf("Check: %s\nStatus: %s\nLog: %s\n", res.Name, res.Status, res.Output)
 					} else {
-						fmt.Println("No check named", check)
+						log.Panicf("No check named", check)
 					}
 				}
 			} else {
-				fmt.Println("No audit category named:", tomlProfile.Audit[category].Name)
+				log.Panicf("No audit category named:", tomlProfile.Audit[category].Name)
 			}
 		}
 
