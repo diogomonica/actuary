@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"strings"
+	"os"
 	//  "github.com/docker/engine-api/types"
 )
 
@@ -100,16 +101,16 @@ func CheckRunningServices(client *client.Client) Result {
 func CheckDockerVersion(client *client.Client) Result {
 	var res Result
 	res.Name = "1.6 Keep Docker up to date"
+	verConstr := os.Getenv("VERSION")
 	info, err := client.ServerVersion()
 	if err != nil {
 		log.Fatalf("Could not retrieve info for Docker host")
 	}
-	
-	constraints, _ := version.NewConstraint(">= 1.10.0")
+	constraints, _ := version.NewConstraint(">= "+ verConstr)
 	hostVersion, _ := version.NewVersion(info.Version)
 	if constraints.Check(hostVersion) {
 		res.Status = "PASS"
-		res.Output = "Host is using an updated kernel"
+		res.Output = "Host is using an updated Docker Server: " + info.Version
 	} else {
 		res.Status = "WARN"
 		res.Output = "Host is using an outdated Docker server: " + info.Version
