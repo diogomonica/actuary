@@ -7,8 +7,8 @@ import (
 	version "github.com/hashicorp/go-version"
 	"io/ioutil"
 	"log"
-	"strings"
 	"os"
+	"strings"
 	//  "github.com/docker/engine-api/types"
 )
 
@@ -106,7 +106,7 @@ func CheckDockerVersion(client *client.Client) Result {
 	if err != nil {
 		log.Fatalf("Could not retrieve info for Docker host")
 	}
-	constraints, _ := version.NewConstraint(">= "+ verConstr)
+	constraints, _ := version.NewConstraint(">= " + verConstr)
 	hostVersion, _ := version.NewVersion(info.Version)
 	if constraints.Check(hostVersion) {
 		res.Status = "PASS"

@@ -3,9 +3,11 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
+	"github.com/BurntSushi/toml"
 	"github.com/diogomonica/actuary/tests/dockerhost"
 	"github.com/docker/engine-api/client"
-	"github.com/BurntSushi/toml"
+	"github.com/fatih/color"
 	"io/ioutil"
 	"log"
 	"os"
@@ -38,6 +40,20 @@ func parseProfile(profile string) Profile {
 func getProfile(hash string) string {
 
 	return "This func has not been implemented yet"
+}
+
+func consoleOutput(res dockerhost.Result) {
+	var status string
+	bold := color.New(color.Bold).SprintFunc()
+	if res.Status == "PASS" {
+		status = color.GreenString("[PASS]")
+	} else if res.Status == "WARN" {
+		status = color.RedString("[WARN]")
+	} else {
+		status = color.CyanString("[INFO]")
+	}
+
+	fmt.Printf("%s - %s \n", status, bold(res.Name))
 }
 
 func jsonOutput(res []dockerhost.Result, outfile string) {
@@ -91,7 +107,8 @@ func main() {
 				if _, ok := actions[check]; ok {
 					res := actions[check](cli)
 					results = append(results, res)
-					log.Printf("Check: %s\nStatus: %s\nLog: %s\n", res.Name, res.Status, res.Output)
+					consoleOutput(res)
+					//log.Printf("Check: %s\nStatus: %s\nLog: %s\n", res.Name, res.Status, res.Output)
 				} else {
 					log.Panicf("No check named", check)
 				}

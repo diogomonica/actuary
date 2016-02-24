@@ -2,8 +2,8 @@
 
 Name = "Host Configuration"
 Checklist = [ 
-		"kernel_version",
         "seperate_partition",
+		"kernel_version",
         "running_services",
         "server_version",
         ]
