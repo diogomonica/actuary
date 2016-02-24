@@ -54,6 +54,10 @@ func consoleOutput(res dockerhost.Result) {
 	}
 
 	fmt.Printf("%s - %s \n", status, bold(res.Name))
+
+	if res.Output != "" {
+		fmt.Printf("\t %s\n\n", res.Output)
+	}
 }
 
 func jsonOutput(res []dockerhost.Result, outfile string) {
