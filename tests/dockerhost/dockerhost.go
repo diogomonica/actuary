@@ -25,8 +25,7 @@ var checks = map[string]Check{
 	"kernel_version":     CheckKernelVersion,
 	"seperate_partition": CheckSeperatePartion,
 	"running_services":   CheckRunningServices,
-	"server_version": CheckDockerVersion,
-
+	"server_version":     CheckDockerVersion,
 }
 
 func GetAuditDefinitions() map[string]Check {
@@ -67,12 +66,12 @@ func CheckSeperatePartion(client *client.Client) Result {
 func CheckKernelVersion(client *client.Client) Result {
 	var res Result
 	res.Name = "1.2 Use the updated Linux Kernel"
-	constraints, _ := version.NewConstraint(">= 3.10")
 	info, err := client.Info()
 	if err != nil {
 		log.Fatalf("Could not retrieve info for Docker host")
 	}
 
+	constraints, _ := version.NewConstraint(">= 3.10")
 	hostVersion, _ := version.NewVersion(info.KernelVersion)
 	if constraints.Check(hostVersion) {
 		res.Status = "PASS"
@@ -101,12 +100,12 @@ func CheckRunningServices(client *client.Client) Result {
 func CheckDockerVersion(client *client.Client) Result {
 	var res Result
 	res.Name = "1.6 Keep Docker up to date"
-	constraints, _ := version.NewConstraint(">= 1.10.0")
 	info, err := client.ServerVersion()
 	if err != nil {
 		log.Fatalf("Could not retrieve info for Docker host")
 	}
-
+	
+	constraints, _ := version.NewConstraint(">= 1.10.0")
 	hostVersion, _ := version.NewVersion(info.Version)
 	if constraints.Check(hostVersion) {
 		res.Status = "PASS"

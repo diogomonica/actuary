@@ -1,15 +1,13 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
-	"fmt"
 	"github.com/diogomonica/actuary/tests/dockerhost"
 	"github.com/docker/engine-api/client"
-	"github.com/naoina/toml"
-	"encoding/json"
+	"github.com/BurntSushi/toml"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"os"
 )
 
@@ -27,17 +25,9 @@ var tomlProfile Profile
 var results []dockerhost.Result
 var clientHeaders map[string]string
 
-
 // read audit profile from local file
 func parseProfile(profile string) Profile {
-
-	var tomlProfile Profile
-	content, err := ioutil.ReadFile(profile)
-
-	if err != nil {
-		log.Fatalf("Error reading TOML profile from file:", err)
-	}
-	err = toml.Unmarshal(content, &tomlProfile)
+	_, err := toml.DecodeFile(profile, &tomlProfile)
 	if err != nil {
 		log.Fatalf("Error parsing TOML profile:", err)
 	}
@@ -100,7 +90,7 @@ func main() {
 			for _, check := range checks {
 				if _, ok := actions[check]; ok {
 					res := actions[check](cli)
-					results = append(results,res)
+					results = append(results, res)
 					log.Printf("Check: %s\nStatus: %s\nLog: %s\n", res.Name, res.Status, res.Output)
 				} else {
 					log.Panicf("No check named", check)
@@ -112,6 +102,6 @@ func main() {
 	}
 
 	if *output != "" {
-		jsonOutput(results, *output)	
+		jsonOutput(results, *output)
 	}
 }
