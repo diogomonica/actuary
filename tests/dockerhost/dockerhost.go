@@ -47,7 +47,6 @@ func GetAuditDefinitions() map[string]Check {
 	return checks
 }
 
-//1.1 Create a separate partition for containers
 //code borrowed from github.com/dockersecuritytools/batten
 func CheckSeperatePartion(client *client.Client) Result {
 	var res Result
@@ -66,7 +65,6 @@ func CheckSeperatePartion(client *client.Client) Result {
 
 		if len(fields) > 1 && fields[1] == "/var/lib/docker" {
 			res.Status = "PASS"
-			res.Output = "Containers in seperate partition"
 			return res
 		}
 	}
@@ -76,7 +74,6 @@ func CheckSeperatePartion(client *client.Client) Result {
 	return res
 }
 
-// 1.2 Use the updated Linux Kernel
 func CheckKernelVersion(client *client.Client) Result {
 	var res Result
 	res.Name = "1.2 Use the updated Linux Kernel"
@@ -89,10 +86,9 @@ func CheckKernelVersion(client *client.Client) Result {
 	hostVersion, _ := version.NewVersion(info.KernelVersion)
 	if constraints.Check(hostVersion) {
 		res.Status = "PASS"
-		res.Output = "Host is using an updated kernel"
 	} else {
 		res.Status = "WARN"
-		res.Output = "Host is not using an updated kernel: " + info.KernelVersion
+		res.Output = fmt.Sprintf("Host is not using an updated kernel: %s", info.KernelVersion)
 	}
 
 	return res
@@ -123,7 +119,6 @@ func CheckDockerVersion(client *client.Client) Result {
 	hostVersion, _ := version.NewVersion(info.Version)
 	if constraints.Check(hostVersion) {
 		res.Status = "PASS"
-		res.Output = fmt.Sprintf("Host is using an updated Docker server: %s ", info.Version)
 	} else {
 		res.Status = "WARN"
 		res.Output = fmt.Sprintf("Host is using an outdated Docker server: %s ", info.Version)
@@ -222,7 +217,6 @@ func AuditEtcDocker(client *client.Client) Result {
 	var res Result
 	var ruleExists bool
 	res.Name = "1.10 Audit Docker files and directories - /etc/docker"
-
 	ruleExists = checkAuditRule("/etc/docker")
 
 	if ruleExists {
@@ -238,7 +232,6 @@ func AuditDockerRegistry(client *client.Client) Result {
 	var res Result
 	var ruleExists bool
 	res.Name = "1.11 Audit Docker files and directories - docker-registry.service"
-
 	ruleExists = checkAuditRule("/usr/lib/systemd/system/docker-registry.service")
 
 	if ruleExists {
@@ -254,7 +247,6 @@ func AuditDockerService(client *client.Client) Result {
 	var res Result
 	var ruleExists bool
 	res.Name = "1.12 Audit Docker files and directories - docker.service "
-
 	ruleExists = checkAuditRule("/var/run/docker.sock")
 
 	if ruleExists {
@@ -270,7 +262,6 @@ func AuditDockerSocket(client *client.Client) Result {
 	var res Result
 	var ruleExists bool
 	res.Name = "1.13 Audit Docker files and directories - /var/run/docker.sock"
-
 	ruleExists = checkAuditRule("/usr/lib/systemd/system/docker.service")
 
 	if ruleExists {
@@ -286,7 +277,6 @@ func AuditDockerSysconfig(client *client.Client) Result {
 	var res Result
 	var ruleExists bool
 	res.Name = "1.14 Audit Docker files and directories - /etc/sysconfig/docker"
-
 	ruleExists = checkAuditRule("/etc/sysconfig/docker")
 
 	if ruleExists {
@@ -302,7 +292,6 @@ func AuditDockerNetwork(client *client.Client) Result {
 	var res Result
 	var ruleExists bool
 	res.Name = "1.15 Audit Docker files and directories - /etc/sysconfig/docker-network"
-
 	ruleExists = checkAuditRule("/etc/sysconfig/docker-network")
 
 	if ruleExists {
@@ -318,7 +307,6 @@ func AuditDockerSysRegistry(client *client.Client) Result {
 	var res Result
 	var ruleExists bool
 	res.Name = "1.16 Audit Docker files and directories - /etc/sysconfig/docker-registry"
-
 	ruleExists = checkAuditRule("/etc/sysconfig/docker-registry")
 
 	if ruleExists {
@@ -334,7 +322,6 @@ func AuditDockerStorage(client *client.Client) Result {
 	var res Result
 	var ruleExists bool
 	res.Name = "1.17 Audit Docker files and directories - /etc/sysconfig/docker-storage"
-
 	ruleExists = checkAuditRule("/etc/sysconfig/docker-storage")
 
 	if ruleExists {
@@ -350,7 +337,6 @@ func AuditDockerDefault(client *client.Client) Result {
 	var res Result
 	var ruleExists bool
 	res.Name = "1.18 Audit Docker files and directories - /etc/default/docker"
-
 	ruleExists = checkAuditRule("/etc/default/docker")
 
 	if ruleExists {
