@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"strings"
 	//  "github.com/docker/engine-api/types"
 )
@@ -28,6 +29,17 @@ var checks = map[string]Check{
 	"running_services":   CheckRunningServices,
 	"server_version":     CheckDockerVersion,
 	"trusted_users":      CheckTrustedUsers,
+	"audit_daemon":       AuditDockerDaemon,
+	"audit_lib":          AuditLibDocker,
+	"audit_etc":          AuditEtcDocker,
+	"audit_registry":     AuditDockerRegistry,
+	"audit_service":      AuditDockerService,
+	"audit_socket":       AuditDockerSocket,
+	"audit_sysconfig":    AuditDockerSysconfig,
+	"audit_network":      AuditDockerNetwork,
+	"audit_sysregistry":  AuditDockerSysRegistry,
+	"audit_storage":      AuditDockerStorage,
+	"audit_default":      AuditDockerDefault,
 }
 
 func GetAuditDefinitions() map[string]Check {
@@ -150,6 +162,202 @@ func CheckTrustedUsers(client *client.Client) Result {
 	}
 	res.Status = "INFO"
 	res.Output = fmt.Sprintf("The following users control the Docker daemon: %s", trustedUsers)
+
+	return res
+}
+
+//Helper function to check rules in auditctl
+func checkAuditRule(rule string) bool {
+	auditctlPath, err := exec.LookPath("auditctl")
+	if err != nil || auditctlPath == "" {
+		log.Panicf("Could not find auditctl tool")
+	}
+	cmd := exec.Command(auditctlPath, "-l")
+	output, err := cmd.Output()
+	if err != nil {
+		log.Panicf("Auditctl command returned with errors")
+	}
+	for _, line := range strings.Split(string(output), "\n") {
+		line = strings.TrimSpace(line)
+		if strings.Contains(line, rule) {
+			return true
+		}
+	}
+	return false
+}
+
+func AuditDockerDaemon(client *client.Client) Result {
+	var res Result
+	var ruleExists bool
+	res.Name = "1.8 Audit docker daemon"
+
+	ruleExists = checkAuditRule("/usr/bin/docker")
+
+	if ruleExists {
+		res.Status = "PASS"
+	} else {
+		res.Status = "WARN"
+	}
+
+	return res
+}
+
+func AuditLibDocker(client *client.Client) Result {
+	var res Result
+	var ruleExists bool
+	res.Name = "1.9 Audit Docker files and directories - /var/lib/docker"
+
+	ruleExists = checkAuditRule("/var/lib/docker")
+
+	if ruleExists {
+		res.Status = "PASS"
+	} else {
+		res.Status = "WARN"
+	}
+
+	return res
+}
+
+func AuditEtcDocker(client *client.Client) Result {
+	var res Result
+	var ruleExists bool
+	res.Name = "1.10 Audit Docker files and directories - /etc/docker"
+
+	ruleExists = checkAuditRule("/etc/docker")
+
+	if ruleExists {
+		res.Status = "PASS"
+	} else {
+		res.Status = "WARN"
+	}
+
+	return res
+}
+
+func AuditDockerRegistry(client *client.Client) Result {
+	var res Result
+	var ruleExists bool
+	res.Name = "1.11 Audit Docker files and directories - docker-registry.service"
+
+	ruleExists = checkAuditRule("/usr/lib/systemd/system/docker-registry.service")
+
+	if ruleExists {
+		res.Status = "PASS"
+	} else {
+		res.Status = "WARN"
+	}
+
+	return res
+}
+
+func AuditDockerService(client *client.Client) Result {
+	var res Result
+	var ruleExists bool
+	res.Name = "1.12 Audit Docker files and directories - docker.service "
+
+	ruleExists = checkAuditRule("/var/run/docker.sock")
+
+	if ruleExists {
+		res.Status = "PASS"
+	} else {
+		res.Status = "WARN"
+	}
+
+	return res
+}
+
+func AuditDockerSocket(client *client.Client) Result {
+	var res Result
+	var ruleExists bool
+	res.Name = "1.13 Audit Docker files and directories - /var/run/docker.sock"
+
+	ruleExists = checkAuditRule("/usr/lib/systemd/system/docker.service")
+
+	if ruleExists {
+		res.Status = "PASS"
+	} else {
+		res.Status = "WARN"
+	}
+
+	return res
+}
+
+func AuditDockerSysconfig(client *client.Client) Result {
+	var res Result
+	var ruleExists bool
+	res.Name = "1.14 Audit Docker files and directories - /etc/sysconfig/docker"
+
+	ruleExists = checkAuditRule("/etc/sysconfig/docker")
+
+	if ruleExists {
+		res.Status = "PASS"
+	} else {
+		res.Status = "WARN"
+	}
+
+	return res
+}
+
+func AuditDockerNetwork(client *client.Client) Result {
+	var res Result
+	var ruleExists bool
+	res.Name = "1.15 Audit Docker files and directories - /etc/sysconfig/docker-network"
+
+	ruleExists = checkAuditRule("/etc/sysconfig/docker-network")
+
+	if ruleExists {
+		res.Status = "PASS"
+	} else {
+		res.Status = "WARN"
+	}
+
+	return res
+}
+
+func AuditDockerSysRegistry(client *client.Client) Result {
+	var res Result
+	var ruleExists bool
+	res.Name = "1.16 Audit Docker files and directories - /etc/sysconfig/docker-registry"
+
+	ruleExists = checkAuditRule("/etc/sysconfig/docker-registry")
+
+	if ruleExists {
+		res.Status = "PASS"
+	} else {
+		res.Status = "WARN"
+	}
+
+	return res
+}
+
+func AuditDockerStorage(client *client.Client) Result {
+	var res Result
+	var ruleExists bool
+	res.Name = "1.17 Audit Docker files and directories - /etc/sysconfig/docker-storage"
+
+	ruleExists = checkAuditRule("/etc/sysconfig/docker-storage")
+
+	if ruleExists {
+		res.Status = "PASS"
+	} else {
+		res.Status = "WARN"
+	}
+
+	return res
+}
+
+func AuditDockerDefault(client *client.Client) Result {
+	var res Result
+	var ruleExists bool
+	res.Name = "1.18 Audit Docker files and directories - /etc/default/docker"
+
+	ruleExists = checkAuditRule("/etc/default/docker")
+
+	if ruleExists {
+		res.Status = "PASS"
+	} else {
+		res.Status = "WARN"
+	}
 
 	return res
 }
