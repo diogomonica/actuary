@@ -13,6 +13,7 @@ import (
 	"os"
 )
 
+//Profile is an array of Audits
 type Profile struct {
 	Audit []struct {
 		Name      string
@@ -27,7 +28,6 @@ var tomlProfile Profile
 var results []dockerhost.Result
 var clientHeaders map[string]string
 
-// read audit profile from local file
 func parseProfile(profile string) Profile {
 	_, err := toml.DecodeFile(profile, &tomlProfile)
 	if err != nil {
@@ -112,7 +112,6 @@ func main() {
 					res := actions[check](cli)
 					results = append(results, res)
 					consoleOutput(res)
-					//log.Printf("Check: %s\nStatus: %s\nLog: %s\n", res.Name, res.Status, res.Output)
 				} else {
 					log.Panicf("No check named", check)
 				}

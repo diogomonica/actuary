@@ -27,6 +27,7 @@ var checks = map[string]Check{
 	"seperate_partition": CheckSeperatePartion,
 	"running_services":   CheckRunningServices,
 	"server_version":     CheckDockerVersion,
+	"trusted_users":      CheckTrustedUsers,
 }
 
 func GetAuditDefinitions() map[string]Check {
@@ -110,16 +111,45 @@ func CheckDockerVersion(client *client.Client) Result {
 	hostVersion, _ := version.NewVersion(info.Version)
 	if constraints.Check(hostVersion) {
 		res.Status = "PASS"
-		res.Output = "Host is using an updated Docker Server: " + info.Version
+		res.Output = fmt.Sprintf("Host is using an updated Docker server: %s ", info.Version)
 	} else {
 		res.Status = "WARN"
-		res.Output = "Host is using an outdated Docker server: " + info.Version
+		res.Output = fmt.Sprintf("Host is using an outdated Docker server: %s ", info.Version)
 	}
 
 	return res
 }
 
-// func CheckTrustedUsers(client *client.Client) Result {
-// 	var res Result
-// 	res.Name = "1.7 Only allow trusted users to control Docker daemon"
-// }
+func CheckTrustedUsers(client *client.Client) Result {
+	var res Result
+	var trustedUsers []string
+	res.Name = "1.7 Only allow trusted users to control Docker daemon"
+	groupFile := "/etc/group"
+	content, err := ioutil.ReadFile(groupFile)
+	if err != nil {
+		log.Panicf("Could not read ", groupFile)
+	}
+	lines := strings.Split(string(content), "\n")
+
+	for _, line := range lines {
+		fields := strings.Split(line, ":")
+
+		if fields[0] == "docker" {
+			if len(fields) > 2 {
+				last := fields[len(fields)-1]
+				users := strings.Split(last, ",")
+				for _, user := range users {
+					user = strings.TrimSpace(user)
+					if len(user) == 0 {
+						continue
+					}
+					trustedUsers = append(trustedUsers, user)
+				}
+			}
+		}
+	}
+	res.Status = "INFO"
+	res.Output = fmt.Sprintf("The following users control the Docker daemon: %s", trustedUsers)
+
+	return res
+}
