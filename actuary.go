@@ -5,7 +5,9 @@ import (
 	"flag"
 	"fmt"
 	"github.com/BurntSushi/toml"
-	"github.com/diogomonica/actuary/tests/dockerhost"
+	"github.com/diogomonica/actuary/audit"
+	"github.com/diogomonica/actuary/audit/dockerhost"
+	"github.com/diogomonica/actuary/audit/dockerconf"
 	"github.com/docker/engine-api/client"
 	"github.com/fatih/color"
 	"io/ioutil"
@@ -25,8 +27,9 @@ var profile = flag.String("profile", "", "Audit profile path")
 var hash = flag.String("hash", "", "Hash for API")
 var output = flag.String("output", "", "JSON output filename")
 var tomlProfile Profile
-var results []dockerhost.Result
+var results []audit.Result
 var clientHeaders map[string]string
+var actions map[string]audit.Check
 
 func parseProfile(profile string) Profile {
 	_, err := toml.DecodeFile(profile, &tomlProfile)
@@ -42,7 +45,7 @@ func getProfile(hash string) string {
 	return "This func has not been implemented yet"
 }
 
-func consoleOutput(res dockerhost.Result) {
+func consoleOutput(res audit.Result) {
 	var status string
 	bold := color.New(color.Bold).SprintFunc()
 	if res.Status == "PASS" {
@@ -60,7 +63,7 @@ func consoleOutput(res dockerhost.Result) {
 	}
 }
 
-func jsonOutput(res []dockerhost.Result, outfile string) {
+func jsonOutput(res []audit.Result, outfile string) {
 	results, err := json.Marshal(res)
 	if err != nil {
 		log.Fatalf("Unable to marshal results into JSON file")
@@ -82,7 +85,8 @@ func init() {
 }
 
 func main() {
-
+	var auditName string
+	
 	flag.Parse()
 	cli, err := client.NewClient("unix:///var/run/docker.sock", "v1.20", nil, clientHeaders)
 	if err != nil {
@@ -102,22 +106,26 @@ func main() {
 
 	//loop through the audits
 	for category := range tomlProfile.Audit {
-		if tomlProfile.Audit[category].Name == "Host Configuration" {
-			log.Printf("Running Host Configuration checks")
-			checks := tomlProfile.Audit[category].Checklist
-			actions := dockerhost.GetAuditDefinitions()
-			//cross-reference checks
-			for _, check := range checks {
-				if _, ok := actions[check]; ok {
-					res := actions[check](cli)
-					results = append(results, res)
-					consoleOutput(res)
-				} else {
-					log.Panicf("No check named", check)
-				}
+		switch auditName = tomlProfile.Audit[category].Name; auditName {
+		case "Host Configuration":
+			actions = dockerhost.GetAuditDefinitions()		
+		case "Docker daemon configuration":
+			actions = dockerconf.GetAuditDefinitions()
+		default: 
+			log.Panicf("No audit category named:", auditName)
+			continue
+		}
+		log.Printf("Running Audit: %s", auditName)
+		checks := tomlProfile.Audit[category].Checklist
+		//cross-reference checks
+		for _, check := range checks {
+			if _, ok := actions[check]; ok {
+				res := actions[check](cli)
+				results = append(results, res)
+				consoleOutput(res)
+			} else {
+				log.Panicf("No check named", check)
 			}
-		} else {
-			log.Panicf("No audit category named:", tomlProfile.Audit[category].Name)
 		}
 	}
 

@@ -19,3 +19,12 @@ Checklist = [
 		"audit_storage",
 		"audit_default",
         ]
+
+
+[[Audit]]
+
+Name = "Docker daemon configuration"
+Checklist = [ 
+        "lxc_driver",
+        "net_traffic",
+        ]
