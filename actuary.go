@@ -8,6 +8,7 @@ import (
 	"github.com/diogomonica/actuary/audit"
 	"github.com/diogomonica/actuary/audit/dockerhost"
 	"github.com/diogomonica/actuary/audit/dockerconf"
+	"github.com/diogomonica/actuary/audit/dockerfiles"
 	"github.com/docker/engine-api/client"
 	"github.com/fatih/color"
 	"io/ioutil"
@@ -115,6 +116,8 @@ func main() {
 			actions = dockerhost.GetAuditDefinitions()		
 		case "Docker daemon configuration":
 			actions = dockerconf.GetAuditDefinitions()
+		case "Docker daemon configuration files":
+			actions = dockerfiles.GetAuditDefinitions()
 		default: 
 			log.Panicf("No audit category named:", auditName)
 			continue
