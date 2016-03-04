@@ -23,8 +23,7 @@ type Profile struct {
 	}
 }
 
-var profile = flag.String("profile", "", "Audit profile path")
-var hash = flag.String("hash", "", "Hash for API")
+var profile = flag.String("profile", "", "Actuary profile file path")
 var output = flag.String("output", "", "JSON output filename")
 var tomlProfile Profile
 var results []audit.Result
@@ -76,8 +75,7 @@ func jsonOutput(res []audit.Result, outfile string) {
 }
 
 func init() {
-	flag.StringVar(profile, "p", "", "Audit profile path")
-	flag.StringVar(hash, "h", "", "Hash for API")
+	flag.StringVar(profile, "f", "", "Actuary profile file path")
 	flag.StringVar(output, "o", "", "JSON output filename")
 
 	clientHeaders = make(map[string]string)
@@ -85,6 +83,8 @@ func init() {
 }
 
 func main() {
+	var cmdArgs []string
+	var hash string
 	var auditName string
 	
 	flag.Parse()
@@ -93,15 +93,19 @@ func main() {
 		log.Fatalf("Unable to connect to Docker daemon:", err)
 	}
 
-	if *hash != "" {
-		remoteProfile := getProfile(*hash)
+	cmdArgs = flag.Args()
+	if len(cmdArgs) == 1 {
+		hash = cmdArgs[0]
+		remoteProfile := getProfile(hash)
 		tomlProfile = parseProfile(remoteProfile)
-	} else {
+	} else if len(cmdArgs) == 0 {
 		_, err := os.Stat(*profile)
 		if os.IsNotExist(err) {
 			log.Fatalf("Invalid profile path: %s", *profile)
 		}
 		tomlProfile = parseProfile(*profile)
+	} else {
+		log.Fatalf("Unsupported number of arguments. Use -h for help")
 	}
 
 	//loop through the audits
