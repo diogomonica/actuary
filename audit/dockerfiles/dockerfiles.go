@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"github.com/diogomonica/actuary/audit"
 	"github.com/docker/engine-api/client"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/user"
 	"path/filepath"
+	"strings"
 	"syscall"
 )
 
@@ -28,6 +30,8 @@ var checks = map[string]audit.Check{
 	"docker-storage_perms":          CheckStoreEnvPerms,
 	"dockerdir_owner":               CheckDockerDirOwner,
 	"dockerdir_perms":               CheckDockerDirPerms,
+	"socket_owner":                  CheckDockerSockOwner,
+	"socket_perms":                  CheckDockerSockPerms,
 }
 
 func GetAuditDefinitions() map[string]audit.Check {
@@ -75,6 +79,21 @@ func getUserInfo(username string) (uid, gid string) {
 	gid = userInfo.Gid
 
 	return uid, gid
+}
+
+func getGroupId(groupname string) string {
+	bytes, err := ioutil.ReadFile("/etc/group")
+	if err != nil {
+		return ""
+	}
+	for _, line := range strings.Split(string(bytes), "\n") {
+		items := strings.Split(line, ":")
+		if groupname == items[0] {
+			gid := items[2]
+			return gid
+		}
+	}
+	return ""
 }
 
 func getFileOwner(info os.FileInfo) (uid, gid string) {
@@ -447,6 +466,54 @@ func CheckDockerDirPerms(client *client.Client) audit.Result {
 	more restrictive`
 	refPerms = 0755
 	fileInfo, err := os.Stat("/etc/docker")
+	if os.IsNotExist(err) {
+		res.Status = "INFO"
+		res.Output = fmt.Sprintf("File could not be accessed")
+		return res
+	}
+
+	isLeast, perms := hasLeastPerms(fileInfo, refPerms)
+	if isLeast == true {
+		res.Status = "PASS"
+	} else {
+		res.Status = "WARN"
+		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", perms)
+	}
+
+	return res
+}
+
+func CheckDockerSockOwner(client *client.Client) audit.Result {
+	var res audit.Result
+	res.Name = "3.25 Verify that Docker socket file ownership is set to root:docker "
+	refUser := "root"
+	refGroup := "docker"
+	fileInfo, err := os.Stat("/var/run/docker.sock")
+	if os.IsNotExist(err) {
+		res.Status = "INFO"
+		res.Output = fmt.Sprintf("File could not be accessed")
+		return res
+	}
+
+	refUid, _ := getUserInfo(refUser)
+	refGid := getGroupId(refGroup)
+	fileUid, fileGid := getFileOwner(fileInfo)
+	if (refUid == fileUid) && (refGid == fileGid) {
+		res.Status = "PASS"
+	} else {
+		res.Status = "WARN"
+		res.Output = fmt.Sprintf("User/group owner should be : %s", refGroup)
+	}
+
+	return res
+}
+
+func CheckDockerSockPerms(client *client.Client) audit.Result {
+	var res audit.Result
+	var refPerms uint32
+	res.Name = `3.26 Verify that Docker socket file permissions are set to 660`
+	refPerms = 0660
+	fileInfo, err := os.Stat("/var/run/docker.sock")
 	if os.IsNotExist(err) {
 		res.Status = "INFO"
 		res.Output = fmt.Sprintf("File could not be accessed")

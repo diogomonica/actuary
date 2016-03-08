@@ -50,6 +50,8 @@ Checklist = [
         "docker-storage_perms",
         "dockerdir_owner",
         "dockerdir_perms",
+        "socket_owner",
+        "socket_perms",
         ]
 
 
