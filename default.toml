@@ -34,10 +34,22 @@ Checklist = [
 
 Name = "Docker daemon configuration files"
 Checklist = [ 
-        "docker.service_perms",
         "docker.service_owner",
+        "docker.service_perms",
         "docker-registry.service_owner",
         "docker-registry.service_perms",
+        "docker.socket_owner",
+        "docker.socket_perms",
+        "dockerenv_owner",
+        "dockerenv_perms",
+        "docker-network_owner",
+        "docker-network_perms",
+        "docker-registry_owner",
+        "docker-registry_perms",
+        "docker-storage_owner",
+        "docker-storage_perms",
+        "dockerdir_owner",
+        "dockerdir_perms",
         ]
 
 
