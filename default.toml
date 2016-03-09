@@ -54,4 +54,9 @@ Checklist = [
         "socket_perms",
         ]
 
+[[Audit]]
 
+Name = "Container Images and Build File"
+Checklist = [ 
+        "root_containers",
+        ]
