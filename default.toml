@@ -60,3 +60,12 @@ Name = "Container Images and Build File"
 Checklist = [ 
         "root_containers",
         ]
+
+[[Audit]]
+
+Name = "Container Runtime"
+Checklist = [ 
+        "apparmor_profile",
+        "selinux_options",
+        "single_process",
+        ]
