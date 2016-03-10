@@ -3,21 +3,21 @@
 Name = "Host Configuration"
 Checklist = [ 
         "seperate_partition",
-		"kernel_version",
+	"kernel_version",
         "running_services",
         "server_version",
         "trusted_users",
-		"audit_daemon",
-		"audit_lib",
-		"audit_etc",
-		"audit_registry",
-		"audit_service",
-		"audit_socket",
-		"audit_sysconfig",
-		"audit_network",
-		"audit_sysregistry",
-		"audit_storage",
-		"audit_default",
+	"audit_daemon",
+	"audit_lib",
+	"audit_etc",
+	"audit_registry",
+	"audit_service",
+	"audit_socket",
+	"audit_sysconfig",
+	"audit_network",
+	"audit_sysregistry",
+	"audit_storage",
+	"audit_default",
         ]
 
         
@@ -68,4 +68,10 @@ Checklist = [
         "apparmor_profile",
         "selinux_options",
         "single_process",
+        "kernel_capabilities",
+        "privileged_containers",
+        "sensitive_dirs",
+        "ssh_running",
+        "privileged_ports",
+        "needed_ports"
         ]
