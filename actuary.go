@@ -1,6 +1,8 @@
 package main
 
 import (
+	//"bytes"
+	"crypto/sha1"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -14,8 +16,11 @@ import (
 	"github.com/docker/engine-api/client"
 	"github.com/fatih/color"
 	"io/ioutil"
+	//"io"
+	"net/http"
 	"log"
 	"os"
+	"path"
 )
 
 //Profile is an array of Audits
@@ -43,8 +48,32 @@ func parseProfile(profile string) Profile {
 
 // read audit profile using the API
 func getProfile(hash string) string {
+	var profilePath string
+	var serverAddr string 
+	var url string
 
-	return "This func has not been implemented yet"
+	serverAddr = "http://127.0.0.1:8000/"
+	url = serverAddr + hash
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Fatalf("Error contacting the web server. Please verify your hash: %s", err)
+	}
+
+	body, _ := ioutil.ReadAll(resp.Body)
+	bodyHash := fmt.Sprintf("%x", sha1.Sum(body))
+	if bodyHash == hash {
+		profilePath = path.Join("/tmp",hash)
+		profile, err := os.Create(profilePath)
+		if err != nil {
+			log.Fatalf("Unable to create profile: %s", err)
+		}
+		_, err = profile.Write(body)
+		if err != nil {
+			log.Fatalf("Unable to copy data from HTTP response: %s", err)
+		}
+
+	} 
+	return profilePath
 }
 
 func consoleOutput(res audit.Result) {
@@ -100,6 +129,9 @@ func main() {
 	if len(cmdArgs) == 1 {
 		hash = cmdArgs[0]
 		remoteProfile := getProfile(hash)
+		if remoteProfile == "" {
+			log.Fatalf("Unable to fetch profile. Exiting...")
+		}
 		tomlProfile = parseProfile(remoteProfile)
 	} else if len(cmdArgs) == 0 {
 		_, err := os.Stat(*profile)
