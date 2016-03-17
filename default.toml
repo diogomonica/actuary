@@ -73,5 +73,14 @@ Checklist = [
         "sensitive_dirs",
         "ssh_running",
         "privileged_ports",
-        "needed_ports"
+        "needed_ports",
+        "host_net_mode",
+        "memory_usage",
+        "cpu_shares",
+        "readonly_rootfs",
+        "restart_policy",
+        "host_namespace",
+        "ipc_namespace",
+        "host_devices",
+        "override_ulimit",
         ]

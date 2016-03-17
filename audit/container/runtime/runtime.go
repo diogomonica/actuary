@@ -21,8 +21,15 @@ var checks = map[string]audit.Check{
 	"ssh_running": CheckSshRunning,
 	"privileged_ports": CheckPrivilegedPorts,
 	"needed_ports": CheckNeededPorts,
-
-
+	"host_net_mode": CheckHostNetworkMode,
+	"memory_usage": CheckMemoryLimits,
+	"cpu_shares": CheckCpuShares,
+	"readonly_rootfs": CheckReadonlyRoot,
+	"restart_policy": CheckRestartPolicy,
+	"host_namespace": CheckHostNamespace,
+	"ipc_namespace": CheckIPCNamespace,
+	"host_devices": CheckHostDevices,
+	"override_ulimit": CheckDefaultUlimit,
 }
 
 func GetAuditDefinitions() map[string]audit.Check {
@@ -349,7 +356,313 @@ func CheckNeededPorts(client *client.Client) audit.Result {
 		}
 	}
 		res.Status = "INFO"
-		res.Output = fmt.Sprintf("Containers with mapped privileged ports: %v \n", containerPort)
+		res.Output = fmt.Sprintf("Containers with open ports: %v \n", containerPort)
+
+	return res
+}
+
+func CheckHostNetworkMode(client *client.Client) audit.Result {
+	var res audit.Result
+	var badContainers []string
+	res.Name = "5.10 Do not use host network mode on container"
+	options := types.ContainerListOptions{All: false}
+	containers, err := client.ContainerList(options)
+	if err != nil {
+		log.Printf("Unable to get container list")
+		return res
+	}
+	if len(containers) == 0 {
+		res.Status = "INFO"
+		res.Output = "No running containers"
+		return res
+	}
+
+	for _, container := range containers {
+		info, _ := client.ContainerInspect(container.ID)
+		mode := info.HostConfig.NetworkMode
+		if mode == "host" {
+			badContainers = append(badContainers, container.ID)
+		}
+	}
+
+	if len(badContainers) == 0 {
+		res.Status = "PASS"
+	} else {
+		res.Status = "WARN"
+		res.Output = fmt.Sprintf("Privileged containers found: %s", badContainers)
+	}
+
+	return res
+}
+
+func CheckMemoryLimits(client *client.Client) audit.Result {
+	var res audit.Result
+	var badContainers []string
+	res.Name = "5.11 Limit memory usage for container"
+	options := types.ContainerListOptions{All: false}
+	containers, err := client.ContainerList(options)
+	if err != nil {
+		log.Printf("Unable to get container list")
+		return res
+	}
+	if len(containers) == 0 {
+		res.Status = "INFO"
+		res.Output = "No running containers"
+		return res
+	}
+
+	for _, container := range containers {
+		info, _ := client.ContainerInspect(container.ID)
+		mem := info.HostConfig.Memory
+		if mem == 0 {
+			badContainers = append(badContainers, container.ID)
+		}
+	}
+
+	if len(badContainers) == 0 {
+		res.Status = "PASS"
+	} else {
+		res.Status = "WARN"
+		res.Output = fmt.Sprintf("Containers with no memory limits: %s", badContainers)
+	}
+
+	return res
+}
+
+func CheckCpuShares(client *client.Client) audit.Result {
+	var res audit.Result
+	var badContainers []string
+	res.Name = "5.12 Set container CPU priority appropriately"
+	options := types.ContainerListOptions{All: false}
+	containers, err := client.ContainerList(options)
+	if err != nil {
+		log.Printf("Unable to get container list")
+		return res
+	}
+	if len(containers) == 0 {
+		res.Status = "INFO"
+		res.Output = "No running containers"
+		return res
+	}
+
+	for _, container := range containers {
+		info, _ := client.ContainerInspect(container.ID)
+		shares := info.HostConfig.CPUShares
+		if shares == 0 || shares == 1024 {
+			badContainers = append(badContainers, container.ID)
+		}
+	}
+
+	if len(badContainers) == 0 {
+		res.Status = "PASS"
+	} else {
+		res.Status = "WARN"
+		res.Output = fmt.Sprintf("Containers with CPU sharing disabled: %s", badContainers)
+	}
+
+	return res
+}
+
+func CheckReadonlyRoot(client *client.Client) audit.Result {
+	var res audit.Result
+	var badContainers []string
+	res.Name = "5.13 Mount container's root filesystem as read only"
+	options := types.ContainerListOptions{All: false}
+	containers, err := client.ContainerList(options)
+	if err != nil {
+		log.Printf("Unable to get container list")
+		return res
+	}
+	if len(containers) == 0 {
+		res.Status = "INFO"
+		res.Output = "No running containers"
+		return res
+	}
+
+	for _, container := range containers {
+		info, _ := client.ContainerInspect(container.ID)
+		readonly := info.HostConfig.ReadonlyRootfs
+		if readonly == false {
+			badContainers = append(badContainers, container.ID)
+		}
+	}
+
+	if len(badContainers) == 0 {
+		res.Status = "PASS"
+	} else {
+		res.Status = "WARN"
+		res.Output = fmt.Sprintf("Containers' root FS is not mounted as read-only: %s", badContainers)
+	}
+
+	return res
+}
+
+func CheckRestartPolicy(client *client.Client) audit.Result {
+	var res audit.Result
+	var badContainers []string
+	res.Name = "5.15 Set the 'on-failure' container restart policy to 5"
+	options := types.ContainerListOptions{All: false}
+	containers, err := client.ContainerList(options)
+	if err != nil {
+		log.Printf("Unable to get container list")
+		return res
+	}
+	if len(containers) == 0 {
+		res.Status = "INFO"
+		res.Output = "No running containers"
+		return res
+	}
+
+	for _, container := range containers {
+		info, _ := client.ContainerInspect(container.ID)
+		policy := info.HostConfig.RestartPolicy
+		if policy.Name != "on-failure" && policy.MaximumRetryCount < 5 {
+			badContainers = append(badContainers, container.ID)
+		}
+	}
+
+	if len(badContainers) == 0 {
+		res.Status = "PASS"
+	} else {
+		res.Status = "WARN"
+		res.Output = fmt.Sprintf("Containers with no restart policy: %s", badContainers)
+	}
+
+	return res
+}
+
+func CheckHostNamespace(client *client.Client) audit.Result {
+	var res audit.Result
+	var badContainers []string
+	res.Name = "5.16 Do not share the host's process namespace"
+	options := types.ContainerListOptions{All: false}
+	containers, err := client.ContainerList(options)
+	if err != nil {
+		log.Printf("Unable to get container list")
+		return res
+	}
+	if len(containers) == 0 {
+		res.Status = "INFO"
+		res.Output = "No running containers"
+		return res
+	}
+
+	for _, container := range containers {
+		info, _ := client.ContainerInspect(container.ID)
+		mode := info.HostConfig.PidMode
+		if mode == "host" {
+			badContainers = append(badContainers, container.ID)
+		}
+	}
+
+	if len(badContainers) == 0 {
+		res.Status = "PASS"
+	} else {
+		res.Status = "WARN"
+		res.Output = fmt.Sprintf("Containers sharing host's process namespace: %s", badContainers)
+	}
+
+	return res
+}
+
+func CheckIPCNamespace(client *client.Client) audit.Result {
+	var res audit.Result
+	var badContainers []string
+	res.Name = "5.17 Do not share the host's IPC namespace"
+	options := types.ContainerListOptions{All: false}
+	containers, err := client.ContainerList(options)
+	if err != nil {
+		log.Printf("Unable to get container list")
+		return res
+	}
+	if len(containers) == 0 {
+		res.Status = "INFO"
+		res.Output = "No running containers"
+		return res
+	}
+
+	for _, container := range containers {
+		info, _ := client.ContainerInspect(container.ID)
+		mode := info.HostConfig.IpcMode
+		if mode == "host" {
+			badContainers = append(badContainers, container.ID)
+		}
+	}
+
+	if len(badContainers) == 0 {
+		res.Status = "PASS"
+	} else {
+		res.Status = "WARN"
+		res.Output = fmt.Sprintf("Containers sharing host's IPC namespace: %s", badContainers)
+	}
+
+	return res
+}
+
+func CheckHostDevices(client *client.Client) audit.Result {
+	var res audit.Result
+	var badContainers []string
+	res.Name = "5.18 Do not directly expose host devices to containers"
+	options := types.ContainerListOptions{All: false}
+	containers, err := client.ContainerList(options)
+	if err != nil {
+		log.Printf("Unable to get container list")
+		return res
+	}
+	if len(containers) == 0 {
+		res.Status = "INFO"
+		res.Output = "No running containers"
+		return res
+	}
+
+	for _, container := range containers {
+		info, _ := client.ContainerInspect(container.ID)
+		devices := info.HostConfig.Devices
+		if len(devices) != 0 {
+			badContainers = append(badContainers, container.ID)
+		}
+	}
+
+	if len(badContainers) == 0 {
+		res.Status = "PASS"
+	} else {
+		res.Status = "WARN"
+		res.Output = fmt.Sprintf("Host devices exposed. Check your permissions: %s", badContainers)
+	}
+
+	return res
+}
+
+func CheckDefaultUlimit(client *client.Client) audit.Result {
+	var res audit.Result
+	var badContainers []string
+	res.Name = "5.19 Override default ulimit at runtime only if needed "
+	options := types.ContainerListOptions{All: false}
+	containers, err := client.ContainerList(options)
+	if err != nil {
+		log.Printf("Unable to get container list")
+		return res
+	}
+	if len(containers) == 0 {
+		res.Status = "INFO"
+		res.Output = "No running containers"
+		return res
+	}
+
+	for _, container := range containers {
+		info, _ := client.ContainerInspect(container.ID)
+		ulimit := info.HostConfig.Ulimits
+		if ulimit != nil {
+			badContainers = append(badContainers, container.ID)
+		}
+	}
+
+	if len(badContainers) == 0 {
+		res.Status = "PASS"
+	} else {
+		res.Status = "WARN"
+		res.Output = fmt.Sprintf("Containers overriding default ulimit: %s", badContainers)
+	}
 
 	return res
 }
