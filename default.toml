@@ -27,6 +27,9 @@ Name = "Docker daemon configuration"
 Checklist = [ 
         "lxc_driver",
         "net_traffic",
+        "logging_level",
+        "allow_iptables",
+        "insecure_registry",
         ]
 
 
@@ -78,6 +81,7 @@ Checklist = [
         "memory_usage",
         "cpu_shares",
         "readonly_rootfs",
+        "bind_specific_int",
         "restart_policy",
         "host_namespace",
         "ipc_namespace",

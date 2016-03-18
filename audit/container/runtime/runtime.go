@@ -7,36 +7,36 @@ import (
 	"github.com/docker/engine-api/types"
 	// "github.com/docker/engine-api/types/container"
 	"log"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 var checks = map[string]audit.Check{
-	"apparmor_profile": CheckAppArmor,
-	"selinux_options": CheckSELinux,
-	"single_process": CheckSingleMainProcess,
-	"kernel_capabilities": CheckKernelCapabilities,
+	"apparmor_profile":      CheckAppArmor,
+	"selinux_options":       CheckSELinux,
+	"single_process":        CheckSingleMainProcess,
+	"kernel_capabilities":   CheckKernelCapabilities,
 	"privileged_containers": CheckPrivContainers,
-	"sensitive_dirs": CheckSensitiveDirs,
-	"ssh_running": CheckSshRunning,
-	"privileged_ports": CheckPrivilegedPorts,
-	"needed_ports": CheckNeededPorts,
-	"host_net_mode": CheckHostNetworkMode,
-	"memory_usage": CheckMemoryLimits,
-	"cpu_shares": CheckCpuShares,
-	"readonly_rootfs": CheckReadonlyRoot,
-	"restart_policy": CheckRestartPolicy,
-	"host_namespace": CheckHostNamespace,
-	"ipc_namespace": CheckIPCNamespace,
-	"host_devices": CheckHostDevices,
-	"override_ulimit": CheckDefaultUlimit,
+	"sensitive_dirs":        CheckSensitiveDirs,
+	"ssh_running":           CheckSSHRunning,
+	"privileged_ports":      CheckPrivilegedPorts,
+	"needed_ports":          CheckNeededPorts,
+	"host_net_mode":         CheckHostNetworkMode,
+	"memory_usage":          CheckMemoryLimits,
+	"cpu_shares":            CheckCPUShares,
+	"readonly_rootfs":       CheckReadonlyRoot,
+	"bind_specific_int": 	 CheckBindHostInterface,
+	"restart_policy":        CheckRestartPolicy,
+	"host_namespace":        CheckHostNamespace,
+	"ipc_namespace":         CheckIPCNamespace,
+	"host_devices":          CheckHostDevices,
+	"override_ulimit":       CheckDefaultUlimit,
 }
 
 func GetAuditDefinitions() map[string]audit.Check {
 
 	return checks
 }
-
 
 func CheckAppArmor(client *client.Client) audit.Result {
 	var res audit.Result
@@ -130,7 +130,7 @@ func CheckSingleMainProcess(client *client.Client) audit.Result {
 		procs, _ := client.ContainerTop(container.ID, []string{})
 		mainPid := procs.Processes[0][1]
 		//checks if there are different parent PIDs
-		for _, proc :=range procs.Processes[1:] {
+		for _, proc := range procs.Processes[1:] {
 			ppid := proc[2]
 			if ppid != mainPid {
 				badContainers = append(badContainers, container.ID)
@@ -237,7 +237,7 @@ func CheckSensitiveDirs(client *client.Client) audit.Result {
 		mounts := info.Mounts
 		for _, mount := range mounts {
 			for _, dir := range sensitiveDirs {
-				if strings.HasPrefix(mount.Source,dir) && mount.RW == true {
+				if strings.HasPrefix(mount.Source, dir) && mount.RW == true {
 					badContainers = append(badContainers, container.ID)
 				}
 			}
@@ -254,7 +254,7 @@ func CheckSensitiveDirs(client *client.Client) audit.Result {
 	return res
 }
 
-func CheckSshRunning(client *client.Client) audit.Result {
+func CheckSSHRunning(client *client.Client) audit.Result {
 	var res audit.Result
 	var badContainers []string
 	res.Name = "5.7 Do not run ssh within containers"
@@ -273,9 +273,9 @@ func CheckSshRunning(client *client.Client) audit.Result {
 	for _, container := range containers {
 		procs, _ := client.ContainerTop(container.ID, []string{})
 		//proc fields are [UID PID PPID C STIME TTY TIME CMD]
-		for _, proc :=range procs.Processes {
+		for _, proc := range procs.Processes {
 			procname := proc[7]
-			if strings.Contains(procname,"ssh") {
+			if strings.Contains(procname, "ssh") {
 				badContainers = append(badContainers, container.ID)
 			}
 		}
@@ -312,7 +312,7 @@ func CheckPrivilegedPorts(client *client.Client) audit.Result {
 		for _, port := range ports {
 			for _, portmap := range port {
 				hostPort, _ := strconv.Atoi(portmap.HostPort)
-				if  hostPort < 1024 {
+				if hostPort < 1024 {
 					badContainers = append(badContainers, container.ID)
 				}
 			}
@@ -355,8 +355,8 @@ func CheckNeededPorts(client *client.Client) audit.Result {
 			containerPort[container.ID] = append(containerPort[container.ID], string(key))
 		}
 	}
-		res.Status = "INFO"
-		res.Output = fmt.Sprintf("Containers with open ports: %v \n", containerPort)
+	res.Status = "INFO"
+	res.Output = fmt.Sprintf("Containers with open ports: %v \n", containerPort)
 
 	return res
 }
@@ -429,7 +429,7 @@ func CheckMemoryLimits(client *client.Client) audit.Result {
 	return res
 }
 
-func CheckCpuShares(client *client.Client) audit.Result {
+func CheckCPUShares(client *client.Client) audit.Result {
 	var res audit.Result
 	var badContainers []string
 	res.Name = "5.12 Set container CPU priority appropriately"
@@ -492,6 +492,44 @@ func CheckReadonlyRoot(client *client.Client) audit.Result {
 	} else {
 		res.Status = "WARN"
 		res.Output = fmt.Sprintf("Containers' root FS is not mounted as read-only: %s", badContainers)
+	}
+
+	return res
+}
+
+func CheckBindHostInterface(client *client.Client) audit.Result {
+	var res audit.Result
+	var badContainers []string
+	res.Name = "5.14 Bind incoming container traffic to a specific host interface"
+	options := types.ContainerListOptions{All: false}
+	containers, err := client.ContainerList(options)
+	if err != nil {
+		log.Printf("Unable to get container list")
+		return res
+	}
+	if len(containers) == 0 {
+		res.Status = "INFO"
+		res.Output = "No running containers"
+		return res
+	}
+
+	for _, container := range containers {
+		info, _ := client.ContainerInspect(container.ID)
+		ports := info.NetworkSettings.Ports
+		for _, port := range ports {
+			for _, portmap := range port {
+				if portmap.HostIP == "0.0.0.0" {
+					badContainers = append(badContainers, container.ID)
+				}
+			}
+		}
+	}
+
+	if len(badContainers) == 0 {
+		res.Status = "PASS"
+	} else {
+		res.Status = "WARN"
+		res.Output = fmt.Sprintf("Containers traffic not bound to specific host interface: %s", badContainers)
 	}
 
 	return res
