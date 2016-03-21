@@ -77,12 +77,12 @@ func CheckContainerSprawl(client *client.Client) audit.Result {
 	if diff > 25 {
 		res.Status = "WARN"
 		res.Output = fmt.Sprintf(`There are currently a total of %d containers, 
-			with only %d of them currently running`, len(all_containers), 
+			with only %d of them currently running`, len(all_containers),
 			len(run_containers))
 	} else {
 		res.Status = "PASS"
 		res.Output = fmt.Sprintf(`There are currently a total of %d containers, 
-			with only %d of them currently running`, len(all_containers), 
+			with only %d of them currently running`, len(all_containers),
 			len(run_containers))
 
 	}
