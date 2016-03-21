@@ -96,3 +96,11 @@ Checklist = [
         "host_devices",
         "override_ulimit",
         ]
+        
+[[Audit]]
+
+Name = "Docker Security Operations"
+Checklist = [ 
+        "central_logging",
+        "container_sprawl",
+        ]
