@@ -7,7 +7,6 @@ import (
 	"github.com/docker/engine-api/types"
 	"log"
 	"strings"
-	//"os"
 )
 
 var checks = map[string]audit.Check{
@@ -125,7 +124,7 @@ func CheckLocalRegistry(client *client.Client) audit.Result {
 
 	cmdLine, _ := audit.GetProcCmdline("docker")
 	for _, arg := range cmdLine {
-		if strings.Contains(arg, "'--registry-mirror") {
+		if strings.Contains(arg, "--registry-mirror") {
 			res.Status = "PASS"
 			return res
 		}
@@ -157,7 +156,7 @@ func CheckDefaultSocket(client *client.Client) audit.Result {
 
 	cmdLine, _ := audit.GetProcCmdline("docker")
 	for _, arg := range cmdLine {
-		if strings.Contains(arg, "'-H") {
+		if strings.Contains(arg, "-H") {
 			res.Status = "WARN"
 			return res
 		}
@@ -195,7 +194,7 @@ func CheckUlimit(client *client.Client) audit.Result {
 
 	cmdLine, _ := audit.GetProcCmdline("docker")
 	for _, arg := range cmdLine {
-		if strings.Contains(arg, "'--default-ulimit") {
+		if strings.Contains(arg, "--default-ulimit") {
 			res.Status = "PASS"
 			return res
 		}
