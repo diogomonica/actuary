@@ -67,7 +67,8 @@ func getSystemdFile(filename string) (info os.FileInfo, err error) {
 	return info, err
 }
 
-func hasLeastPerms(info os.FileInfo, safePerms uint32) (isLeast bool, perms os.FileMode) {
+func hasLeastPerms(info os.FileInfo, safePerms uint32) (isLeast bool, 
+	perms os.FileMode) {
 	mode := info.Mode().Perm()
 	if uint32(mode) <= safePerms {
 		isLeast = true
@@ -138,8 +139,8 @@ func CheckServiceOwner(client *client.Client) audit.Result {
 func CheckServicePerms(client *client.Client) audit.Result {
 	var res audit.Result
 	var refPerms uint32
-	res.Name = `3.2 Verify that docker.service file permissions are set to 644 or more
-        restrictive`
+	res.Name = `3.2 Verify that docker.service file permissions are set to 
+		644 or more restrictive`
 	refPerms = 0644
 	fileInfo, err := getSystemdFile("docker.service")
 	if os.IsNotExist(err) {
@@ -153,7 +154,8 @@ func CheckServicePerms(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", perms)
+		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v",
+		 perms)
 	}
 
 	return res
@@ -161,7 +163,8 @@ func CheckServicePerms(client *client.Client) audit.Result {
 
 func CheckRegistryOwner(client *client.Client) audit.Result {
 	var res audit.Result
-	res.Name = "3.3 Verify that docker-registry.service file ownership is set to root:root "
+	res.Name = `3.3 Verify that docker-registry.service file ownership is set 
+	to root:root`
 	refUser := "root"
 	fileInfo, err := getSystemdFile("docker-registry.service")
 	if os.IsNotExist(err) {
@@ -185,8 +188,8 @@ func CheckRegistryOwner(client *client.Client) audit.Result {
 func CheckRegistryPerms(client *client.Client) audit.Result {
 	var res audit.Result
 	var refPerms uint32
-	res.Name = `3.4 Verify that docker-registry.service file permissions are set to 644 or
-        more restrictive`
+	res.Name = `3.4 Verify that docker-registry.service file permissions 
+		are set to 644 or more restrictive`
 	refPerms = 0644
 	fileInfo, err := getSystemdFile("docker-registry.service")
 	if os.IsNotExist(err) {
@@ -200,7 +203,8 @@ func CheckRegistryPerms(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", perms)
+		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", 
+			perms)
 	}
 
 	return res
@@ -247,7 +251,8 @@ func CheckSocketPerms(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", perms)
+		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", 
+			perms)
 	}
 
 	return res
@@ -255,7 +260,8 @@ func CheckSocketPerms(client *client.Client) audit.Result {
 
 func CheckEnvOwner(client *client.Client) audit.Result {
 	var res audit.Result
-	res.Name = "3.7 Verify that Docker environment file ownership is set to root:root "
+	res.Name = `3.7 Verify that Docker environment file ownership 
+		is set to root:root`
 	refUser := "root"
 	fileInfo, err := getSystemdFile("docker")
 	if os.IsNotExist(err) {
@@ -279,8 +285,8 @@ func CheckEnvOwner(client *client.Client) audit.Result {
 func CheckEnvPerms(client *client.Client) audit.Result {
 	var res audit.Result
 	var refPerms uint32
-	res.Name = `3.8 Verify that Docker environment file permissions are set to 644 or
-        more restrictive`
+	res.Name = `3.8 Verify that Docker environment file permissions are set 
+		to 644 or more restrictive`
 	refPerms = 0644
 	fileInfo, err := getSystemdFile("docker")
 	if os.IsNotExist(err) {
@@ -294,7 +300,8 @@ func CheckEnvPerms(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", perms)
+		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", 
+			perms)
 	}
 
 	return res
@@ -342,7 +349,8 @@ func CheckNetEnvPerms(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", perms)
+		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", 
+			perms)
 	}
 
 	return res
@@ -375,8 +383,8 @@ func CheckRegEnvOwner(client *client.Client) audit.Result {
 func CheckRegEnvPerms(client *client.Client) audit.Result {
 	var res audit.Result
 	var refPerms uint32
-	res.Name = `3.12 Verify that docker-registry environment file permissions are set to
-        644 or more restrictive`
+	res.Name = `3.12 Verify that docker-registry environment file permissions 
+	are set to 644 or more restrictive`
 	refPerms = 0644
 	fileInfo, err := getSystemdFile("docker-registry")
 	if os.IsNotExist(err) {
@@ -390,7 +398,8 @@ func CheckRegEnvPerms(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", perms)
+		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", 
+			perms)
 	}
 
 	return res
@@ -414,7 +423,8 @@ func CheckStoreEnvOwner(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("User/group owner should be : %s", refUser)
+		res.Output = fmt.Sprintf("User/group owner should be : %s", 
+			refUser)
 	}
 
 	return res
@@ -423,8 +433,8 @@ func CheckStoreEnvOwner(client *client.Client) audit.Result {
 func CheckStoreEnvPerms(client *client.Client) audit.Result {
 	var res audit.Result
 	var refPerms uint32
-	res.Name = `3.14 Verify that docker-storage environment file permissions are set to
-        644 or more restrictive`
+	res.Name = `3.14 Verify that docker-storage environment file permissions 
+		are set to 644 or more restrictive`
 	refPerms = 0644
 	fileInfo, err := getSystemdFile("docker-storage")
 	if os.IsNotExist(err) {
@@ -438,7 +448,8 @@ func CheckStoreEnvPerms(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", perms)
+		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", 
+			perms)
 	}
 
 	return res
@@ -470,8 +481,8 @@ func CheckDockerDirOwner(client *client.Client) audit.Result {
 func CheckDockerDirPerms(client *client.Client) audit.Result {
 	var res audit.Result
 	var refPerms uint32
-	res.Name = `3.16 Verify that /etc/docker directory permissions are set to 755 or
-        more restrictive`
+	res.Name = `3.16 Verify that /etc/docker directory permissions 
+		are set to 755 or more restrictive`
 	refPerms = 0755
 	fileInfo, err := os.Stat("/etc/docker")
 	if os.IsNotExist(err) {
@@ -485,7 +496,8 @@ func CheckDockerDirPerms(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", perms)
+		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", 
+			perms)
 	}
 
 	return res
@@ -494,7 +506,8 @@ func CheckDockerDirPerms(client *client.Client) audit.Result {
 func CheckRegistryCertOwner(client *client.Client) audit.Result {
 	var res audit.Result
 	var badFiles []string
-	res.Name = "3.17 Verify that registry certificate file ownership is set to root:root"
+	res.Name = `3.17 Verify that registry certificate file ownership
+	 is set to root:root`
 	refUser := "root"
 	refUid, refGid := getUserInfo(refUser)
 
@@ -526,7 +539,8 @@ func CheckRegistryCertOwner(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Certificate files do not have %s as owner : %s", refUser, badFiles)
+		res.Output = fmt.Sprintf("Certificate files do not have %s as owner : %s", 
+			refUser, badFiles)
 	}
 	return res
 }
@@ -535,8 +549,8 @@ func CheckRegistryCertPerms(client *client.Client) audit.Result {
 	var res audit.Result
 	var badFiles []string
 	var refPerms uint32
-	res.Name = `3.18 Verify that registry certificate file permissions are set to 444 or
-            more restrictive`
+	res.Name = `3.18 Verify that registry certificate file permissions 
+		are set to 444 or more restrictive`
 	refPerms = 0444
 	files, err := ioutil.ReadDir("/etc/docker/certs.d/")
 	if err != nil {
@@ -566,7 +580,8 @@ func CheckRegistryCertPerms(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Certificate files do not have required permissions: %s", badFiles)
+		res.Output = fmt.Sprintf("Certificate files do not have required permissions: %s", 
+			badFiles)
 	}
 	return res
 }
@@ -599,8 +614,8 @@ func CheckCACertOwner(client *client.Client) audit.Result {
 func CheckCACertPerms(client *client.Client) audit.Result {
 	var res audit.Result
 	var refPerms uint32
-	res.Name = `3.20 Verify that TLS CA certificate file permissions are set to 444 or more
-        restrictive`
+	res.Name = `3.20 Verify that TLS CA certificate file permissions 
+	are set to 444 or more restrictive`
 	refPerms = 0444
 	dockerProc, _ := audit.GetProcCmdline("docker")
 	_, certPath := audit.GetCmdOption(dockerProc, "--tlscacert")
@@ -616,7 +631,8 @@ func CheckCACertPerms(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", perms)
+		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v",
+		 perms)
 	}
 
 	return res
@@ -651,8 +667,8 @@ func CheckServerCertOwner(client *client.Client) audit.Result {
 func CheckServerCertPerms(client *client.Client) audit.Result {
 	var res audit.Result
 	var refPerms uint32
-	res.Name = `3.22 Verify that Docker server certificate file permissions are set to 444
-        or more restrictive`
+	res.Name = `3.22 Verify that Docker server certificate file permissions 
+		are set to 444 or more restrictive`
 	refPerms = 0444
 	dockerProc, _ := audit.GetProcCmdline("docker")
 	_, certPath := audit.GetCmdOption(dockerProc, "--tlscert")
@@ -668,7 +684,8 @@ func CheckServerCertPerms(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", perms)
+		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", 
+			perms)
 	}
 
 	return res
@@ -703,8 +720,8 @@ func CheckCertKeyOwner(client *client.Client) audit.Result {
 func CheckCertKeyPerms(client *client.Client) audit.Result {
 	var res audit.Result
 	var refPerms uint32
-	res.Name = `3.24 Verify that Docker server certificate key file permissions are set to
-        400 `
+	res.Name = `3.24 Verify that Docker server certificate key file 
+	permissions are set to 400`
 	refPerms = 0400
 	dockerProc, _ := audit.GetProcCmdline("docker")
 	_, certPath := audit.GetCmdOption(dockerProc, "--tlskey")
@@ -720,7 +737,8 @@ func CheckCertKeyPerms(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", perms)
+		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", 
+			perms)
 	}
 
 	return res
@@ -728,7 +746,8 @@ func CheckCertKeyPerms(client *client.Client) audit.Result {
 
 func CheckDockerSockOwner(client *client.Client) audit.Result {
 	var res audit.Result
-	res.Name = "3.25 Verify that Docker socket file ownership is set to root:docker "
+	res.Name = `3.25 Verify that Docker socket file ownership 
+	is set to root:docker`
 	refUser := "root"
 	refGroup := "docker"
 	fileInfo, err := os.Stat("/var/run/docker.sock")
@@ -768,7 +787,8 @@ func CheckDockerSockPerms(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", perms)
+		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", 
+			perms)
 	}
 
 	return res

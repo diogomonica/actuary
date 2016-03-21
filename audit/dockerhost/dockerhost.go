@@ -78,7 +78,8 @@ func CheckKernelVersion(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Host is not using an updated kernel: %s", info.KernelVersion)
+		res.Output = fmt.Sprintf("Host is not using an updated kernel: %s", 
+			info.KernelVersion)
 	}
 
 	return res
@@ -93,7 +94,8 @@ func CheckRunningServices(client *client.Client) audit.Result {
 		openPorts = append(openPorts, proc.Port)
 	}
 	res.Status = "INFO"
-	res.Output = fmt.Sprintf("Host listening on %d ports: %d", len(openPorts), openPorts)
+	res.Output = fmt.Sprintf("Host listening on %d ports: %d", len(openPorts), 
+		openPorts)
 	return res
 }
 
@@ -111,7 +113,8 @@ func CheckDockerVersion(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Host is using an outdated Docker server: %s ", info.Version)
+		res.Output = fmt.Sprintf("Host is using an outdated Docker server: %s ", 
+			info.Version)
 	}
 
 	return res
@@ -146,7 +149,8 @@ func CheckTrustedUsers(client *client.Client) audit.Result {
 		}
 	}
 	res.Status = "INFO"
-	res.Output = fmt.Sprintf("The following users control the Docker daemon: %s", trustedUsers)
+	res.Output = fmt.Sprintf("The following users control the Docker daemon: %s", 
+		trustedUsers)
 
 	return res
 }
