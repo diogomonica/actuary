@@ -1,7 +1,6 @@
 {
 	"ImportPath": "github.com/diogomonica/actuary",
 	"GoVersion": "go1.6",
-	"GodepVersion": "v60",
 	"Deps": [
 		{
 			"ImportPath": "github.com/BurntSushi/toml",
@@ -9,18 +8,9 @@
 			"Rev": "312db06c6c6dbfa9899e58564bacfaa584f18ab7"
 		},
 		{
-			"ImportPath": "github.com/Microsoft/go-winio",
-			"Comment": "v0.1.0",
-			"Rev": "8f9387ea7efabb228a981b9c381142be7667967f"
-		},
-		{
 			"ImportPath": "github.com/Sirupsen/logrus",
 			"Comment": "v0.9.0-7-g840e991",
 			"Rev": "840e99181ee53d0596ae957218dc170d739511ea"
-		},
-		{
-			"ImportPath": "github.com/StackExchange/wmi",
-			"Rev": "f3e2bae1e0cb5aef83e319133eabfee30013a4a5"
 		},
 		{
 			"ImportPath": "github.com/docker/engine-api/client",
@@ -28,52 +18,7 @@
 			"Rev": "2dc6a81edae0f33fc0f05b57d2a391a4ad983971"
 		},
 		{
-			"ImportPath": "github.com/docker/engine-api/client/transport",
-			"Comment": "v0.2.2-80-g2dc6a81",
-			"Rev": "2dc6a81edae0f33fc0f05b57d2a391a4ad983971"
-		},
-		{
-			"ImportPath": "github.com/docker/engine-api/client/transport/cancellable",
-			"Comment": "v0.2.2-80-g2dc6a81",
-			"Rev": "2dc6a81edae0f33fc0f05b57d2a391a4ad983971"
-		},
-		{
 			"ImportPath": "github.com/docker/engine-api/types",
-			"Comment": "v0.2.2-80-g2dc6a81",
-			"Rev": "2dc6a81edae0f33fc0f05b57d2a391a4ad983971"
-		},
-		{
-			"ImportPath": "github.com/docker/engine-api/types/blkiodev",
-			"Comment": "v0.2.2-80-g2dc6a81",
-			"Rev": "2dc6a81edae0f33fc0f05b57d2a391a4ad983971"
-		},
-		{
-			"ImportPath": "github.com/docker/engine-api/types/container",
-			"Comment": "v0.2.2-80-g2dc6a81",
-			"Rev": "2dc6a81edae0f33fc0f05b57d2a391a4ad983971"
-		},
-		{
-			"ImportPath": "github.com/docker/engine-api/types/filters",
-			"Comment": "v0.2.2-80-g2dc6a81",
-			"Rev": "2dc6a81edae0f33fc0f05b57d2a391a4ad983971"
-		},
-		{
-			"ImportPath": "github.com/docker/engine-api/types/network",
-			"Comment": "v0.2.2-80-g2dc6a81",
-			"Rev": "2dc6a81edae0f33fc0f05b57d2a391a4ad983971"
-		},
-		{
-			"ImportPath": "github.com/docker/engine-api/types/registry",
-			"Comment": "v0.2.2-80-g2dc6a81",
-			"Rev": "2dc6a81edae0f33fc0f05b57d2a391a4ad983971"
-		},
-		{
-			"ImportPath": "github.com/docker/engine-api/types/strslice",
-			"Comment": "v0.2.2-80-g2dc6a81",
-			"Rev": "2dc6a81edae0f33fc0f05b57d2a391a4ad983971"
-		},
-		{
-			"ImportPath": "github.com/docker/engine-api/types/time",
 			"Comment": "v0.2.2-80-g2dc6a81",
 			"Rev": "2dc6a81edae0f33fc0f05b57d2a391a4ad983971"
 		},
@@ -107,43 +52,15 @@
 			"Rev": "7a5857db0b2752a436d8461d88c42dea0ee191c0"
 		},
 		{
-			"ImportPath": "github.com/go-ole/go-ole",
-			"Comment": "v1.2.0-10-g572eabb",
-			"Rev": "572eabb84c424e76a0d39d31510dd7dfd62f70b2"
-		},
-		{
-			"ImportPath": "github.com/go-ole/go-ole/oleutil",
-			"Comment": "v1.2.0-10-g572eabb",
-			"Rev": "572eabb84c424e76a0d39d31510dd7dfd62f70b2"
-		},
-		{
 			"ImportPath": "github.com/hashicorp/go-version",
 			"Rev": "2e7f5ea8e27bb3fdf9baa0881d16757ac4637332"
-		},
-		{
-			"ImportPath": "github.com/mattn/go-colorable",
-			"Rev": "9cbef7c35391cca05f15f8181dc0b18bc9736dbb"
-		},
-		{
-			"ImportPath": "github.com/mattn/go-isatty",
-			"Rev": "56b76bdf51f7708750eac80fa38b952bb9f32639"
 		},
 		{
 			"ImportPath": "github.com/mitchellh/go-ps",
 			"Rev": "e6c6068076470196af082b1ff896e24a51a87b2a"
 		},
 		{
-			"ImportPath": "github.com/opencontainers/runc/libcontainer/user",
-			"Comment": "v0.0.8-35-g488e315",
-			"Rev": "488e315c218b266de72b390c70595dd5c21b8736"
-		},
-		{
 			"ImportPath": "github.com/shirou/gopsutil/cpu",
-			"Comment": "1.0.0-320-g1f32ce1",
-			"Rev": "1f32ce1bb380845be7f5d174ac641a2c592c0c42"
-		},
-		{
-			"ImportPath": "github.com/shirou/gopsutil/host",
 			"Comment": "1.0.0-320-g1f32ce1",
 			"Rev": "1f32ce1bb380845be7f5d174ac641a2c592c0c42"
 		},
@@ -168,20 +85,12 @@
 			"Rev": "1f32ce1bb380845be7f5d174ac641a2c592c0c42"
 		},
 		{
-			"ImportPath": "github.com/shirou/w32",
-			"Rev": "3c9377fc6748f222729a8270fe2775d149a249ad"
-		},
-		{
 			"ImportPath": "golang.org/x/net/context",
 			"Rev": "c745c36eab1034bceb7999c915ced45b1f99021f"
 		},
 		{
 			"ImportPath": "golang.org/x/net/proxy",
 			"Rev": "c745c36eab1034bceb7999c915ced45b1f99021f"
-		},
-		{
-			"ImportPath": "golang.org/x/sys/unix",
-			"Rev": "9d4e42a20653790449273b3c85e67d6d8bae6e2e"
 		}
 	]
 }
