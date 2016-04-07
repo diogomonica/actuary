@@ -1,5 +1,7 @@
 # Actuary
 
+[![Circle CI](https://circleci.com/gh/diogomonica/actuary.svg?style=svg)](https://circleci.com/gh/diogomonica/actuary)
+
 > An actuary is a professional who analyzes the financial consequences of risk.
 
 Docker's Actuary is an application that checks for dozens of common best-practices around deploying Docker containers in production. Actuary takes in a checklist of items to check, and automates the running, inspecting and aggregation of the results.
