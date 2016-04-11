@@ -1,6 +1,6 @@
 FROM golang:1.6.0-wheezy
 
-ENV VERSION 1.10.2
+ENV VERSION 1.10.3
 
 RUN apt-get  update && apt-get install -y git auditd
 
