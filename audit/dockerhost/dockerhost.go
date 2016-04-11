@@ -127,7 +127,7 @@ func CheckTrustedUsers(client *client.Client) audit.Result {
 	groupFile := "/etc/group"
 	content, err := ioutil.ReadFile(groupFile)
 	if err != nil {
-		log.Panicf("Could not read ", groupFile)
+		log.Panicf("Could not read %s", groupFile)
 	}
 	lines := strings.Split(string(content), "\n")
 

@@ -42,7 +42,7 @@ var actions map[string]audit.Check
 func parseProfile(profile string) Profile {
 	_, err := toml.DecodeFile(profile, &tomlProfile)
 	if err != nil {
-		log.Fatalf("Error parsing TOML profile:", err)
+		log.Fatalf("Error parsing TOML profile: %s", err)
 	}
 	return tomlProfile
 }
@@ -123,7 +123,7 @@ func main() {
 	flag.Parse()
 	cli, err := client.NewClient("unix:///var/run/docker.sock", "v1.20", nil, clientHeaders)
 	if err != nil {
-		log.Fatalf("Unable to connect to Docker daemon:", err)
+		log.Fatalf("Unable to connect to Docker daemon: %s", err)
 	}
 
 	cmdArgs = flag.Args()
@@ -160,7 +160,7 @@ func main() {
 		case "Docker Security Operations" :
 			actions = dockersecops.GetAuditDefinitions()
 		default: 
-			log.Panicf("No audit category named:", auditName)
+			log.Panicf("No audit category named: %s", auditName)
 			continue
 		}
 		log.Printf("Running Audit: %s", auditName)
@@ -172,7 +172,7 @@ func main() {
 				results = append(results, res)
 				consoleOutput(res)
 			} else {
-				log.Panicf("No check named", check)
+				log.Panicf("No check named %s", check)
 			}
 		}
 	}
