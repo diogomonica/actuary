@@ -11,7 +11,7 @@ import (
 	"github.com/diogomonica/actuary/audit/dockerhost"
 	"github.com/diogomonica/actuary/audit/dockerconf"
 	"github.com/diogomonica/actuary/audit/dockerfiles"
-		"github.com/diogomonica/actuary/audit/dockersecops"
+	"github.com/diogomonica/actuary/audit/dockersecops"
 	"github.com/diogomonica/actuary/audit/container/images"
 	"github.com/diogomonica/actuary/audit/container/runtime"
 	"github.com/docker/engine-api/client"
