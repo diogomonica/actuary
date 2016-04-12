@@ -1,25 +1,23 @@
 package main
 
 import (
-	//"bytes"
 	"crypto/sha1"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/BurntSushi/toml"
 	"github.com/diogomonica/actuary/audit"
-	"github.com/diogomonica/actuary/audit/dockerhost"
-	"github.com/diogomonica/actuary/audit/dockerconf"
-	"github.com/diogomonica/actuary/audit/dockerfiles"
-	"github.com/diogomonica/actuary/audit/dockersecops"
 	"github.com/diogomonica/actuary/audit/container/images"
 	"github.com/diogomonica/actuary/audit/container/runtime"
+	"github.com/diogomonica/actuary/audit/dockerconf"
+	"github.com/diogomonica/actuary/audit/dockerfiles"
+	"github.com/diogomonica/actuary/audit/dockerhost"
+	"github.com/diogomonica/actuary/audit/dockersecops"
 	"github.com/docker/engine-api/client"
 	"github.com/fatih/color"
 	"io/ioutil"
-	//"io"
-	"net/http"
 	"log"
+	"net/http"
 	"os"
 	"path"
 )
@@ -50,7 +48,7 @@ func parseProfile(profile string) Profile {
 // read audit profile using the API
 func getProfile(hash string) string {
 	var profilePath string
-	var serverAddr string 
+	var serverAddr string
 	var url string
 
 	serverAddr = "http://127.0.0.1:8000/"
@@ -63,7 +61,7 @@ func getProfile(hash string) string {
 	body, _ := ioutil.ReadAll(resp.Body)
 	bodyHash := fmt.Sprintf("%x", sha1.Sum(body))
 	if bodyHash == hash {
-		profilePath = path.Join("/tmp",hash)
+		profilePath = path.Join("/tmp", hash)
 		profile, err := os.Create(profilePath)
 		if err != nil {
 			log.Fatalf("Unable to create profile: %s", err)
@@ -73,7 +71,7 @@ func getProfile(hash string) string {
 			log.Fatalf("Unable to copy data from HTTP response: %s", err)
 		}
 
-	} 
+	}
 	return profilePath
 }
 
@@ -119,7 +117,7 @@ func main() {
 	var cmdArgs []string
 	var hash string
 	var auditName string
-	
+
 	flag.Parse()
 	cli, err := client.NewClient("unix:///var/run/docker.sock", "v1.20", nil, clientHeaders)
 	if err != nil {
@@ -148,18 +146,18 @@ func main() {
 	for category := range tomlProfile.Audit {
 		switch auditName = tomlProfile.Audit[category].Name; auditName {
 		case "Host Configuration":
-			actions = dockerhost.GetAuditDefinitions()		
+			actions = dockerhost.GetAuditDefinitions()
 		case "Docker daemon configuration":
 			actions = dockerconf.GetAuditDefinitions()
 		case "Docker daemon configuration files":
 			actions = dockerfiles.GetAuditDefinitions()
-		case "Container Images and Build File" :
+		case "Container Images and Build File":
 			actions = images.GetAuditDefinitions()
-		case "Container Runtime" :
+		case "Container Runtime":
 			actions = runtime.GetAuditDefinitions()
-		case "Docker Security Operations" :
+		case "Docker Security Operations":
 			actions = dockersecops.GetAuditDefinitions()
-		default: 
+		default:
 			log.Panicf("No audit category named: %s", auditName)
 			continue
 		}

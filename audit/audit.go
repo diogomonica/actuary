@@ -6,8 +6,7 @@ import (
 	"github.com/shirou/gopsutil/process"
 	"strings"
 	//"log"
-	)
-
+)
 
 type Result struct {
 	Name   string
@@ -27,11 +26,10 @@ func GetProcCmdline(procname string) (cmd []string, err error) {
 			break
 		}
 	}
-	proc,err := process.NewProcess(int32(pid))
+	proc, err := process.NewProcess(int32(pid))
 	cmd, err = proc.CmdlineSlice()
 	return cmd, err
 }
-
 
 func GetCmdOption(args []string, opt string) (exist bool, val string) {
 	var optBuf string
@@ -43,7 +41,7 @@ func GetCmdOption(args []string, opt string) (exist bool, val string) {
 		}
 	}
 	if exist {
-		nameVal := strings.Split(optBuf,"=")
+		nameVal := strings.Split(optBuf, "=")
 		if len(nameVal) > 1 {
 			val = strings.TrimSuffix(nameVal[1], " ")
 		}
