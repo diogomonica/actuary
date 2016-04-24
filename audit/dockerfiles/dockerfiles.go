@@ -67,7 +67,7 @@ func getSystemdFile(filename string) (info os.FileInfo, err error) {
 	return info, err
 }
 
-func hasLeastPerms(info os.FileInfo, safePerms uint32) (isLeast bool,
+func hasLeastPerms(info os.FileInfo, safePerms uint32) (isLeast bool, 
 	perms os.FileMode) {
 	mode := info.Mode().Perm()
 	if uint32(mode) <= safePerms {
@@ -155,7 +155,7 @@ func CheckServicePerms(client *client.Client) audit.Result {
 	} else {
 		res.Status = "WARN"
 		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v",
-			perms)
+		 perms)
 	}
 
 	return res
@@ -203,7 +203,7 @@ func CheckRegistryPerms(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v",
+		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", 
 			perms)
 	}
 
@@ -251,7 +251,7 @@ func CheckSocketPerms(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v",
+		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", 
 			perms)
 	}
 
@@ -300,7 +300,7 @@ func CheckEnvPerms(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v",
+		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", 
 			perms)
 	}
 
@@ -349,7 +349,7 @@ func CheckNetEnvPerms(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v",
+		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", 
 			perms)
 	}
 
@@ -398,7 +398,7 @@ func CheckRegEnvPerms(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v",
+		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", 
 			perms)
 	}
 
@@ -423,7 +423,7 @@ func CheckStoreEnvOwner(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("User/group owner should be : %s",
+		res.Output = fmt.Sprintf("User/group owner should be : %s", 
 			refUser)
 	}
 
@@ -448,7 +448,7 @@ func CheckStoreEnvPerms(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v",
+		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", 
 			perms)
 	}
 
@@ -496,7 +496,7 @@ func CheckDockerDirPerms(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v",
+		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", 
 			perms)
 	}
 
@@ -539,7 +539,7 @@ func CheckRegistryCertOwner(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Certificate files do not have %s as owner : %s",
+		res.Output = fmt.Sprintf("Certificate files do not have %s as owner : %s", 
 			refUser, badFiles)
 	}
 	return res
@@ -580,7 +580,7 @@ func CheckRegistryCertPerms(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Certificate files do not have required permissions: %s",
+		res.Output = fmt.Sprintf("Certificate files do not have required permissions: %s", 
 			badFiles)
 	}
 	return res
@@ -632,7 +632,7 @@ func CheckCACertPerms(client *client.Client) audit.Result {
 	} else {
 		res.Status = "WARN"
 		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v",
-			perms)
+		 perms)
 	}
 
 	return res
@@ -684,7 +684,7 @@ func CheckServerCertPerms(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v",
+		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", 
 			perms)
 	}
 
@@ -737,7 +737,7 @@ func CheckCertKeyPerms(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v",
+		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", 
 			perms)
 	}
 
@@ -787,7 +787,7 @@ func CheckDockerSockPerms(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v",
+		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v", 
 			perms)
 	}
 

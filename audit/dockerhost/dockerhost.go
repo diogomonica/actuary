@@ -2,8 +2,8 @@ package dockerhost
 
 import (
 	"fmt"
-	"github.com/diogomonica/actuary/audit"
 	"github.com/docker/engine-api/client"
+	"github.com/diogomonica/actuary/audit"
 	"github.com/drael/GOnetstat"
 	version "github.com/hashicorp/go-version"
 	"io/ioutil"
@@ -78,7 +78,7 @@ func CheckKernelVersion(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Host is not using an updated kernel: %s",
+		res.Output = fmt.Sprintf("Host is not using an updated kernel: %s", 
 			info.KernelVersion)
 	}
 
@@ -94,20 +94,15 @@ func CheckRunningServices(client *client.Client) audit.Result {
 		openPorts = append(openPorts, proc.Port)
 	}
 	res.Status = "INFO"
-	res.Output = fmt.Sprintf("Host listening on %d ports: %d", len(openPorts),
+	res.Output = fmt.Sprintf("Host listening on %d ports: %d", len(openPorts), 
 		openPorts)
 	return res
 }
 
 func CheckDockerVersion(client *client.Client) audit.Result {
 	var res audit.Result
-	var verConstr string
 	res.Name = "1.6 Keep Docker up to date"
-	if os.Getenv("VERSION") != "" {
-		verConstr = os.Getenv("VERSION")
-	} else {
-		verConstr = "1.10.3"
-	}
+	verConstr := os.Getenv("VERSION")
 	info, err := client.ServerVersion()
 	if err != nil {
 		log.Fatalf("Could not retrieve info for Docker host")
@@ -118,7 +113,7 @@ func CheckDockerVersion(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Host is using an outdated Docker server: %s ",
+		res.Output = fmt.Sprintf("Host is using an outdated Docker server: %s ", 
 			info.Version)
 	}
 
@@ -154,7 +149,7 @@ func CheckTrustedUsers(client *client.Client) audit.Result {
 		}
 	}
 	res.Status = "INFO"
-	res.Output = fmt.Sprintf("The following users control the Docker daemon: %s",
+	res.Output = fmt.Sprintf("The following users control the Docker daemon: %s", 
 		trustedUsers)
 
 	return res
