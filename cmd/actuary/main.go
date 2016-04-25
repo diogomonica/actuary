@@ -3,25 +3,26 @@ package main
 import (
 	"flag"
 	//"github.com/diogomonica/actuary"
-	"github.com/diogomonica/actuary/audit"
-	"github.com/diogomonica/actuary/profileutils"
-	"github.com/diogomonica/actuary/audit/dockerhost"
-	"github.com/diogomonica/actuary/audit/dockerconf"
-	"github.com/diogomonica/actuary/audit/dockerfiles"
-	"github.com/diogomonica/actuary/audit/dockersecops"
-	"github.com/diogomonica/actuary/audit/container/images"
-	"github.com/diogomonica/actuary/audit/container/runtime"
-	"github.com/diogomonica/actuary/oututils"
-	"github.com/docker/engine-api/client"
 	"log"
 	"os"
+
+	"github.com/diogomonica/actuary/audit"
+	"github.com/diogomonica/actuary/audit/container/images"
+	"github.com/diogomonica/actuary/audit/container/runtime"
+	"github.com/diogomonica/actuary/audit/dockerconf"
+	"github.com/diogomonica/actuary/audit/dockerfiles"
+	"github.com/diogomonica/actuary/audit/dockerhost"
+	"github.com/diogomonica/actuary/audit/dockersecops"
+	"github.com/diogomonica/actuary/oututils"
+	"github.com/diogomonica/actuary/profileutils"
+	"github.com/docker/engine-api/client"
 )
 
 var profile = flag.String("profile", "", "Actuary profile file path")
 var output = flag.String("output", "", "JSON output filename")
 var tomlProfile profileutils.Profile
-var report oututils.Report
 var clientHeaders map[string]string
+var results []audit.Result
 var actions map[string]audit.Check
 
 func init() {
@@ -43,7 +44,6 @@ func main() {
 		log.Fatalf("Unable to connect to Docker daemon: %s", err)
 	}
 	if *output != "" {
-		report = oututils.CreateReport(*output)
 	}
 	cmdArgs = flag.Args()
 	if len(cmdArgs) == 1 {
@@ -71,11 +71,11 @@ func main() {
 			actions = dockerconf.GetAuditDefinitions()
 		case "Docker daemon configuration files":
 			actions = dockerfiles.GetAuditDefinitions()
-		case "Container Images and Build File" :
+		case "Container Images and Build File":
 			actions = images.GetAuditDefinitions()
-		case "Container Runtime" :
+		case "Container Runtime":
 			actions = runtime.GetAuditDefinitions()
-		case "Docker Security Operations" :
+		case "Docker Security Operations":
 			actions = dockersecops.GetAuditDefinitions()
 		default:
 			log.Panicf("No audit category named: %s", auditName)
@@ -87,7 +87,7 @@ func main() {
 		for _, check := range checks {
 			if _, ok := actions[check]; ok {
 				res := actions[check](cli)
-				report.AddResult(res)
+				results = append(results, res)
 				oututils.ConsolePrint(res)
 			} else {
 				log.Panicf("No check named %s", check)
@@ -96,6 +96,8 @@ func main() {
 	}
 
 	if *output != "" {
-		report.WriteJSON()
+		rep := oututils.CreateReport(*output)
+		rep.Results = results
+		rep.WriteJSON()
 	}
 }

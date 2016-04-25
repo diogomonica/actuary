@@ -5,25 +5,33 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
+	"path"
+
 	"github.com/diogomonica/actuary/audit"
 	"github.com/fatih/color"
 )
 
 type Report struct {
-	filename string
-	results  []audit.Result
+	Filename string
+	Results  []audit.Result
 }
 
 //Create creates a new Report object
-func CreateReport(path string) (r Report) {
-	r.filename = path
+func CreateReport(filename string) *Report {
+	r := &Report{}
+	if path.IsAbs(filename) {
+		r.Filename = filename
+	} else {
+		curDir, err := os.Getwd()
+		if err != nil {
+
+		}
+		r.Filename = path.Join(curDir, filename)
+	}
 	return r
 }
 
-func (r *Report) AddResult(res audit.Result) {
-	r.results = append (r.results, res)
-	return
-}
 //WriteXML prints the report into a XML file
 // func (r *Report) WriteXML() (err error) {
 //
@@ -31,11 +39,11 @@ func (r *Report) AddResult(res audit.Result) {
 
 //WriteJSON prints the report into a JSON file
 func (r *Report) WriteJSON() (err error) {
-	res, err := json.Marshal(r.results)
+	res, err := json.Marshal(r.Results)
 	if err != nil {
 		log.Fatalf("Unable to marshal results into JSON file")
 	}
-	err = ioutil.WriteFile(r.filename, res, 0644)
+	err = ioutil.WriteFile(r.Filename, res, 0644)
 	if err != nil {
 		log.Fatalf("Unable to write results to file")
 	}
