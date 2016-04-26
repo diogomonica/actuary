@@ -17,7 +17,7 @@ type Report struct {
 	Results  []audit.Result
 }
 
-//Create creates a new Report object
+//CreateReport creates a new Report object
 func CreateReport(filename string) *Report {
 	r := &Report{}
 	if path.IsAbs(filename) {
@@ -32,14 +32,9 @@ func CreateReport(filename string) *Report {
 	return r
 }
 
-//WriteXML prints the report into a XML file
-// func (r *Report) WriteXML() (err error) {
-//
-// }
-
 //WriteJSON prints the report into a JSON file
 func (r *Report) WriteJSON() (err error) {
-	res, err := json.Marshal(r.Results)
+	res, err := json.MarshalIndent(r.Results, "", "  ")
 	if err != nil {
 		log.Fatalf("Unable to marshal results into JSON file")
 	}

@@ -7,9 +7,3 @@ type Profile struct {
 		Checklist []string
 	}
 }
-
-
-
-
-
-

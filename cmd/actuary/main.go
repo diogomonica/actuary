@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	//"github.com/diogomonica/actuary"
 	"log"
 	"os"
 
@@ -43,8 +42,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Unable to connect to Docker daemon: %s", err)
 	}
-	if *output != "" {
-	}
+
 	cmdArgs = flag.Args()
 	if len(cmdArgs) == 1 {
 		hash = cmdArgs[0]
