@@ -77,7 +77,7 @@ func CheckKernelVersion(client *client.Client) audit.Result {
 	if err != nil {
 		// necessary fix for Fedora 23
 		log.Print("incompatible kernel version")
-		res.Status = "WARN"
+		res.Status = "INFO"
 		res.Output = "incompatible kernel version reported"
 		return res
 	}
