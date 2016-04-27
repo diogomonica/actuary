@@ -2,6 +2,7 @@ package oututils
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -43,6 +44,18 @@ func (r *Report) WriteJSON() (err error) {
 		log.Fatalf("Unable to write results to file")
 	}
 	return
+}
+
+// WriteXML prints the report into an XML file
+func (r *Report) WriteXML() (err error) {
+	res, err := xml.MarshalIndent(r.Results, "", " ")
+	if err != nil {
+		log.Fatal("Unable to marshal results into XML file")
+	}
+	err = ioutil.WriteFile(r.Filename, res, 0644)
+	if err != nil {
+		log.Fatal("Unable to write results to file")
+	}
 }
 
 //ConsolePrint outputs the result of each audit
