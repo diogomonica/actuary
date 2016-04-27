@@ -18,7 +18,8 @@ import (
 )
 
 var profile = flag.String("profile", "", "Actuary profile file path")
-var output = flag.String("output", "", "JSON output filename")
+var output = flag.String("output", "", "output filename")
+var outputType = flag.String("type", "json", "output type - XML or JSON")
 var tomlProfile profileutils.Profile
 var clientHeaders map[string]string
 var results []audit.Result
@@ -26,7 +27,8 @@ var actions map[string]audit.Check
 
 func init() {
 	flag.StringVar(profile, "f", "", "Actuary profile file path")
-	flag.StringVar(output, "o", "", "JSON output filename")
+	flag.StringVar(output, "o", "", "output filename")
+	flag.StringVar(outputType, "", "json", "output type - XML or JSON")
 
 	clientHeaders = make(map[string]string)
 	clientHeaders["User-Agent"] = "engine-api-cli-1.0"
@@ -96,6 +98,11 @@ func main() {
 	if *output != "" {
 		rep := oututils.CreateReport(*output)
 		rep.Results = results
-		rep.WriteJSON()
+		switch strings.ToLower(outputType) {
+		case "json":
+			rep.WriteJSON()
+		case "xml":
+			rep.WriteXML()
+		}
 	}
 }
