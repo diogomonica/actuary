@@ -75,7 +75,7 @@ func CheckKernelVersion(client *client.Client) audit.Result {
 	constraints, _ := version.NewConstraint(">= 3.10")
 	hostVersion, err := version.NewVersion(info.KernelVersion)
 	if err != nil {
-		// necessary fix for Fedora 23
+		// necessary fix for incompatible kernel versions (e.g. Fedora 23)
 		log.Print("incompatible kernel version")
 		res.Status = "INFO"
 		res.Output = "incompatible kernel version reported"
