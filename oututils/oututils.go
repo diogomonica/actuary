@@ -56,6 +56,7 @@ func (r *Report) WriteXML() (err error) {
 	if err != nil {
 		log.Fatal("Unable to write results to file")
 	}
+	return
 }
 
 //ConsolePrint outputs the result of each audit
