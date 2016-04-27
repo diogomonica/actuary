@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/diogomonica/actuary/audit"
 	"github.com/diogomonica/actuary/audit/container/images"
@@ -98,7 +99,7 @@ func main() {
 	if *output != "" {
 		rep := oututils.CreateReport(*output)
 		rep.Results = results
-		switch strings.ToLower(outputType) {
+		switch strings.ToLower(*outputType) {
 		case "json":
 			rep.WriteJSON()
 		case "xml":
