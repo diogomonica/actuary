@@ -6,3 +6,5 @@ go:
 sudo: false
 before_install:
     - go get github.com/tools/godep
+test:
+    - go vet ./...
