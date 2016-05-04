@@ -1,8 +1,8 @@
 [[Audit]]
 
 Name = "Host Configuration"
-Checklist = [ 
-        "seperate_partition",
+Checklist = [
+        "separate_partition",
 	"kernel_version",
         "running_services",
         "server_version",
@@ -20,11 +20,11 @@ Checklist = [
 	"audit_default",
         ]
 
-        
+
 [[Audit]]
 
 Name = "Docker daemon configuration"
-Checklist = [ 
+Checklist = [
         "lxc_driver",
         "net_traffic",
         "logging_level",
@@ -36,7 +36,7 @@ Checklist = [
 [[Audit]]
 
 Name = "Docker daemon configuration files"
-Checklist = [ 
+Checklist = [
         "docker.service_owner",
         "docker.service_perms",
         "docker-registry.service_owner",
@@ -68,14 +68,14 @@ Checklist = [
 [[Audit]]
 
 Name = "Container Images and Build File"
-Checklist = [ 
+Checklist = [
         "root_containers",
         ]
 
 [[Audit]]
 
 Name = "Container Runtime"
-Checklist = [ 
+Checklist = [
         "apparmor_profile",
         "selinux_options",
         "single_process",
@@ -96,11 +96,11 @@ Checklist = [
         "host_devices",
         "override_ulimit",
         ]
-        
+
 [[Audit]]
 
 Name = "Docker Security Operations"
-Checklist = [ 
+Checklist = [
         "central_logging",
         "container_sprawl",
         ]

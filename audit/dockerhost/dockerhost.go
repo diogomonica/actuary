@@ -2,20 +2,21 @@ package dockerhost
 
 import (
 	"fmt"
-	"github.com/diogomonica/actuary/audit"
-	"github.com/docker/engine-api/client"
-	"github.com/drael/GOnetstat"
-	version "github.com/hashicorp/go-version"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/diogomonica/actuary/audit"
+	"github.com/docker/engine-api/client"
+	"github.com/drael/GOnetstat"
+	version "github.com/hashicorp/go-version"
 )
 
 var checks = map[string]audit.Check{
 	"kernel_version":     CheckKernelVersion,
-	"seperate_partition": CheckSeperatePartion,
+	"separate_partition": CheckSeparatePartion,
 	"running_services":   CheckRunningServices,
 	"server_version":     CheckDockerVersion,
 	"trusted_users":      CheckTrustedUsers,
@@ -38,7 +39,7 @@ func GetAuditDefinitions() map[string]audit.Check {
 }
 
 //code borrowed from github.com/dockersecuritytools/batten
-func CheckSeperatePartion(client *client.Client) audit.Result {
+func CheckSeparatePartion(client *client.Client) audit.Result {
 	var res audit.Result
 	res.Name = "1.1 Create a separate partition for containers"
 	fstab := "/etc/fstab"

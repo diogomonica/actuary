@@ -35,7 +35,7 @@ func TestGetFromFile(t *testing.T) {
 
 Name = "Host Configuration"
 Checklist = [
-        "seperate_partition"
+        "separate_partition"
         ]`
 	dummy.Update(data)
 	t.Log("Loading profile from dummy file")
@@ -43,7 +43,7 @@ Checklist = [
 	if profile.Audit[0].Name != "Host Configuration" {
 		t.Errorf("Expected Host Configuration as Audit name, got %s instead", profile.Audit[0].Name)
 	}
-	if profile.Audit[0].Checklist[0] != "seperate_partition" {
+	if profile.Audit[0].Checklist[0] != "separate_partition" {
 		t.Errorf("Expected seperate_partition as Check name, got %s instead", profile.Audit[0].Checklist[0])
 	}
 	dummy.Destroy()
