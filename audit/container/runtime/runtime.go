@@ -2,6 +2,8 @@ package runtime
 
 import (
 	"fmt"
+
+	"github.com/diogomonica/actuary"
 	"github.com/diogomonica/actuary/audit"
 	"github.com/docker/engine-api/client"
 	"github.com/docker/engine-api/types"
@@ -25,7 +27,7 @@ var checks = map[string]audit.Check{
 	"memory_usage":          CheckMemoryLimits,
 	"cpu_shares":            CheckCPUShares,
 	"readonly_rootfs":       CheckReadonlyRoot,
-	"bind_specific_int": 	 CheckBindHostInterface,
+	"bind_specific_int":     CheckBindHostInterface,
 	"restart_policy":        CheckRestartPolicy,
 	"host_namespace":        CheckHostNamespace,
 	"ipc_namespace":         CheckIPCNamespace,
@@ -42,12 +44,7 @@ func CheckAppArmor(client *client.Client) audit.Result {
 	var res audit.Result
 	var badContainers []string
 	res.Name = "5.1 Verify AppArmor Profile, if applicable"
-	options := types.ContainerListOptions{All: false}
-	containers, err := client.ContainerList(options)
-	if err != nil {
-		log.Printf("Unable to get container list")
-		return res
-	}
+	containers := actuary.CreateContainerList(client)
 	if len(containers) == 0 {
 		res.Status = "INFO"
 		res.Output = "No running containers"
@@ -55,13 +52,7 @@ func CheckAppArmor(client *client.Client) audit.Result {
 	}
 
 	for _, container := range containers {
-		info, err := client.ContainerInspect(container.ID)
-		if err != nil {
-			log.Printf("Could not inspect container with ID: %s", container.ID)
-			continue
-		}
-		user := info.AppArmorProfile
-		if user == "" {
+		if container.Info.AppArmor() == "" {
 			badContainers = append(badContainers, container.ID)
 		}
 	}
@@ -70,7 +61,7 @@ func CheckAppArmor(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Containers with no AppArmor profile: %s", 
+		res.Output = fmt.Sprintf("Containers with no AppArmor profile: %s",
 			badContainers)
 	}
 
@@ -105,7 +96,7 @@ func CheckSELinux(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Containers with no SELinux options: %s", 
+		res.Output = fmt.Sprintf("Containers with no SELinux options: %s",
 			badContainers)
 	}
 
@@ -143,7 +134,7 @@ func CheckSingleMainProcess(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Containers running more than one main process: %s", 
+		res.Output = fmt.Sprintf("Containers running more than one main process: %s",
 			badContainers)
 	}
 
@@ -178,7 +169,7 @@ func CheckKernelCapabilities(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Containers running with added kernel capabilities: %s", 
+		res.Output = fmt.Sprintf("Containers running with added kernel capabilities: %s",
 			badContainers)
 	}
 
@@ -213,7 +204,7 @@ func CheckPrivContainers(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Privileged containers found: %s", 
+		res.Output = fmt.Sprintf("Privileged containers found: %s",
 			badContainers)
 	}
 
@@ -253,7 +244,7 @@ func CheckSensitiveDirs(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Sensitive directories mounted on containers: %s", 
+		res.Output = fmt.Sprintf("Sensitive directories mounted on containers: %s",
 			badContainers)
 	}
 
@@ -290,7 +281,7 @@ func CheckSSHRunning(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Containers running SSH service: %s", 
+		res.Output = fmt.Sprintf("Containers running SSH service: %s",
 			badContainers)
 	}
 
@@ -330,7 +321,7 @@ func CheckPrivilegedPorts(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Containers with mapped privileged ports: %s", 
+		res.Output = fmt.Sprintf("Containers with mapped privileged ports: %s",
 			badContainers)
 	}
 
@@ -360,12 +351,12 @@ func CheckNeededPorts(client *client.Client) audit.Result {
 		info, _ := client.ContainerInspect(container.ID)
 		ports := info.NetworkSettings.Ports
 		for key, _ := range ports {
-			containerPort[container.ID] = append(containerPort[container.ID], 
+			containerPort[container.ID] = append(containerPort[container.ID],
 				string(key))
 		}
 	}
 	res.Status = "INFO"
-	res.Output = fmt.Sprintf("Containers with open ports: %v \n", 
+	res.Output = fmt.Sprintf("Containers with open ports: %v \n",
 		containerPort)
 
 	return res
@@ -399,7 +390,7 @@ func CheckHostNetworkMode(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Privileged containers found: %s", 
+		res.Output = fmt.Sprintf("Privileged containers found: %s",
 			badContainers)
 	}
 
@@ -434,7 +425,7 @@ func CheckMemoryLimits(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Containers with no memory limits: %s", 
+		res.Output = fmt.Sprintf("Containers with no memory limits: %s",
 			badContainers)
 	}
 
@@ -469,7 +460,7 @@ func CheckCPUShares(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Containers with CPU sharing disabled: %s", 
+		res.Output = fmt.Sprintf("Containers with CPU sharing disabled: %s",
 			badContainers)
 	}
 
@@ -504,7 +495,7 @@ func CheckReadonlyRoot(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Containers' root FS is not mounted as read-only: %s", 
+		res.Output = fmt.Sprintf("Containers' root FS is not mounted as read-only: %s",
 			badContainers)
 	}
 
@@ -543,7 +534,7 @@ func CheckBindHostInterface(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Containers traffic not bound to specific host interface: %s", 
+		res.Output = fmt.Sprintf("Containers traffic not bound to specific host interface: %s",
 			badContainers)
 	}
 
@@ -578,7 +569,7 @@ func CheckRestartPolicy(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Containers with no restart policy: %s", 
+		res.Output = fmt.Sprintf("Containers with no restart policy: %s",
 			badContainers)
 	}
 
@@ -613,7 +604,7 @@ func CheckHostNamespace(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Containers sharing host's process namespace: %s", 
+		res.Output = fmt.Sprintf("Containers sharing host's process namespace: %s",
 			badContainers)
 	}
 
@@ -648,7 +639,7 @@ func CheckIPCNamespace(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Containers sharing host's IPC namespace: %s", 
+		res.Output = fmt.Sprintf("Containers sharing host's IPC namespace: %s",
 			badContainers)
 	}
 
@@ -683,7 +674,7 @@ func CheckHostDevices(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Host devices exposed. Check your permissions: %s", 
+		res.Output = fmt.Sprintf("Host devices exposed. Check your permissions: %s",
 			badContainers)
 	}
 
@@ -718,7 +709,7 @@ func CheckDefaultUlimit(client *client.Client) audit.Result {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Containers overriding default ulimit: %s", 
+		res.Output = fmt.Sprintf("Containers overriding default ulimit: %s",
 			badContainers)
 	}
 
