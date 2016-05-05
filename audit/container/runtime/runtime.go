@@ -45,26 +45,22 @@ func CheckAppArmor(client *client.Client) audit.Result {
 	var badContainers []string
 	res.Name = "5.1 Verify AppArmor Profile, if applicable"
 	containers := actuary.CreateContainerList(client)
-	if len(containers) == 0 {
-		res.Status = "INFO"
-		res.Output = "No running containers"
-		return res
-	}
-
-	for _, container := range containers {
-		if container.Info.AppArmor() == "" {
-			badContainers = append(badContainers, container.ID)
+	if len(containers) != 0 {
+		for _, container := range containers {
+			if container.Info.AppArmor() == "" {
+				badContainers = append(badContainers, container.ID)
+			}
 		}
-	}
-
-	if len(badContainers) == 0 {
-		res.Status = "PASS"
+		if len(badContainers) == 0 {
+			res.Pass()
+		} else {
+			output := fmt.Sprintf("Containers with no AppArmor profile: %s",
+				badContainers)
+			res.Fail(output)
+		}
 	} else {
-		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Containers with no AppArmor profile: %s",
-			badContainers)
+		res.Skip("No running containers")
 	}
-
 	return res
 }
 
