@@ -35,6 +35,13 @@ func (c *ContainerInfo) Privileged() bool {
 	return c.HostConfig.Privileged
 }
 
+func (l *ContainerList) Running() bool {
+	if len(*l) != 0 {
+		return true
+	}
+	return false
+}
+
 func CreateContainerList(c *client.Client) (l ContainerList) {
 	opts := types.ContainerListOptions{All: false}
 	containers, err := c.ContainerList(opts)

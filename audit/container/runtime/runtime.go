@@ -6,9 +6,7 @@ import (
 	"github.com/diogomonica/actuary"
 	"github.com/diogomonica/actuary/audit"
 	"github.com/docker/engine-api/client"
-	"github.com/docker/engine-api/types"
-	// "github.com/docker/engine-api/types/container"
-	"log"
+
 	"strconv"
 	"strings"
 )
@@ -40,81 +38,60 @@ func GetAuditDefinitions() map[string]audit.Check {
 	return checks
 }
 
-func CheckAppArmor(client *client.Client) audit.Result {
-	var res audit.Result
+func CheckAppArmor(client *client.Client) (res audit.Result) {
 	var badContainers []string
 	res.Name = "5.1 Verify AppArmor Profile, if applicable"
 	containers := actuary.CreateContainerList(client)
-	if len(containers) != 0 {
-		for _, container := range containers {
-			if container.Info.AppArmor() == "" {
-				badContainers = append(badContainers, container.ID)
-			}
-		}
-		if len(badContainers) == 0 {
-			res.Pass()
-		} else {
-			output := fmt.Sprintf("Containers with no AppArmor profile: %s",
-				badContainers)
-			res.Fail(output)
-		}
-	} else {
+	if !containers.Running() {
 		res.Skip("No running containers")
+		return
 	}
-	return res
-}
-
-func CheckSELinux(client *client.Client) audit.Result {
-	var res audit.Result
-	var badContainers []string
-	res.Name = "5.2 Verify SELinux security options, if applicable"
-	options := types.ContainerListOptions{All: false}
-	containers, err := client.ContainerList(options)
-	if err != nil {
-		log.Printf("Unable to get container list")
-		return res
-	}
-	if len(containers) == 0 {
-		res.Status = "INFO"
-		res.Output = "No running containers"
-		return res
-	}
-
 	for _, container := range containers {
-		info, _ := client.ContainerInspect(container.ID)
-		secOpt := info.HostConfig.SecurityOpt
-		if secOpt == nil {
+		if container.Info.AppArmor() == "" {
 			badContainers = append(badContainers, container.ID)
 		}
 	}
-
 	if len(badContainers) == 0 {
-		res.Status = "PASS"
+		res.Pass()
 	} else {
-		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Containers with no SELinux options: %s",
+		output := fmt.Sprintf("Containers with no AppArmor profile: %s",
 			badContainers)
+		res.Fail(output)
 	}
-
-	return res
+	return
 }
 
-func CheckSingleMainProcess(client *client.Client) audit.Result {
-	var res audit.Result
+func CheckSELinux(client *client.Client) (res audit.Result) {
+	var badContainers []string
+	res.Name = "5.1 Verify AppArmor Profile, if applicable"
+	containers := actuary.CreateContainerList(client)
+	if !containers.Running() {
+		res.Skip("No running containers")
+		return
+	}
+	for _, container := range containers {
+		if container.Info.SELinux() == nil {
+			badContainers = append(badContainers, container.ID)
+		}
+	}
+	if len(badContainers) == 0 {
+		res.Pass()
+	} else {
+		output := fmt.Sprintf("Containers with no SELinux options: %s",
+			badContainers)
+		res.Fail(output)
+	}
+	return
+}
+
+func CheckSingleMainProcess(client *client.Client) (res audit.Result) {
 	var badContainers []string
 	res.Name = "5.3 Verify that containers are running only a single main process"
-	options := types.ContainerListOptions{All: false}
-	containers, err := client.ContainerList(options)
-	if err != nil {
-		log.Printf("Unable to get container list")
-		return res
+	containers := actuary.CreateContainerList(client)
+	if !containers.Running() {
+		res.Skip("No running containers")
+		return
 	}
-	if len(containers) == 0 {
-		res.Status = "INFO"
-		res.Output = "No running containers"
-		return res
-	}
-
 	for _, container := range containers {
 		procs, _ := client.ContainerTop(container.ID, []string{})
 		mainPid := procs.Processes[0][1]
@@ -127,106 +104,73 @@ func CheckSingleMainProcess(client *client.Client) audit.Result {
 		}
 	}
 	if len(badContainers) == 0 {
-		res.Status = "PASS"
+		res.Pass()
 	} else {
-		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Containers running more than one main process: %s",
+		output := fmt.Sprintf("Containers running more than one main process: %s",
 			badContainers)
+		res.Fail(output)
 	}
-
-	return res
+	return
 }
 
-func CheckKernelCapabilities(client *client.Client) audit.Result {
-	var res audit.Result
+func CheckKernelCapabilities(client *client.Client) (res audit.Result) {
 	var badContainers []string
 	res.Name = "5.4 Restrict Linux Kernel Capabilities within containers"
-	options := types.ContainerListOptions{All: false}
-	containers, err := client.ContainerList(options)
-	if err != nil {
-		log.Printf("Unable to get container list")
-		return res
+	containers := actuary.CreateContainerList(client)
+	if !containers.Running() {
+		res.Skip("No running containers")
+		return
 	}
-	if len(containers) == 0 {
-		res.Status = "INFO"
-		res.Output = "No running containers"
-		return res
-	}
-
 	for _, container := range containers {
-		info, _ := client.ContainerInspect(container.ID)
-		kernelCap := info.HostConfig.CapAdd
-		if kernelCap != nil {
+		if container.Info.KernelCapabilities() != nil {
 			badContainers = append(badContainers, container.ID)
 		}
 	}
-
 	if len(badContainers) == 0 {
-		res.Status = "PASS"
+		res.Pass()
 	} else {
-		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Containers running with added kernel capabilities: %s",
+		output := fmt.Sprintf("Containers running with added capabilities: %s",
 			badContainers)
+		res.Fail(output)
 	}
-
-	return res
+	return
 }
 
-func CheckPrivContainers(client *client.Client) audit.Result {
-	var res audit.Result
+func CheckPrivContainers(client *client.Client) (res audit.Result) {
 	var badContainers []string
 	res.Name = "5.5 Do not use privileged containers"
-	options := types.ContainerListOptions{All: false}
-	containers, err := client.ContainerList(options)
-	if err != nil {
-		log.Printf("Unable to get container list")
-		return res
+	containers := actuary.CreateContainerList(client)
+	if !containers.Running() {
+		res.Skip("No running containers")
+		return
 	}
-	if len(containers) == 0 {
-		res.Status = "INFO"
-		res.Output = "No running containers"
-		return res
-	}
-
 	for _, container := range containers {
-		info, _ := client.ContainerInspect(container.ID)
-		privileged := info.HostConfig.Privileged
-		if privileged == true {
+		if container.Info.Privileged() == true {
 			badContainers = append(badContainers, container.ID)
 		}
 	}
-
 	if len(badContainers) == 0 {
-		res.Status = "PASS"
+		res.Pass()
 	} else {
-		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Privileged containers found: %s",
+		output := fmt.Sprintf("Privileged containers found: %s",
 			badContainers)
+		res.Fail(output)
 	}
-
-	return res
+	return
 }
 
-func CheckSensitiveDirs(client *client.Client) audit.Result {
-	var res audit.Result
+func CheckSensitiveDirs(client *client.Client) (res audit.Result) {
 	var badContainers []string
 	res.Name = "5.6 Do not mount sensitive host system directories on containers "
-	options := types.ContainerListOptions{All: false}
 	sensitiveDirs := []string{"/dev", "/etc", "/lib", "/proc", "/sys", "/usr"}
-	containers, err := client.ContainerList(options)
-	if err != nil {
-		log.Printf("Unable to get container list")
-		return res
-	}
-	if len(containers) == 0 {
-		res.Status = "INFO"
-		res.Output = "No running containers"
-		return res
-	}
+	containers := actuary.CreateContainerList(client)
 
+	if !containers.Running() {
+		res.Skip("No running containers")
+		return
+	}
 	for _, container := range containers {
-		info, _ := client.ContainerInspect(container.ID)
-		mounts := info.Mounts
+		mounts := container.Info.Mounts
 		for _, mount := range mounts {
 			for _, dir := range sensitiveDirs {
 				if strings.HasPrefix(mount.Source, dir) && mount.RW == true {
@@ -235,34 +179,25 @@ func CheckSensitiveDirs(client *client.Client) audit.Result {
 			}
 		}
 	}
-
 	if len(badContainers) == 0 {
-		res.Status = "PASS"
+		res.Pass()
 	} else {
-		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Sensitive directories mounted on containers: %s",
+		output := fmt.Sprintf("Sensitive directories mounted on containers: %s",
 			badContainers)
+		res.Fail(output)
 	}
-
-	return res
+	return
 }
 
-func CheckSSHRunning(client *client.Client) audit.Result {
-	var res audit.Result
+func CheckSSHRunning(client *client.Client) (res audit.Result) {
 	var badContainers []string
 	res.Name = "5.7 Do not run ssh within containers"
-	options := types.ContainerListOptions{All: false}
-	containers, err := client.ContainerList(options)
-	if err != nil {
-		log.Printf("Unable to get container list")
-		return res
-	}
-	if len(containers) == 0 {
-		res.Status = "INFO"
-		res.Output = "No running containers"
-		return res
-	}
+	containers := actuary.CreateContainerList(client)
 
+	if !containers.Running() {
+		res.Skip("No running containers")
+		return
+	}
 	for _, container := range containers {
 		procs, _ := client.ContainerTop(container.ID, []string{})
 		//proc fields are [UID PID PPID C STIME TTY TIME CMD]
@@ -274,35 +209,25 @@ func CheckSSHRunning(client *client.Client) audit.Result {
 		}
 	}
 	if len(badContainers) == 0 {
-		res.Status = "PASS"
+		res.Pass()
 	} else {
-		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Containers running SSH service: %s",
+		output := fmt.Sprintf("Containers running SSH service: %s",
 			badContainers)
+		res.Fail(output)
 	}
-
-	return res
+	return
 }
 
-func CheckPrivilegedPorts(client *client.Client) audit.Result {
-	var res audit.Result
+func CheckPrivilegedPorts(client *client.Client) (res audit.Result) {
 	var badContainers []string
 	res.Name = "5.8 Do not map privileged ports within containers"
-	options := types.ContainerListOptions{All: false}
-	containers, err := client.ContainerList(options)
-	if err != nil {
-		log.Printf("Unable to get container list")
-		return res
+	containers := actuary.CreateContainerList(client)
+	if !containers.Running() {
+		res.Skip("No running containers")
+		return
 	}
-	if len(containers) == 0 {
-		res.Status = "INFO"
-		res.Output = "No running containers"
-		return res
-	}
-
 	for _, container := range containers {
-		info, _ := client.ContainerInspect(container.ID)
-		ports := info.NetworkSettings.Ports
+		ports := container.Info.NetworkSettings.Ports
 		for _, port := range ports {
 			for _, portmap := range port {
 				hostPort, _ := strconv.Atoi(portmap.HostPort)
@@ -314,38 +239,26 @@ func CheckPrivilegedPorts(client *client.Client) audit.Result {
 	}
 
 	if len(badContainers) == 0 {
-		res.Status = "PASS"
+		res.Pass()
 	} else {
-		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Containers with mapped privileged ports: %s",
+		output := fmt.Sprintf("Containers with mapped privileged ports: %s",
 			badContainers)
+		res.Fail(output)
 	}
-
-	return res
+	return
 }
 
-func CheckNeededPorts(client *client.Client) audit.Result {
-	var res audit.Result
+func CheckNeededPorts(client *client.Client) (res audit.Result) {
 	var containerPort map[string][]string
 	containerPort = make(map[string][]string)
-
 	res.Name = "5.9 Open only needed ports on container"
-	options := types.ContainerListOptions{All: false}
-	containers, err := client.ContainerList(options)
-	if err != nil {
-		log.Printf("Unable to get container list")
-		return res
+	containers := actuary.CreateContainerList(client)
+	if !containers.Running() {
+		res.Skip("No running containers")
+		return
 	}
-
-	if len(containers) == 0 {
-		res.Status = "INFO"
-		res.Output = "No running containers"
-		return res
-	}
-
 	for _, container := range containers {
-		info, _ := client.ContainerInspect(container.ID)
-		ports := info.NetworkSettings.Ports
+		ports := container.Info.NetworkSettings.Ports
 		for key, _ := range ports {
 			containerPort[container.ID] = append(containerPort[container.ID],
 				string(key))
@@ -358,20 +271,13 @@ func CheckNeededPorts(client *client.Client) audit.Result {
 	return res
 }
 
-func CheckHostNetworkMode(client *client.Client) audit.Result {
-	var res audit.Result
+func CheckHostNetworkMode(client *client.Client) (res audit.Result) {
 	var badContainers []string
 	res.Name = "5.10 Do not use host network mode on container"
-	options := types.ContainerListOptions{All: false}
-	containers, err := client.ContainerList(options)
-	if err != nil {
-		log.Printf("Unable to get container list")
-		return res
-	}
-	if len(containers) == 0 {
-		res.Status = "INFO"
-		res.Output = "No running containers"
-		return res
+	containers := actuary.CreateContainerList(client)
+	if !containers.Running() {
+		res.Skip("No running containers")
+		return
 	}
 
 	for _, container := range containers {
@@ -383,32 +289,23 @@ func CheckHostNetworkMode(client *client.Client) audit.Result {
 	}
 
 	if len(badContainers) == 0 {
-		res.Status = "PASS"
+		res.Pass()
 	} else {
-		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Privileged containers found: %s",
+		output := fmt.Sprintf("Privileged containers found: %s",
 			badContainers)
+		res.Fail(output)
 	}
-
-	return res
+	return
 }
 
-func CheckMemoryLimits(client *client.Client) audit.Result {
-	var res audit.Result
+func CheckMemoryLimits(client *client.Client) (res audit.Result) {
 	var badContainers []string
 	res.Name = "5.11 Limit memory usage for container"
-	options := types.ContainerListOptions{All: false}
-	containers, err := client.ContainerList(options)
-	if err != nil {
-		log.Printf("Unable to get container list")
-		return res
+	containers := actuary.CreateContainerList(client)
+	if !containers.Running() {
+		res.Skip("No running containers")
+		return
 	}
-	if len(containers) == 0 {
-		res.Status = "INFO"
-		res.Output = "No running containers"
-		return res
-	}
-
 	for _, container := range containers {
 		info, _ := client.ContainerInspect(container.ID)
 		mem := info.HostConfig.Memory
@@ -418,105 +315,74 @@ func CheckMemoryLimits(client *client.Client) audit.Result {
 	}
 
 	if len(badContainers) == 0 {
-		res.Status = "PASS"
+		res.Pass()
 	} else {
-		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Containers with no memory limits: %s",
+		output := fmt.Sprintf("Containers with no memory limits: %s",
 			badContainers)
+		res.Fail(output)
 	}
-
-	return res
+	return
 }
 
-func CheckCPUShares(client *client.Client) audit.Result {
-	var res audit.Result
+func CheckCPUShares(client *client.Client) (res audit.Result) {
 	var badContainers []string
 	res.Name = "5.12 Set container CPU priority appropriately"
-	options := types.ContainerListOptions{All: false}
-	containers, err := client.ContainerList(options)
-	if err != nil {
-		log.Printf("Unable to get container list")
-		return res
+	containers := actuary.CreateContainerList(client)
+	if !containers.Running() {
+		res.Skip("No running containers")
+		return
 	}
-	if len(containers) == 0 {
-		res.Status = "INFO"
-		res.Output = "No running containers"
-		return res
-	}
-
 	for _, container := range containers {
-		info, _ := client.ContainerInspect(container.ID)
-		shares := info.HostConfig.CPUShares
+		shares := container.Info.HostConfig.CPUShares
 		if shares == 0 || shares == 1024 {
 			badContainers = append(badContainers, container.ID)
 		}
 	}
 
 	if len(badContainers) == 0 {
-		res.Status = "PASS"
+		res.Pass()
 	} else {
-		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Containers with CPU sharing disabled: %s",
+		output := fmt.Sprintf("Containers with CPU sharing disabled: %s",
 			badContainers)
+		res.Fail(output)
 	}
-
-	return res
+	return
 }
 
-func CheckReadonlyRoot(client *client.Client) audit.Result {
-	var res audit.Result
+func CheckReadonlyRoot(client *client.Client) (res audit.Result) {
 	var badContainers []string
 	res.Name = "5.13 Mount container's root filesystem as read only"
-	options := types.ContainerListOptions{All: false}
-	containers, err := client.ContainerList(options)
-	if err != nil {
-		log.Printf("Unable to get container list")
-		return res
+	containers := actuary.CreateContainerList(client)
+	if !containers.Running() {
+		res.Skip("No running containers")
+		return
 	}
-	if len(containers) == 0 {
-		res.Status = "INFO"
-		res.Output = "No running containers"
-		return res
-	}
-
 	for _, container := range containers {
-		info, _ := client.ContainerInspect(container.ID)
-		readonly := info.HostConfig.ReadonlyRootfs
+		readonly := container.Info.HostConfig.ReadonlyRootfs
 		if readonly == false {
 			badContainers = append(badContainers, container.ID)
 		}
 	}
-
 	if len(badContainers) == 0 {
-		res.Status = "PASS"
+		res.Pass()
 	} else {
-		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Containers' root FS is not mounted as read-only: %s",
+		output := fmt.Sprintf("Containers' root FS is not mounted as read-only: %s",
 			badContainers)
+		res.Fail(output)
 	}
-
-	return res
+	return
 }
 
-func CheckBindHostInterface(client *client.Client) audit.Result {
-	var res audit.Result
+func CheckBindHostInterface(client *client.Client) (res audit.Result) {
 	var badContainers []string
 	res.Name = "5.14 Bind incoming container traffic to a specific host interface"
-	options := types.ContainerListOptions{All: false}
-	containers, err := client.ContainerList(options)
-	if err != nil {
-		log.Printf("Unable to get container list")
-		return res
+	containers := actuary.CreateContainerList(client)
+	if !containers.Running() {
+		res.Skip("No running containers")
+		return
 	}
-	if len(containers) == 0 {
-		res.Status = "INFO"
-		res.Output = "No running containers"
-		return res
-	}
-
 	for _, container := range containers {
-		info, _ := client.ContainerInspect(container.ID)
-		ports := info.NetworkSettings.Ports
+		ports := container.Info.NetworkSettings.Ports
 		for _, port := range ports {
 			for _, portmap := range port {
 				if portmap.HostIP == "0.0.0.0" {
@@ -525,189 +391,141 @@ func CheckBindHostInterface(client *client.Client) audit.Result {
 			}
 		}
 	}
-
 	if len(badContainers) == 0 {
-		res.Status = "PASS"
+		res.Pass()
 	} else {
-		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Containers traffic not bound to specific host interface: %s",
+		output := fmt.Sprintf("Containers traffic not bound to specific host interface: %s",
 			badContainers)
+		res.Fail(output)
 	}
-
-	return res
+	return
 }
 
-func CheckRestartPolicy(client *client.Client) audit.Result {
-	var res audit.Result
+func CheckRestartPolicy(client *client.Client) (res audit.Result) {
 	var badContainers []string
 	res.Name = "5.15 Set the 'on-failure' container restart policy to 5"
-	options := types.ContainerListOptions{All: false}
-	containers, err := client.ContainerList(options)
-	if err != nil {
-		log.Printf("Unable to get container list")
-		return res
+	containers := actuary.CreateContainerList(client)
+	if !containers.Running() {
+		res.Skip("No running containers")
+		return
 	}
-	if len(containers) == 0 {
-		res.Status = "INFO"
-		res.Output = "No running containers"
-		return res
-	}
-
 	for _, container := range containers {
-		info, _ := client.ContainerInspect(container.ID)
-		policy := info.HostConfig.RestartPolicy
+		policy := container.Info.HostConfig.RestartPolicy
 		if policy.Name != "on-failure" && policy.MaximumRetryCount < 5 {
 			badContainers = append(badContainers, container.ID)
 		}
 	}
 
 	if len(badContainers) == 0 {
-		res.Status = "PASS"
+		res.Pass()
 	} else {
-		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Containers with no restart policy: %s",
+		output := fmt.Sprintf("Containers with no restart policy: %s",
 			badContainers)
+		res.Fail(output)
 	}
-
-	return res
+	return
 }
 
-func CheckHostNamespace(client *client.Client) audit.Result {
-	var res audit.Result
+func CheckHostNamespace(client *client.Client) (res audit.Result) {
 	var badContainers []string
 	res.Name = "5.16 Do not share the host's process namespace"
-	options := types.ContainerListOptions{All: false}
-	containers, err := client.ContainerList(options)
-	if err != nil {
-		log.Printf("Unable to get container list")
-		return res
+	containers := actuary.CreateContainerList(client)
+	if !containers.Running() {
+		res.Skip("No running containers")
+		return
 	}
-	if len(containers) == 0 {
-		res.Status = "INFO"
-		res.Output = "No running containers"
-		return res
-	}
-
 	for _, container := range containers {
-		info, _ := client.ContainerInspect(container.ID)
-		mode := info.HostConfig.PidMode
+		mode := container.Info.HostConfig.PidMode
 		if mode == "host" {
 			badContainers = append(badContainers, container.ID)
 		}
 	}
 
 	if len(badContainers) == 0 {
-		res.Status = "PASS"
+		res.Pass()
 	} else {
-		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Containers sharing host's process namespace: %s",
+		output := fmt.Sprintf("Containers sharing host's process namespace: %s",
 			badContainers)
+		res.Fail(output)
 	}
-
-	return res
+	return
 }
 
-func CheckIPCNamespace(client *client.Client) audit.Result {
-	var res audit.Result
+func CheckIPCNamespace(client *client.Client) (res audit.Result) {
 	var badContainers []string
 	res.Name = "5.17 Do not share the host's IPC namespace"
-	options := types.ContainerListOptions{All: false}
-	containers, err := client.ContainerList(options)
-	if err != nil {
-		log.Printf("Unable to get container list")
-		return res
+	containers := actuary.CreateContainerList(client)
+	if !containers.Running() {
+		res.Skip("No running containers")
+		return
 	}
-	if len(containers) == 0 {
-		res.Status = "INFO"
-		res.Output = "No running containers"
-		return res
-	}
-
 	for _, container := range containers {
-		info, _ := client.ContainerInspect(container.ID)
-		mode := info.HostConfig.IpcMode
+		mode := container.Info.HostConfig.IpcMode
 		if mode == "host" {
 			badContainers = append(badContainers, container.ID)
 		}
 	}
 
 	if len(badContainers) == 0 {
-		res.Status = "PASS"
+		res.Pass()
 	} else {
-		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Containers sharing host's IPC namespace: %s",
+		output := fmt.Sprintf("Containers sharing host's IPC namespace: %s",
 			badContainers)
+		res.Fail(output)
 	}
 
 	return res
 }
 
-func CheckHostDevices(client *client.Client) audit.Result {
-	var res audit.Result
+func CheckHostDevices(client *client.Client) (res audit.Result) {
 	var badContainers []string
 	res.Name = "5.18 Do not directly expose host devices to containers"
-	options := types.ContainerListOptions{All: false}
-	containers, err := client.ContainerList(options)
-	if err != nil {
-		log.Printf("Unable to get container list")
-		return res
-	}
-	if len(containers) == 0 {
-		res.Status = "INFO"
-		res.Output = "No running containers"
-		return res
+	containers := actuary.CreateContainerList(client)
+	if !containers.Running() {
+		res.Skip("No running containers")
+		return
 	}
 
 	for _, container := range containers {
-		info, _ := client.ContainerInspect(container.ID)
-		devices := info.HostConfig.Devices
+		devices := container.Info.HostConfig.Devices
 		if len(devices) != 0 {
 			badContainers = append(badContainers, container.ID)
 		}
 	}
 
 	if len(badContainers) == 0 {
-		res.Status = "PASS"
+		res.Pass()
 	} else {
-		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Host devices exposed. Check your permissions: %s",
+		output := fmt.Sprintf("Host devices exposed. Check your permissions: %s",
 			badContainers)
-	}
+		res.Fail(output)
 
-	return res
+	}
+	return
 }
 
-func CheckDefaultUlimit(client *client.Client) audit.Result {
-	var res audit.Result
+func CheckDefaultUlimit(client *client.Client) (res audit.Result) {
 	var badContainers []string
 	res.Name = "5.19 Override default ulimit at runtime only if needed "
-	options := types.ContainerListOptions{All: false}
-	containers, err := client.ContainerList(options)
-	if err != nil {
-		log.Printf("Unable to get container list")
-		return res
+	containers := actuary.CreateContainerList(client)
+	if !containers.Running() {
+		res.Skip("No running containers")
+		return
 	}
-	if len(containers) == 0 {
-		res.Status = "INFO"
-		res.Output = "No running containers"
-		return res
-	}
-
 	for _, container := range containers {
-		info, _ := client.ContainerInspect(container.ID)
-		ulimit := info.HostConfig.Ulimits
+		ulimit := container.Info.HostConfig.Ulimits
 		if ulimit != nil {
 			badContainers = append(badContainers, container.ID)
 		}
 	}
 
 	if len(badContainers) == 0 {
-		res.Status = "PASS"
+		res.Pass()
 	} else {
-		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Containers overriding default ulimit: %s",
+		output := fmt.Sprintf("Containers overriding default ulimit: %s",
 			badContainers)
-	}
+		res.Fail(output)
 
-	return res
+	}
+	return
 }
