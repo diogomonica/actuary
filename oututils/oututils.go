@@ -67,6 +67,8 @@ func ConsolePrint(res audit.Result) {
 		status = color.GreenString("[PASS]")
 	} else if res.Status == "WARN" {
 		status = color.RedString("[WARN]")
+	} else if res.Status == "SKIP" {
+		status = color.YellowString("[SKIP]")
 	} else {
 		status = color.CyanString("[INFO]")
 	}
