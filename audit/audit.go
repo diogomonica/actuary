@@ -35,6 +35,12 @@ func (r *Result) Fail(s string) {
 	return
 }
 
+func (r *Result) Info(s string) {
+	r.Status = "INFO"
+	r.Output = s
+	return
+}
+
 type Check func(client *client.Client) Result
 
 func GetProcCmdline(procname string) (cmd []string, err error) {
