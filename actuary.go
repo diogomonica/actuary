@@ -1,6 +1,4 @@
 package actuary
-<<<<<<< HEAD
-=======
 
 import (
 	"log"
@@ -9,19 +7,11 @@ import (
 	"github.com/docker/engine-api/types"
 	"github.com/docker/engine-api/types/strslice"
 )
->>>>>>> master
 
 type ContainerInfo struct {
 	types.ContainerJSON
 }
 
-<<<<<<< HEAD
-
-
-
-
-
-=======
 type Container struct {
 	ID   string
 	Info ContainerInfo
@@ -68,4 +58,3 @@ func CreateContainerList(c *client.Client) (l ContainerList) {
 	}
 	return
 }
->>>>>>> master
