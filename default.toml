@@ -23,11 +23,11 @@ Checklist = [
 
 Name = "Docker daemon configuration"
 Checklist = [
-        "lxc_driver",
         "net_traffic",
         "logging_level",
         "allow_iptables",
-        "insecure_registry",
+          "aufs_driver",
+          "default_ulimit",
         ]
 
 
@@ -35,32 +35,22 @@ Checklist = [
 
 Name = "Docker daemon configuration files"
 Checklist = [
-        "docker.service_owner",
-        "docker.service_perms",
-        "docker-registry.service_owner",
-        "docker-registry.service_perms",
-        "docker.socket_owner",
-        "docker.socket_perms",
-        "dockerenv_owner",
-        "dockerenv_perms",
-        "docker-network_owner",
-        "docker-network_perms",
-        "docker-registry_owner",
-        "docker-registry_perms",
-        "docker-storage_owner",
-        "docker-storage_perms",
-        "dockerdir_owner",
-        "dockerdir_perms",
-        "registrycerts_owner",
-        "registrycerts_perms",
-        "cacert_owner",
-        "cacert_perms",
-        "servercert_owner",
-        "servercert_perms",
-        "certkey_owner",
-        "certkey_perms",
-        "socket_owner",
-        "socket_perms",
+"docker.service_perms",
+"docker.service_owner",
+"docker.socket_owner",
+"docker.socket_perms",
+"dockerdir_owner",
+"dockerdir_perms",
+"registrycerts_owner",
+"registrycerts_perms",
+"cacert_owner",
+"cacert_perms",
+"servercert_owner",
+"servercert_perms",
+"certkey_owner"r,
+"certkey_perms",
+"socket_owner",
+"socket_perms",
         ]
 
 [[Audit]]

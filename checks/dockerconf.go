@@ -13,26 +13,9 @@ import (
 	"github.com/docker/engine-api/types"
 )
 
-func CheckLxcDriver(client *client.Client) (res Result) {
-	res.Name = "2.1 Do not use lxc execution driver"
-	info, err := client.Info()
-	if err != nil {
-		res.Skip("Unable to connect to Docker daemon")
-		return
-	}
-	execDriver := info.ExecutionDriver
-
-	if strings.Contains(execDriver, "lxc") {
-		res.Status = "WARN"
-	} else {
-		res.Pass()
-	}
-	return
-}
-
 func RestrictNetTraffic(client *client.Client) (res Result) {
 	var netargs types.NetworkListOptions
-	res.Name = "2.2 Restrict network traffic between containers"
+	res.Name = "2.1 Restrict network traffic between containers"
 
 	networks, err := client.NetworkList(netargs)
 	if err != nil {
@@ -52,7 +35,7 @@ func RestrictNetTraffic(client *client.Client) (res Result) {
 }
 
 func CheckLoggingLevel(client *client.Client) (res Result) {
-	res.Name = "2.3 Set the logging level"
+	res.Name = "2.2 Set the logging level"
 
 	cmdLine, _ := GetProcCmdline("docker")
 	for _, arg := range cmdLine {
@@ -70,7 +53,7 @@ func CheckLoggingLevel(client *client.Client) (res Result) {
 }
 
 func CheckIpTables(client *client.Client) (res Result) {
-	res.Name = "2.4 Allow Docker to make changes to iptables"
+	res.Name = "2.3 Allow Docker to make changes to iptables"
 
 	cmdLine, _ := GetProcCmdline("docker")
 	for _, arg := range cmdLine {
@@ -87,7 +70,7 @@ func CheckIpTables(client *client.Client) (res Result) {
 }
 
 func CheckInsecureRegistry(client *client.Client) (res Result) {
-	res.Name = "2.5 Do not use insecure registries"
+	res.Name = "2.4 Do not use insecure registries"
 
 	cmdLine, _ := GetProcCmdline("docker")
 	for _, arg := range cmdLine {
@@ -100,22 +83,8 @@ func CheckInsecureRegistry(client *client.Client) (res Result) {
 	return
 }
 
-func CheckLocalRegistry(client *client.Client) (res Result) {
-	res.Name = "2.6 Setup a local registry mirror"
-
-	cmdLine, _ := GetProcCmdline("docker")
-	for _, arg := range cmdLine {
-		if strings.Contains(arg, "--registry-mirror") {
-			res.Pass()
-			return
-		}
-	}
-	res.Status = "WARN"
-	return res
-}
-
 func CheckAufsDriver(client *client.Client) (res Result) {
-	res.Name = "2.7 Do not use the aufs storage driver"
+	res.Name = "2.5 Do not use the aufs storage driver"
 	info, err := client.Info()
 	if err != nil {
 		res.Skip("Unable to connect to Docker daemon")
@@ -131,22 +100,8 @@ func CheckAufsDriver(client *client.Client) (res Result) {
 	return
 }
 
-func CheckDefaultSocket(client *client.Client) (res Result) {
-	res.Name = "2.8 Do not bind Docker to another IP/Port or a Unix socket "
-
-	cmdLine, _ := GetProcCmdline("docker")
-	for _, arg := range cmdLine {
-		if strings.Contains(arg, "-H") {
-			res.Status = "WARN"
-			return
-		}
-	}
-	res.Pass()
-	return
-}
-
 func CheckTLSAuth(client *client.Client) (res Result) {
-	res.Name = "2.9 Configure TLS authentication for Docker daemon"
+	res.Name = "2.6 Configure TLS authentication for Docker daemon"
 	tlsOpts := []string{"--tlsverify", "--tlscacert", "--tlscert", "--tlskey"}
 
 	cmdLine, _ := GetProcCmdline("docker")
@@ -168,7 +123,7 @@ func CheckTLSAuth(client *client.Client) (res Result) {
 }
 
 func CheckUlimit(client *client.Client) (res Result) {
-	res.Name = "2.10 Set default ulimit as appropriate"
+	res.Name = "2.7 Set default ulimit as appropriate"
 
 	cmdLine, _ := GetProcCmdline("docker")
 	for _, arg := range cmdLine {
@@ -180,4 +135,28 @@ func CheckUlimit(client *client.Client) (res Result) {
 	output := "Default ulimit doesn't appear to be set"
 	res.Fail(output)
 	return res
+}
+
+func CheckUserNamespace(client *client.Client) (res Result) {
+	return
+}
+
+func CheckDefaultCgroup(client *client.Client) (res Result) {
+	return
+}
+
+func CheckBaseDevice(client *client.Client) (res Result) {
+	return
+}
+
+func CheckAuthPlugin(client *client.Client) (res Result) {
+	return
+}
+
+func CheckCentralLogging(client *client.Client) (res Result) {
+	return
+}
+
+func CheckLegacyRegistry(client *client.Client) (res Result) {
+	return
 }
