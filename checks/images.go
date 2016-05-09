@@ -1,24 +1,24 @@
-package images
+package checks
 
 import (
 	"fmt"
-	"github.com/diogomonica/actuary/audit"
+	"log"
+
 	"github.com/docker/engine-api/client"
 	"github.com/docker/engine-api/types"
-	"log"
 )
 
-var checks = map[string]audit.Check{
+var checks = map[string]checks.Check{
 	"root_containers": CheckContainerUser,
 }
 
-func GetAuditDefinitions() map[string]audit.Check {
+func GetAuditDefinitions() map[string]checks.Check {
 
 	return checks
 }
 
-func CheckContainerUser(client *client.Client) audit.Result {
-	var res audit.Result
+func CheckContainerUser(client *client.Client) checks.Result {
+	var res checks.Result
 	var rootContainers []string
 	res.Name = "4.1 Create a user for the container"
 	options := types.ContainerListOptions{All: false}

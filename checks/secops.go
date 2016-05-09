@@ -1,11 +1,12 @@
-package dockersecops
+package checks
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/diogomonica/actuary/audit"
 	"github.com/docker/engine-api/client"
 	"github.com/docker/engine-api/types"
-	"log"
 )
 
 var checks = map[string]audit.Check{
@@ -13,13 +14,13 @@ var checks = map[string]audit.Check{
 	"container_sprawl": CheckContainerSprawl,
 }
 
-func GetAuditDefinitions() map[string]audit.Check {
+func GetAuditDefinitions() map[string]checks.Check {
 
 	return checks
 }
 
-func CheckCentralLogging(client *client.Client) audit.Result {
-	var res audit.Result
+func CheckCentralLogging(client *client.Client) checks.Result {
+	var res checks.Result
 	var badContainers []string
 	res.Name = "6.5 Use a centralized and remote log collection service"
 	options := types.ContainerListOptions{All: false}
@@ -48,7 +49,7 @@ func CheckCentralLogging(client *client.Client) audit.Result {
 
 	if len(badContainers) == 0 {
 		res.Status = "INFO"
-		res.Output = `Volumes found in all containers.Ensure centralized 
+		res.Output = `Volumes found in all containers.Ensure centralized
 		logging is enabled`
 	} else {
 		res.Status = "WARN"
@@ -59,8 +60,8 @@ func CheckCentralLogging(client *client.Client) audit.Result {
 	return res
 }
 
-func CheckContainerSprawl(client *client.Client) audit.Result {
-	var res audit.Result
+func CheckContainerSprawl(client *client.Client) checks.Result {
+	var res checks.Result
 	var diff int
 	res.Name = "6.7 Avoid container sprawl"
 	options := types.ContainerListOptions{All: false}
@@ -76,12 +77,12 @@ func CheckContainerSprawl(client *client.Client) audit.Result {
 
 	if diff > 25 {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf(`There are currently a total of %d containers, 
+		res.Output = fmt.Sprintf(`There are currently a total of %d containers,
 			with only %d of them currently running`, len(all_containers),
 			len(run_containers))
 	} else {
 		res.Status = "PASS"
-		res.Output = fmt.Sprintf(`There are currently a total of %d containers, 
+		res.Output = fmt.Sprintf(`There are currently a total of %d containers,
 			with only %d of them currently running`, len(all_containers),
 			len(run_containers))
 
