@@ -69,7 +69,7 @@ func CheckKernelVersion(client *client.Client) (res Result) {
 
 func CheckRunningServices(client *client.Client) (res Result) {
 	var openPorts []int64
-	res.Name = "1.5 Remove all non-essential services from the host"
+	res.Name = "1.4 Remove all non-essential services from the host"
 	tcpData := GOnetstat.Tcp()
 	for _, proc := range tcpData {
 		openPorts = append(openPorts, proc.Port)
@@ -81,7 +81,7 @@ func CheckRunningServices(client *client.Client) (res Result) {
 }
 
 func CheckDockerVersion(client *client.Client) (res Result) {
-	res.Name = "1.6 Keep Docker up to date"
+	res.Name = "1.5 Keep Docker up to date"
 	verConstr := os.Getenv("VERSION")
 	info, err := client.ServerVersion()
 	if err != nil {
@@ -101,7 +101,7 @@ func CheckDockerVersion(client *client.Client) (res Result) {
 
 func CheckTrustedUsers(client *client.Client) (res Result) {
 	var trustedUsers []string
-	res.Name = "1.7 Only allow trusted users to control Docker daemon"
+	res.Name = "1.6 Only allow trusted users to control Docker daemon"
 	groupFile := "/etc/group"
 	content, err := ioutil.ReadFile(groupFile)
 	if err != nil {
@@ -135,7 +135,7 @@ func CheckTrustedUsers(client *client.Client) (res Result) {
 
 func AuditDockerDaemon(client *client.Client) (res Result) {
 	var ruleExists bool
-	res.Name = "1.8 Audit docker daemon"
+	res.Name = "1.7 Audit docker daemon"
 	ruleExists = checkAuditRule("/usr/bin/docker")
 
 	if ruleExists {
@@ -149,7 +149,7 @@ func AuditDockerDaemon(client *client.Client) (res Result) {
 
 func AuditLibDocker(client *client.Client) (res Result) {
 	var ruleExists bool
-	res.Name = "1.9 Audit Docker files and directories - /var/lib/docker"
+	res.Name = "1.8 Audit Docker files and directories - /var/lib/docker"
 	ruleExists = checkAuditRule("/var/lib/docker")
 
 	if ruleExists {
@@ -163,20 +163,8 @@ func AuditLibDocker(client *client.Client) (res Result) {
 
 func AuditEtcDocker(client *client.Client) (res Result) {
 	var ruleExists bool
-	res.Name = "1.10 Audit Docker files and directories - /etc/docker"
+	res.Name = "1.9 Audit Docker files and directories - /etc/docker"
 	ruleExists = checkAuditRule("/etc/docker")
-	if ruleExists {
-		res.Pass()
-	} else {
-		res.Fail("")
-	}
-	return
-}
-
-func AuditDockerRegistry(client *client.Client) (res Result) {
-	var ruleExists bool
-	res.Name = "1.11 Audit Docker files and directories - docker-registry.service"
-	ruleExists = checkAuditRule("/usr/lib/systemd/system/docker-registry.service")
 	if ruleExists {
 		res.Pass()
 	} else {
@@ -187,8 +175,8 @@ func AuditDockerRegistry(client *client.Client) (res Result) {
 
 func AuditDockerService(client *client.Client) (res Result) {
 	var ruleExists bool
-	res.Name = "1.12 Audit Docker files and directories - docker.service "
-	ruleExists = checkAuditRule("/var/run/docker.sock")
+	res.Name = "1.10 Audit Docker files and directories - docker.service"
+	ruleExists = checkAuditRule("/usr/lib/systemd/system/docker.service")
 	if ruleExists {
 		res.Pass()
 	} else {
@@ -199,56 +187,8 @@ func AuditDockerService(client *client.Client) (res Result) {
 
 func AuditDockerSocket(client *client.Client) (res Result) {
 	var ruleExists bool
-	res.Name = "1.13 Audit Docker files and directories - /var/run/docker.sock"
-	ruleExists = checkAuditRule("/usr/lib/systemd/system/docker.service")
-	if ruleExists {
-		res.Pass()
-	} else {
-		res.Fail("")
-	}
-	return
-}
-
-func AuditDockerSysconfig(client *client.Client) (res Result) {
-	var ruleExists bool
-	res.Name = "1.14 Audit Docker files and directories - /etc/sysconfig/docker"
-	ruleExists = checkAuditRule("/etc/sysconfig/docker")
-	if ruleExists {
-		res.Pass()
-	} else {
-		res.Fail("")
-	}
-	return
-}
-
-func AuditDockerNetwork(client *client.Client) (res Result) {
-	var ruleExists bool
-	res.Name = "1.15 Audit Docker files and directories - /etc/sysconfig/docker-network"
-	ruleExists = checkAuditRule("/etc/sysconfig/docker-network")
-	if ruleExists {
-		res.Pass()
-	} else {
-		res.Fail("")
-	}
-	return
-}
-
-func AuditDockerSysRegistry(client *client.Client) (res Result) {
-	var ruleExists bool
-	res.Name = "1.16 Audit Docker files and directories - /etc/sysconfig/docker-registry"
-	ruleExists = checkAuditRule("/etc/sysconfig/docker-registry")
-	if ruleExists {
-		res.Pass()
-	} else {
-		res.Fail("")
-	}
-	return
-}
-
-func AuditDockerStorage(client *client.Client) (res Result) {
-	var ruleExists bool
-	res.Name = "1.17 Audit Docker files and directories - /etc/sysconfig/docker-storage"
-	ruleExists = checkAuditRule("/etc/sysconfig/docker-storage")
+	res.Name = "1.11 Audit Docker files and directories - docker.socket"
+	ruleExists = checkAuditRule("/usr/lib/systemd/system/docker.socket")
 	if ruleExists {
 		res.Pass()
 	} else {
@@ -259,8 +199,44 @@ func AuditDockerStorage(client *client.Client) (res Result) {
 
 func AuditDockerDefault(client *client.Client) (res Result) {
 	var ruleExists bool
-	res.Name = "1.18 Audit Docker files and directories - /etc/default/docker"
+	res.Name = "1.12 Audit Docker files and directories - /etc/default/docker"
 	ruleExists = checkAuditRule("/etc/default/docker")
+	if ruleExists {
+		res.Pass()
+	} else {
+		res.Fail("")
+	}
+	return
+}
+
+func AuditDaemonJSON(client *client.Client) (res Result) {
+	var ruleExists bool
+	res.Name = "1.13 Audit Docker files and directories - /etc/docker/daemon.json"
+	ruleExists = checkAuditRule("/etc/docker/daemon.json")
+	if ruleExists {
+		res.Pass()
+	} else {
+		res.Fail("")
+	}
+	return
+}
+
+func AuditContainerd(client *client.Client) (res Result) {
+	var ruleExists bool
+	res.Name = "1.14 Audit Docker files and directories - /usr/bin/docker-containerd"
+	ruleExists = checkAuditRule("/usr/bin/docker-containerd")
+	if ruleExists {
+		res.Pass()
+	} else {
+		res.Fail("")
+	}
+	return
+}
+
+func AuditRunc(client *client.Client) (res Result) {
+	var ruleExists bool
+	res.Name = "1.15 Audit Docker files and directories - /usr/bin/docker-runc"
+	ruleExists = checkAuditRule("/usr/bin/docker-runc")
 	if ruleExists {
 		res.Pass()
 	} else {

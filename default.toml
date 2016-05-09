@@ -10,14 +10,12 @@ Checklist = [
 	"audit_daemon",
 	"audit_lib",
 	"audit_etc",
-	"audit_registry",
 	"audit_service",
 	"audit_socket",
-	"audit_sysconfig",
-	"audit_network",
-	"audit_sysregistry",
-	"audit_storage",
 	"audit_default",
+  "audit_daemonjson",
+  "audit_containerd",
+  "audit_runc",
         ]
 
 
