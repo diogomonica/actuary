@@ -27,8 +27,7 @@ func GetAuditDefinitions() map[string]checks.Check {
 	return checks
 }
 
-func CheckLxcDriver(client *client.Client) checks.Result {
-	var res checks.Result
+func CheckLxcDriver(client *client.Client) (res checks.Result) {
 	res.Name = "2.1 Do not use lxc execution driver"
 	info, err := client.Info()
 	if err != nil {
@@ -44,8 +43,7 @@ func CheckLxcDriver(client *client.Client) checks.Result {
 	return res
 }
 
-func RestrictNetTraffic(client *client.Client) checks.Result {
-	var res checks.Result
+func RestrictNetTraffic(client *client.Client) (res checks.Result) {
 	var netargs types.NetworkListOptions
 	res.Name = "2.2 Restrict network traffic between containers"
 
@@ -66,8 +64,7 @@ func RestrictNetTraffic(client *client.Client) checks.Result {
 	return res
 }
 
-func CheckLoggingLevel(client *client.Client) checks.Result {
-	var res checks.Result
+func CheckLoggingLevel(client *client.Client) (res checks.Result) {
 	res.Name = "2.3 Set the logging level"
 
 	cmdLine, _ := checks.GetProcCmdline("docker")
@@ -85,8 +82,7 @@ func CheckLoggingLevel(client *client.Client) checks.Result {
 	return res
 }
 
-func CheckIpTables(client *client.Client) checks.Result {
-	var res checks.Result
+func CheckIpTables(client *client.Client) (res checks.Result) {
 	res.Name = "2.4 Allow Docker to make changes to iptables"
 
 	cmdLine, _ := checks.GetProcCmdline("docker")
@@ -103,8 +99,7 @@ func CheckIpTables(client *client.Client) checks.Result {
 	return res
 }
 
-func CheckInsecureRegistry(client *client.Client) checks.Result {
-	var res checks.Result
+func CheckInsecureRegistry(client *client.Client) (res checks.Result) {
 	res.Name = "2.5 Do not use insecure registries"
 
 	cmdLine, _ := checks.GetProcCmdline("docker")
@@ -118,8 +113,7 @@ func CheckInsecureRegistry(client *client.Client) checks.Result {
 	return res
 }
 
-func CheckLocalRegistry(client *client.Client) checks.Result {
-	var res checks.Result
+func CheckLocalRegistry(client *client.Client) (res checks.Result) {
 	res.Name = "2.6 Setup a local registry mirror"
 
 	cmdLine, _ := checks.GetProcCmdline("docker")
@@ -133,8 +127,7 @@ func CheckLocalRegistry(client *client.Client) checks.Result {
 	return res
 }
 
-func CheckAufsDriver(client *client.Client) checks.Result {
-	var res checks.Result
+func CheckAufsDriver(client *client.Client) (res checks.Result) {
 	res.Name = "2.7 Do not use the aufs storage driver"
 	info, err := client.Info()
 	if err != nil {
@@ -150,8 +143,7 @@ func CheckAufsDriver(client *client.Client) checks.Result {
 	return res
 }
 
-func CheckDefaultSocket(client *client.Client) checks.Result {
-	var res checks.Result
+func CheckDefaultSocket(client *client.Client) (res checks.Result) {
 	res.Name = "2.8 Do not bind Docker to another IP/Port or a Unix socket "
 
 	cmdLine, _ := checks.GetProcCmdline("docker")
@@ -165,8 +157,7 @@ func CheckDefaultSocket(client *client.Client) checks.Result {
 	return res
 }
 
-func CheckTLSAuth(client *client.Client) checks.Result {
-	var res checks.Result
+func CheckTLSAuth(client *client.Client) (res checks.Result) {
 	res.Name = "2.9 Configure TLS authentication for Docker daemon"
 	tlsOpts := []string{"--tlsverify", "--tlscacert", "--tlscert", "--tlskey"}
 
@@ -188,8 +179,7 @@ func CheckTLSAuth(client *client.Client) checks.Result {
 	return res
 }
 
-func CheckUlimit(client *client.Client) checks.Result {
-	var res checks.Result
+func CheckUlimit(client *client.Client) (res checks.Result) {
 	res.Name = "2.10 Set default ulimit as appropriate"
 
 	cmdLine, _ := checks.GetProcCmdline("docker")

@@ -19,8 +19,7 @@ func GetAuditDefinitions() map[string]checks.Check {
 	return checks
 }
 
-func CheckCentralLogging(client *client.Client) checks.Result {
-	var res checks.Result
+func CheckCentralLogging(client *client.Client) (res checks.Result) {
 	var badContainers []string
 	res.Name = "6.5 Use a centralized and remote log collection service"
 	options := types.ContainerListOptions{All: false}
@@ -60,8 +59,7 @@ func CheckCentralLogging(client *client.Client) checks.Result {
 	return res
 }
 
-func CheckContainerSprawl(client *client.Client) checks.Result {
-	var res checks.Result
+func CheckContainerSprawl(client *client.Client) (res checks.Result) {
 	var diff int
 	res.Name = "6.7 Avoid container sprawl"
 	options := types.ContainerListOptions{All: false}

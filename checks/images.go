@@ -17,8 +17,7 @@ func GetAuditDefinitions() map[string]checks.Check {
 	return checks
 }
 
-func CheckContainerUser(client *client.Client) checks.Result {
-	var res checks.Result
+func CheckContainerUser(client *client.Client) (res checks.Result) {
 	var rootContainers []string
 	res.Name = "4.1 Create a user for the container"
 	options := types.ContainerListOptions{All: false}
