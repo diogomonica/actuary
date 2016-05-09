@@ -1,18 +1,44 @@
 package audit
 
 import (
+	"strings"
+
 	"github.com/docker/engine-api/client"
 	"github.com/mitchellh/go-ps"
 	"github.com/shirou/gopsutil/process"
-	"strings"
 	//"log"
-	)
-
+)
 
 type Result struct {
 	Name   string
 	Status string
 	Output string
+}
+
+//Skip is used when a check won't run. Output is used to describe the reason.
+func (r *Result) Skip(s string) {
+	r.Status = "SKIP"
+	r.Output = s
+	return
+}
+
+//Pass is used when a check has passed
+func (r *Result) Pass() {
+	r.Status = "PASS"
+	return
+}
+
+//Fail is used when a check has failed. Output is used to describe the reason.
+func (r *Result) Fail(s string) {
+	r.Status = "WARN"
+	r.Output = s
+	return
+}
+
+func (r *Result) Info(s string) {
+	r.Status = "INFO"
+	r.Output = s
+	return
 }
 
 type Check func(client *client.Client) Result
@@ -27,11 +53,10 @@ func GetProcCmdline(procname string) (cmd []string, err error) {
 			break
 		}
 	}
-	proc,err := process.NewProcess(int32(pid))
+	proc, err := process.NewProcess(int32(pid))
 	cmd, err = proc.CmdlineSlice()
 	return cmd, err
 }
-
 
 func GetCmdOption(args []string, opt string) (exist bool, val string) {
 	var optBuf string
@@ -43,7 +68,7 @@ func GetCmdOption(args []string, opt string) (exist bool, val string) {
 		}
 	}
 	if exist {
-		nameVal := strings.Split(optBuf,"=")
+		nameVal := strings.Split(optBuf, "=")
 		if len(nameVal) > 1 {
 			val = strings.TrimSuffix(nameVal[1], " ")
 		}
