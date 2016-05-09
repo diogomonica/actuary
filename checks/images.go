@@ -11,45 +11,31 @@ package checks
 
 import (
 	"fmt"
-	"log"
 
+	"github.com/diogomonica/actuary"
 	"github.com/docker/engine-api/client"
-	"github.com/docker/engine-api/types"
 )
 
 func CheckContainerUser(client *client.Client) (res Result) {
 	var rootContainers []string
 	res.Name = "4.1 Create a user for the container"
-	options := types.ContainerListOptions{All: false}
-	containers, err := client.ContainerList(options)
-	if err != nil {
-		log.Printf("Unable to get container list")
-		return res
+	containers := actuary.CreateContainerList(client)
+	if !containers.Running() {
+		res.Skip("No running containers")
+		return
 	}
-
-	if len(containers) == 0 {
-		res.Status = "INFO"
-		res.Output = "No running containers"
-		return res
-	}
-
 	for _, container := range containers {
-		info, err := client.ContainerInspect(container.ID)
-		if err != nil {
-			log.Printf("Could not inspect container with ID: %s", container.ID)
-			continue
-		}
-		user := info.Config.User
+		user := container.Info.Config.User
 		if user == "" {
 			rootContainers = append(rootContainers, container.ID)
 		}
 	}
 
 	if len(rootContainers) == 0 {
-		res.Status = "PASS"
+		res.Pass()
 	} else {
-		res.Status = "WARN"
-		res.Output = fmt.Sprintf("Containers running as root: %s", rootContainers)
+		output := fmt.Sprintf("Containers running as root: %s", rootContainers)
+		res.Fail(output)
 	}
 
 	return res

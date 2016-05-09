@@ -12,7 +12,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"os/exec"
 	"strings"
 
 	"github.com/docker/engine-api/client"
@@ -132,26 +131,6 @@ func CheckTrustedUsers(client *client.Client) (res Result) {
 	res.Info(output)
 
 	return
-}
-
-//Helper function to check rules in auditctl
-func checkAuditRule(rule string) bool {
-	auditctlPath, err := exec.LookPath("auditctl")
-	if err != nil || auditctlPath == "" {
-		log.Panicf("Could not find auditctl tool")
-	}
-	cmd := exec.Command(auditctlPath, "-l")
-	output, err := cmd.Output()
-	if err != nil {
-		log.Panicf("Auditctl command returned with errors")
-	}
-	for _, line := range strings.Split(string(output), "\n") {
-		line = strings.TrimSpace(line)
-		if strings.Contains(line, rule) {
-			return true
-		}
-	}
-	return false
 }
 
 func AuditDockerDaemon(client *client.Client) (res Result) {

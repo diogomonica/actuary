@@ -1,14 +1,25 @@
 package checks
 
 import (
+	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
+	"os/exec"
+	"os/user"
+	"path/filepath"
 	"strings"
+	"syscall"
 
 	"github.com/docker/engine-api/client"
 	"github.com/mitchellh/go-ps"
 	"github.com/shirou/gopsutil/process"
-	//"log"
 )
 
+//Check
+type Check func(client *client.Client) Result
+
+//Result objects are returned from Check functions
 type Result struct {
 	Name   string
 	Status string
@@ -35,13 +46,12 @@ func (r *Result) Fail(s string) {
 	return
 }
 
+// Info is used when a test will not pass nor fail
 func (r *Result) Info(s string) {
 	r.Status = "INFO"
 	r.Output = s
 	return
 }
-
-type Check func(client *client.Client) Result
 
 var checklist = map[string]Check{
 	//Docker Host
@@ -165,4 +175,90 @@ func GetCmdOption(args []string, opt string) (exist bool, val string) {
 	}
 
 	return exist, val
+}
+
+func getSystemdFile(filename string) (info os.FileInfo, err error) {
+	var systemdPath string
+	knownPaths := []string{"/usr/lib/systemd/system/",
+		"/lib/systemd/system/",
+		"/etc/systemd/system/",
+		"/etc/sysconfig/",
+		"/etc/default/",
+		"/etc/docker",
+	}
+
+	for _, path := range knownPaths {
+		systemdPath = filepath.Join(path, filename)
+		info, err = os.Stat(systemdPath)
+		if err == nil {
+			return info, err
+		}
+	}
+	return info, err
+}
+
+func hasLeastPerms(info os.FileInfo, safePerms uint32) (isLeast bool,
+	perms os.FileMode) {
+	mode := info.Mode().Perm()
+	if uint32(mode) <= safePerms {
+		isLeast = true
+	} else {
+		isLeast = false
+	}
+
+	return isLeast, mode
+}
+
+func getUserInfo(username string) (uid, gid string) {
+	userInfo, err := user.Lookup(username)
+	if err != nil {
+		log.Printf("Username %s not found", username)
+	}
+	uid = userInfo.Uid
+	gid = userInfo.Gid
+
+	return uid, gid
+}
+
+func getGroupId(groupname string) string {
+	bytes, err := ioutil.ReadFile("/etc/group")
+	if err != nil {
+		return ""
+	}
+	for _, line := range strings.Split(string(bytes), "\n") {
+		items := strings.Split(line, ":")
+		if groupname == items[0] {
+			gid := items[2]
+			return gid
+		}
+	}
+	return ""
+}
+
+func getFileOwner(info os.FileInfo) (uid, gid string) {
+
+	uid = fmt.Sprint(info.Sys().(*syscall.Stat_t).Uid)
+	gid = fmt.Sprint(info.Sys().(*syscall.Stat_t).Gid)
+
+	return uid, gid
+}
+
+//Helper function to check rules in auditctl
+func checkAuditRule(rule string) bool {
+	auditctlPath, err := exec.LookPath("auditctl")
+	if err != nil || auditctlPath == "" {
+		log.Panicf("Could not find auditctl tool")
+	}
+	cmd := exec.Command(auditctlPath, "-l")
+	output, err := cmd.Output()
+	if err != nil {
+		log.Panicf("Auditctl command returned with errors")
+	}
+	for _, line := range strings.Split(string(output), "\n") {
+		line = strings.TrimSpace(line)
+		if strings.Contains(line, rule) {
+			return true
+		}
+	}
+	return false
 }

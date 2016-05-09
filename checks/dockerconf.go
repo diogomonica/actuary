@@ -7,7 +7,6 @@ package checks
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/docker/engine-api/client"
@@ -18,16 +17,17 @@ func CheckLxcDriver(client *client.Client) (res Result) {
 	res.Name = "2.1 Do not use lxc execution driver"
 	info, err := client.Info()
 	if err != nil {
-		log.Printf("Unable to connect to Docker daemon")
+		res.Skip("Unable to connect to Docker daemon")
+		return
 	}
 	execDriver := info.ExecutionDriver
 
 	if strings.Contains(execDriver, "lxc") {
 		res.Status = "WARN"
 	} else {
-		res.Status = "PASS"
+		res.Pass()
 	}
-	return res
+	return
 }
 
 func RestrictNetTraffic(client *client.Client) (res Result) {
@@ -36,19 +36,19 @@ func RestrictNetTraffic(client *client.Client) (res Result) {
 
 	networks, err := client.NetworkList(netargs)
 	if err != nil {
-		log.Printf("Cannot retrieve network list")
-		return res
+		res.Skip("Cannot retrieve network list")
+		return
 	}
 	for _, network := range networks {
 		if network.Name == "bridge" {
 			if network.Options["com.docker.network.bridge.enable_icc"] == "true" {
 				res.Status = "WARN"
-				return res
+				return
 			}
 		}
 	}
-	res.Status = "PASS"
-	return res
+	res.Pass()
+	return
 }
 
 func CheckLoggingLevel(client *client.Client) (res Result) {
@@ -59,14 +59,14 @@ func CheckLoggingLevel(client *client.Client) (res Result) {
 		if strings.Contains(arg, "--log-level") {
 			level := strings.Trim(strings.Split(arg, "=")[1], "\"")
 			if level != "info" {
-				res.Status = "WARN"
-				res.Output = "Docker daemon log level should be set to \"info\""
-				return res
+				output := "Docker daemon log level should be set to \"info\""
+				res.Fail(output)
+				return
 			}
 		}
 	}
-	res.Status = "PASS"
-	return res
+	res.Pass()
+	return
 }
 
 func CheckIpTables(client *client.Client) (res Result) {
@@ -82,8 +82,8 @@ func CheckIpTables(client *client.Client) (res Result) {
 			}
 		}
 	}
-	res.Status = "PASS"
-	return res
+	res.Pass()
+	return
 }
 
 func CheckInsecureRegistry(client *client.Client) (res Result) {
@@ -93,11 +93,11 @@ func CheckInsecureRegistry(client *client.Client) (res Result) {
 	for _, arg := range cmdLine {
 		if strings.Contains(arg, "--insecure-registry") {
 			res.Status = "WARN"
-			return res
+			return
 		}
 	}
-	res.Status = "PASS"
-	return res
+	res.Pass()
+	return
 }
 
 func CheckLocalRegistry(client *client.Client) (res Result) {
@@ -106,8 +106,8 @@ func CheckLocalRegistry(client *client.Client) (res Result) {
 	cmdLine, _ := GetProcCmdline("docker")
 	for _, arg := range cmdLine {
 		if strings.Contains(arg, "--registry-mirror") {
-			res.Status = "PASS"
-			return res
+			res.Pass()
+			return
 		}
 	}
 	res.Status = "WARN"
@@ -118,16 +118,17 @@ func CheckAufsDriver(client *client.Client) (res Result) {
 	res.Name = "2.7 Do not use the aufs storage driver"
 	info, err := client.Info()
 	if err != nil {
-		log.Printf("Unable to connect to Docker daemon")
+		res.Skip("Unable to connect to Docker daemon")
+		return
 	}
 	storageDriver := info.Driver
 
 	if storageDriver == "aufs" {
 		res.Status = "WARN"
 	} else {
-		res.Status = "PASS"
+		res.Pass()
 	}
-	return res
+	return
 }
 
 func CheckDefaultSocket(client *client.Client) (res Result) {
@@ -137,11 +138,11 @@ func CheckDefaultSocket(client *client.Client) (res Result) {
 	for _, arg := range cmdLine {
 		if strings.Contains(arg, "-H") {
 			res.Status = "WARN"
-			return res
+			return
 		}
 	}
-	res.Status = "PASS"
-	return res
+	res.Pass()
+	return
 }
 
 func CheckTLSAuth(client *client.Client) (res Result) {
@@ -158,12 +159,12 @@ func CheckTLSAuth(client *client.Client) (res Result) {
 	}
 
 	if len(tlsOpts) != 0 {
-		res.Status = "WARN"
-		res.Output = fmt.Sprintf("TLS configuration is missing options: %s", tlsOpts)
-		return res
+		output := fmt.Sprintf("TLS configuration is missing options: %s", tlsOpts)
+		res.Fail(output)
+		return
 	}
-	res.Status = "PASS"
-	return res
+	res.Pass()
+	return
 }
 
 func CheckUlimit(client *client.Client) (res Result) {
@@ -172,11 +173,11 @@ func CheckUlimit(client *client.Client) (res Result) {
 	cmdLine, _ := GetProcCmdline("docker")
 	for _, arg := range cmdLine {
 		if strings.Contains(arg, "--default-ulimit") {
-			res.Status = "PASS"
-			return res
+			res.Pass()
+			return
 		}
 	}
-	res.Status = "WARN"
-	res.Output = "Default ulimit doesn't appear to be set"
+	output := "Default ulimit doesn't appear to be set"
+	res.Fail(output)
 	return res
 }
