@@ -9,13 +9,13 @@ import (
 	"os"
 	"path"
 
-	"github.com/diogomonica/actuary/audit"
+	"github.com/diogomonica/actuary/checks"
 	"github.com/fatih/color"
 )
 
 type Report struct {
 	Filename string
-	Results  []audit.Result
+	Results  []checks.Result
 }
 
 //CreateReport creates a new Report object
@@ -60,7 +60,7 @@ func (r *Report) WriteXML() (err error) {
 }
 
 //ConsolePrint outputs the result of each audit
-func ConsolePrint(res audit.Result) {
+func ConsolePrint(res checks.Result) {
 	var status string
 	bold := color.New(color.Bold).SprintFunc()
 	if res.Status == "PASS" {

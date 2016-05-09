@@ -1,3 +1,12 @@
+/*
+Package checks - 4 Container Images and Build File
+Container base images and build files govern the fundamentals of how a container instance
+from a particular image would behave. Ensuring that you are using proper base images and
+appropriate build files can be very important for building your containerized
+infrastructure. Below are some of the recommendations that you should follow for
+container base images and build files to ensure that your containerized infrastructure is
+secure.
+*/
 package checks
 
 import (
@@ -8,16 +17,7 @@ import (
 	"github.com/docker/engine-api/types"
 )
 
-var checks = map[string]checks.Check{
-	"root_containers": CheckContainerUser,
-}
-
-func GetAuditDefinitions() map[string]checks.Check {
-
-	return checks
-}
-
-func CheckContainerUser(client *client.Client) (res checks.Result) {
+func CheckContainerUser(client *client.Client) (res Result) {
 	var rootContainers []string
 	res.Name = "4.1 Create a user for the container"
 	options := types.ContainerListOptions{All: false}

@@ -1,25 +1,21 @@
+/*
+Package checks - 6 Docker Security Operations
+This sections covers some of the operational security aspects for Docker deployments.
+These are best practices that should be followed. Most of the recommendations here are
+just reminders that organizations should extend their current security best practices and
+policies to include containers.
+*/
 package checks
 
 import (
 	"fmt"
 	"log"
 
-	"github.com/diogomonica/actuary/audit"
 	"github.com/docker/engine-api/client"
 	"github.com/docker/engine-api/types"
 )
 
-var checks = map[string]audit.Check{
-	"central_logging":  CheckCentralLogging,
-	"container_sprawl": CheckContainerSprawl,
-}
-
-func GetAuditDefinitions() map[string]checks.Check {
-
-	return checks
-}
-
-func CheckCentralLogging(client *client.Client) (res checks.Result) {
+func CheckCentralLogging(client *client.Client) (res Result) {
 	var badContainers []string
 	res.Name = "6.5 Use a centralized and remote log collection service"
 	options := types.ContainerListOptions{All: false}
@@ -59,7 +55,7 @@ func CheckCentralLogging(client *client.Client) (res checks.Result) {
 	return res
 }
 
-func CheckContainerSprawl(client *client.Client) (res checks.Result) {
+func CheckContainerSprawl(client *client.Client) (res Result) {
 	var diff int
 	res.Name = "6.7 Avoid container sprawl"
 	options := types.ContainerListOptions{All: false}

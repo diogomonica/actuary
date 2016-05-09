@@ -1,3 +1,10 @@
+/*
+Package checks - 1. Host Configuration
+This section covers security recommendations that you should follow to prepare the host
+machine that you plan to use for executing containerized workloads. Securing the Docker
+host and following your infrastructure security best practices would build a solid and
+secure foundation for executing containerized workloads.
+*/
 package checks
 
 import (
@@ -13,32 +20,8 @@ import (
 	version "github.com/hashicorp/go-version"
 )
 
-var checks = map[string]checks.Check{
-	"kernel_version":     CheckKernelVersion,
-	"separate_partition": CheckSeparatePartion,
-	"running_services":   CheckRunningServices,
-	"server_version":     CheckDockerVersion,
-	"trusted_users":      CheckTrustedUsers,
-	"audit_daemon":       AuditDockerDaemon,
-	"audit_lib":          AuditLibDocker,
-	"audit_etc":          AuditEtcDocker,
-	"audit_registry":     AuditDockerRegistry,
-	"audit_service":      AuditDockerService,
-	"audit_socket":       AuditDockerSocket,
-	"audit_sysconfig":    AuditDockerSysconfig,
-	"audit_network":      AuditDockerNetwork,
-	"audit_sysregistry":  AuditDockerSysRegistry,
-	"audit_storage":      AuditDockerStorage,
-	"audit_default":      AuditDockerDefault,
-}
-
-func GetAuditDefinitions() map[string]checks.Check {
-
-	return checks
-}
-
 //code borrowed from github.com/dockersecuritytools/batten
-func CheckSeparatePartion(client *client.Client) (res checks.Result) {
+func CheckSeparatePartion(client *client.Client) (res Result) {
 	res.Name = "1.1 Create a separate partition for containers"
 	fstab := "/etc/fstab"
 	bytes, err := ioutil.ReadFile(fstab)
@@ -59,7 +42,7 @@ func CheckSeparatePartion(client *client.Client) (res checks.Result) {
 	return
 }
 
-func CheckKernelVersion(client *client.Client) (res checks.Result) {
+func CheckKernelVersion(client *client.Client) (res Result) {
 	res.Name = "1.2 Use the updated Linux Kernel"
 	info, err := client.Info()
 	if err != nil {
@@ -85,7 +68,7 @@ func CheckKernelVersion(client *client.Client) (res checks.Result) {
 	return
 }
 
-func CheckRunningServices(client *client.Client) (res checks.Result) {
+func CheckRunningServices(client *client.Client) (res Result) {
 	var openPorts []int64
 	res.Name = "1.5 Remove all non-essential services from the host"
 	tcpData := GOnetstat.Tcp()
@@ -98,7 +81,7 @@ func CheckRunningServices(client *client.Client) (res checks.Result) {
 	return
 }
 
-func CheckDockerVersion(client *client.Client) (res checks.Result) {
+func CheckDockerVersion(client *client.Client) (res Result) {
 	res.Name = "1.6 Keep Docker up to date"
 	verConstr := os.Getenv("VERSION")
 	info, err := client.ServerVersion()
@@ -117,7 +100,7 @@ func CheckDockerVersion(client *client.Client) (res checks.Result) {
 	return
 }
 
-func CheckTrustedUsers(client *client.Client) (res checks.Result) {
+func CheckTrustedUsers(client *client.Client) (res Result) {
 	var trustedUsers []string
 	res.Name = "1.7 Only allow trusted users to control Docker daemon"
 	groupFile := "/etc/group"
@@ -171,7 +154,7 @@ func checkAuditRule(rule string) bool {
 	return false
 }
 
-func AuditDockerDaemon(client *client.Client) (res checks.Result) {
+func AuditDockerDaemon(client *client.Client) (res Result) {
 	var ruleExists bool
 	res.Name = "1.8 Audit docker daemon"
 	ruleExists = checkAuditRule("/usr/bin/docker")
@@ -185,7 +168,7 @@ func AuditDockerDaemon(client *client.Client) (res checks.Result) {
 	return
 }
 
-func AuditLibDocker(client *client.Client) (res checks.Result) {
+func AuditLibDocker(client *client.Client) (res Result) {
 	var ruleExists bool
 	res.Name = "1.9 Audit Docker files and directories - /var/lib/docker"
 	ruleExists = checkAuditRule("/var/lib/docker")
@@ -199,7 +182,7 @@ func AuditLibDocker(client *client.Client) (res checks.Result) {
 	return
 }
 
-func AuditEtcDocker(client *client.Client) (res checks.Result) {
+func AuditEtcDocker(client *client.Client) (res Result) {
 	var ruleExists bool
 	res.Name = "1.10 Audit Docker files and directories - /etc/docker"
 	ruleExists = checkAuditRule("/etc/docker")
@@ -211,7 +194,7 @@ func AuditEtcDocker(client *client.Client) (res checks.Result) {
 	return
 }
 
-func AuditDockerRegistry(client *client.Client) (res checks.Result) {
+func AuditDockerRegistry(client *client.Client) (res Result) {
 	var ruleExists bool
 	res.Name = "1.11 Audit Docker files and directories - docker-registry.service"
 	ruleExists = checkAuditRule("/usr/lib/systemd/system/docker-registry.service")
@@ -223,7 +206,7 @@ func AuditDockerRegistry(client *client.Client) (res checks.Result) {
 	return
 }
 
-func AuditDockerService(client *client.Client) (res checks.Result) {
+func AuditDockerService(client *client.Client) (res Result) {
 	var ruleExists bool
 	res.Name = "1.12 Audit Docker files and directories - docker.service "
 	ruleExists = checkAuditRule("/var/run/docker.sock")
@@ -235,7 +218,7 @@ func AuditDockerService(client *client.Client) (res checks.Result) {
 	return
 }
 
-func AuditDockerSocket(client *client.Client) (res checks.Result) {
+func AuditDockerSocket(client *client.Client) (res Result) {
 	var ruleExists bool
 	res.Name = "1.13 Audit Docker files and directories - /var/run/docker.sock"
 	ruleExists = checkAuditRule("/usr/lib/systemd/system/docker.service")
@@ -247,7 +230,7 @@ func AuditDockerSocket(client *client.Client) (res checks.Result) {
 	return
 }
 
-func AuditDockerSysconfig(client *client.Client) (res checks.Result) {
+func AuditDockerSysconfig(client *client.Client) (res Result) {
 	var ruleExists bool
 	res.Name = "1.14 Audit Docker files and directories - /etc/sysconfig/docker"
 	ruleExists = checkAuditRule("/etc/sysconfig/docker")
@@ -259,7 +242,7 @@ func AuditDockerSysconfig(client *client.Client) (res checks.Result) {
 	return
 }
 
-func AuditDockerNetwork(client *client.Client) (res checks.Result) {
+func AuditDockerNetwork(client *client.Client) (res Result) {
 	var ruleExists bool
 	res.Name = "1.15 Audit Docker files and directories - /etc/sysconfig/docker-network"
 	ruleExists = checkAuditRule("/etc/sysconfig/docker-network")
@@ -271,7 +254,7 @@ func AuditDockerNetwork(client *client.Client) (res checks.Result) {
 	return
 }
 
-func AuditDockerSysRegistry(client *client.Client) (res checks.Result) {
+func AuditDockerSysRegistry(client *client.Client) (res Result) {
 	var ruleExists bool
 	res.Name = "1.16 Audit Docker files and directories - /etc/sysconfig/docker-registry"
 	ruleExists = checkAuditRule("/etc/sysconfig/docker-registry")
@@ -283,7 +266,7 @@ func AuditDockerSysRegistry(client *client.Client) (res checks.Result) {
 	return
 }
 
-func AuditDockerStorage(client *client.Client) (res checks.Result) {
+func AuditDockerStorage(client *client.Client) (res Result) {
 	var ruleExists bool
 	res.Name = "1.17 Audit Docker files and directories - /etc/sysconfig/docker-storage"
 	ruleExists = checkAuditRule("/etc/sysconfig/docker-storage")
@@ -295,7 +278,7 @@ func AuditDockerStorage(client *client.Client) (res checks.Result) {
 	return
 }
 
-func AuditDockerDefault(client *client.Client) (res checks.Result) {
+func AuditDockerDefault(client *client.Client) (res Result) {
 	var ruleExists bool
 	res.Name = "1.18 Audit Docker files and directories - /etc/default/docker"
 	ruleExists = checkAuditRule("/etc/default/docker")

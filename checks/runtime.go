@@ -1,3 +1,9 @@
+/*
+Package checks - 5 Container Runtime
+The ways in which a container is started governs a lot security implications. It is possible to
+provide potentially dangerous runtime parameters that might compromise the host and
+other containers on the host. Verifying container runtime is thus very important.
+*/
 package checks
 
 import (
@@ -10,34 +16,7 @@ import (
 	"strings"
 )
 
-var checks = map[string]checks.Check{
-	"apparmor_profile":      CheckAppArmor,
-	"selinux_options":       CheckSELinux,
-	"single_process":        CheckSingleMainProcess,
-	"kernel_capabilities":   CheckKernelCapabilities,
-	"privileged_containers": CheckPrivContainers,
-	"sensitive_dirs":        CheckSensitiveDirs,
-	"ssh_running":           CheckSSHRunning,
-	"privileged_ports":      CheckPrivilegedPorts,
-	"needed_ports":          CheckNeededPorts,
-	"host_net_mode":         CheckHostNetworkMode,
-	"memory_usage":          CheckMemoryLimits,
-	"cpu_shares":            CheckCPUShares,
-	"readonly_rootfs":       CheckReadonlyRoot,
-	"bind_specific_int":     CheckBindHostInterface,
-	"restart_policy":        CheckRestartPolicy,
-	"host_namespace":        CheckHostNamespace,
-	"ipc_namespace":         CheckIPCNamespace,
-	"host_devices":          CheckHostDevices,
-	"override_ulimit":       CheckDefaultUlimit,
-}
-
-func GetAuditDefinitions() map[string]checks.Check {
-
-	return checks
-}
-
-func CheckAppArmor(client *client.Client) (res checks.Result) {
+func CheckAppArmor(client *client.Client) (res Result) {
 	var badContainers []string
 	res.Name = "5.1 Verify AppArmor Profile, if applicable"
 	containers := actuary.CreateContainerList(client)
@@ -60,7 +39,7 @@ func CheckAppArmor(client *client.Client) (res checks.Result) {
 	return
 }
 
-func CheckSELinux(client *client.Client) (res checks.Result) {
+func CheckSELinux(client *client.Client) (res Result) {
 	var badContainers []string
 	res.Name = "5.1 Verify AppArmor Profile, if applicable"
 	containers := actuary.CreateContainerList(client)
@@ -83,7 +62,7 @@ func CheckSELinux(client *client.Client) (res checks.Result) {
 	return
 }
 
-func CheckSingleMainProcess(client *client.Client) (res checks.Result) {
+func CheckSingleMainProcess(client *client.Client) (res Result) {
 	var badContainers []string
 	res.Name = "5.3 Verify that containers are running only a single main process"
 	containers := actuary.CreateContainerList(client)
@@ -112,7 +91,7 @@ func CheckSingleMainProcess(client *client.Client) (res checks.Result) {
 	return
 }
 
-func CheckKernelCapabilities(client *client.Client) (res checks.Result) {
+func CheckKernelCapabilities(client *client.Client) (res Result) {
 	var badContainers []string
 	res.Name = "5.4 Restrict Linux Kernel Capabilities within containers"
 	containers := actuary.CreateContainerList(client)
@@ -135,7 +114,7 @@ func CheckKernelCapabilities(client *client.Client) (res checks.Result) {
 	return
 }
 
-func CheckPrivContainers(client *client.Client) (res checks.Result) {
+func CheckPrivContainers(client *client.Client) (res Result) {
 	var badContainers []string
 	res.Name = "5.5 Do not use privileged containers"
 	containers := actuary.CreateContainerList(client)
@@ -158,7 +137,7 @@ func CheckPrivContainers(client *client.Client) (res checks.Result) {
 	return
 }
 
-func CheckSensitiveDirs(client *client.Client) (res checks.Result) {
+func CheckSensitiveDirs(client *client.Client) (res Result) {
 	var badContainers []string
 	res.Name = "5.6 Do not mount sensitive host system directories on containers "
 	sensitiveDirs := []string{"/dev", "/etc", "/lib", "/proc", "/sys", "/usr"}
@@ -188,7 +167,7 @@ func CheckSensitiveDirs(client *client.Client) (res checks.Result) {
 	return
 }
 
-func CheckSSHRunning(client *client.Client) (res checks.Result) {
+func CheckSSHRunning(client *client.Client) (res Result) {
 	var badContainers []string
 	res.Name = "5.7 Do not run ssh within containers"
 	containers := actuary.CreateContainerList(client)
@@ -217,7 +196,7 @@ func CheckSSHRunning(client *client.Client) (res checks.Result) {
 	return
 }
 
-func CheckPrivilegedPorts(client *client.Client) (res checks.Result) {
+func CheckPrivilegedPorts(client *client.Client) (res Result) {
 	var badContainers []string
 	res.Name = "5.8 Do not map privileged ports within containers"
 	containers := actuary.CreateContainerList(client)
@@ -247,7 +226,7 @@ func CheckPrivilegedPorts(client *client.Client) (res checks.Result) {
 	return
 }
 
-func CheckNeededPorts(client *client.Client) (res checks.Result) {
+func CheckNeededPorts(client *client.Client) (res Result) {
 	var containerPort map[string][]string
 	containerPort = make(map[string][]string)
 	res.Name = "5.9 Open only needed ports on container"
@@ -270,7 +249,7 @@ func CheckNeededPorts(client *client.Client) (res checks.Result) {
 	return res
 }
 
-func CheckHostNetworkMode(client *client.Client) (res checks.Result) {
+func CheckHostNetworkMode(client *client.Client) (res Result) {
 	var badContainers []string
 	res.Name = "5.10 Do not use host network mode on container"
 	containers := actuary.CreateContainerList(client)
@@ -297,7 +276,7 @@ func CheckHostNetworkMode(client *client.Client) (res checks.Result) {
 	return
 }
 
-func CheckMemoryLimits(client *client.Client) (res checks.Result) {
+func CheckMemoryLimits(client *client.Client) (res Result) {
 	var badContainers []string
 	res.Name = "5.11 Limit memory usage for container"
 	containers := actuary.CreateContainerList(client)
@@ -323,7 +302,7 @@ func CheckMemoryLimits(client *client.Client) (res checks.Result) {
 	return
 }
 
-func CheckCPUShares(client *client.Client) (res checks.Result) {
+func CheckCPUShares(client *client.Client) (res Result) {
 	var badContainers []string
 	res.Name = "5.12 Set container CPU priority appropriately"
 	containers := actuary.CreateContainerList(client)
@@ -348,7 +327,7 @@ func CheckCPUShares(client *client.Client) (res checks.Result) {
 	return
 }
 
-func CheckReadonlyRoot(client *client.Client) (res checks.Result) {
+func CheckReadonlyRoot(client *client.Client) (res Result) {
 	var badContainers []string
 	res.Name = "5.13 Mount container's root filesystem as read only"
 	containers := actuary.CreateContainerList(client)
@@ -372,7 +351,7 @@ func CheckReadonlyRoot(client *client.Client) (res checks.Result) {
 	return
 }
 
-func CheckBindHostInterface(client *client.Client) (res checks.Result) {
+func CheckBindHostInterface(client *client.Client) (res Result) {
 	var badContainers []string
 	res.Name = "5.14 Bind incoming container traffic to a specific host interface"
 	containers := actuary.CreateContainerList(client)
@@ -400,7 +379,7 @@ func CheckBindHostInterface(client *client.Client) (res checks.Result) {
 	return
 }
 
-func CheckRestartPolicy(client *client.Client) (res checks.Result) {
+func CheckRestartPolicy(client *client.Client) (res Result) {
 	var badContainers []string
 	res.Name = "5.15 Set the 'on-failure' container restart policy to 5"
 	containers := actuary.CreateContainerList(client)
@@ -425,7 +404,7 @@ func CheckRestartPolicy(client *client.Client) (res checks.Result) {
 	return
 }
 
-func CheckHostNamespace(client *client.Client) (res checks.Result) {
+func CheckHostNamespace(client *client.Client) (res Result) {
 	var badContainers []string
 	res.Name = "5.16 Do not share the host's process namespace"
 	containers := actuary.CreateContainerList(client)
@@ -450,7 +429,7 @@ func CheckHostNamespace(client *client.Client) (res checks.Result) {
 	return
 }
 
-func CheckIPCNamespace(client *client.Client) (res checks.Result) {
+func CheckIPCNamespace(client *client.Client) (res Result) {
 	var badContainers []string
 	res.Name = "5.17 Do not share the host's IPC namespace"
 	containers := actuary.CreateContainerList(client)
@@ -476,7 +455,7 @@ func CheckIPCNamespace(client *client.Client) (res checks.Result) {
 	return res
 }
 
-func CheckHostDevices(client *client.Client) (res checks.Result) {
+func CheckHostDevices(client *client.Client) (res Result) {
 	var badContainers []string
 	res.Name = "5.18 Do not directly expose host devices to containers"
 	containers := actuary.CreateContainerList(client)
@@ -503,7 +482,7 @@ func CheckHostDevices(client *client.Client) (res checks.Result) {
 	return
 }
 
-func CheckDefaultUlimit(client *client.Client) (res checks.Result) {
+func CheckDefaultUlimit(client *client.Client) (res Result) {
 	var badContainers []string
 	res.Name = "5.19 Override default ulimit at runtime only if needed "
 	containers := actuary.CreateContainerList(client)
