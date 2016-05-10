@@ -126,6 +126,11 @@ var checklist = map[string]Check{
 	"ipc_namespace":         CheckIPCNamespace,
 	"host_devices":          CheckHostDevices,
 	"override_ulimit":       CheckDefaultUlimit,
+	"mount_propagation":     CheckMountPropagation,
+	"uts_namespace":         CheckUTSnamespace,
+	"seccomp_profile":       CheckSeccompProfile,
+	"cgroup_usage":          CheckCgroupUsage,
+	"add_privs":             CheckAdditionalPrivs,
 	//Docker Security Operations
 	//"central_logging":  CheckCentralLogging,
 	"container_sprawl": CheckContainerSprawl,
@@ -252,6 +257,15 @@ func checkAuditRule(rule string) bool {
 	for _, line := range strings.Split(string(output), "\n") {
 		line = strings.TrimSpace(line)
 		if strings.Contains(line, rule) {
+			return true
+		}
+	}
+	return false
+}
+
+func stringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
 			return true
 		}
 	}
