@@ -138,25 +138,88 @@ func CheckUlimit(client *client.Client) (res Result) {
 }
 
 func CheckUserNamespace(client *client.Client) (res Result) {
-	return
+	res.Name = "2.8 Enable user namespace support"
+
+	cmdLine, _ := GetProcCmdline("docker")
+	for _, arg := range cmdLine {
+		if strings.Contains(arg, "--userns-remap") {
+			res.Pass()
+			return
+		}
+	}
+	output := "User namespace support is not enabled"
+	res.Fail(output)
+	return res
 }
 
 func CheckDefaultCgroup(client *client.Client) (res Result) {
-	return
+	res.Name = "2.9 Confirm default cgroup usage"
+
+	cmdLine, _ := GetProcCmdline("docker")
+	for _, arg := range cmdLine {
+		if strings.Contains(arg, "--cgroup-parent") {
+			res.Pass()
+			return
+		}
+	}
+	output := "Default cgroup is not used"
+	res.Fail(output)
+	return res
 }
 
 func CheckBaseDevice(client *client.Client) (res Result) {
-	return
+	res.Name = "2.10 Do not change base device size until needed"
+
+	cmdLine, _ := GetProcCmdline("docker")
+	for _, arg := range cmdLine {
+		if strings.Contains(arg, "--storage-opt dm.basesize") {
+			res.Pass()
+			return
+		}
+	}
+	output := "Default device size has been changed"
+	res.Fail(output)
+	return res
 }
 
 func CheckAuthPlugin(client *client.Client) (res Result) {
-	return
+	res.Name = "2.11 Use authorization plugin"
+
+	cmdLine, _ := GetProcCmdline("docker")
+	for _, arg := range cmdLine {
+		if strings.Contains(arg, "--authorization-plugin") {
+			res.Pass()
+			return
+		}
+	}
+	res.Fail("")
+	return res
 }
 
 func CheckCentralLogging(client *client.Client) (res Result) {
-	return
+	res.Name = "2.12 Configure centralized and remote logging"
+
+	cmdLine, _ := GetProcCmdline("docker")
+	for _, arg := range cmdLine {
+		if strings.Contains(arg, "--log-driver") {
+			res.Pass()
+			return
+		}
+	}
+	res.Fail("")
+	return res
 }
 
 func CheckLegacyRegistry(client *client.Client) (res Result) {
-	return
+	res.Name = "2.13 Disable operations on legacy registry (v1)"
+
+	cmdLine, _ := GetProcCmdline("docker")
+	for _, arg := range cmdLine {
+		if strings.Contains(arg, "--disable-legacy-registry") {
+			res.Pass()
+			return
+		}
+	}
+	res.Fail("")
+	return res
 }

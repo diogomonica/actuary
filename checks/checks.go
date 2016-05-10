@@ -94,12 +94,17 @@ var checklist = map[string]Check{
 	"aufs_driver":       CheckAufsDriver,
 	"tls_auth":          CheckTLSAuth,
 	"default_ulimit":    CheckUlimit,
+	"user_namespace":    CheckUserNamespace,
+	"default_cgroup":    CheckDefaultCgroup,
+	"device_size":       CheckBaseDevice,
+	"auth_plugin":       CheckAuthPlugin,
+	"central_logging":   CheckCentralLogging,
+	"legacy_registry":   CheckLegacyRegistry,
 	//Docker Container Images
 	"root_containers": CheckContainerUser,
 	//Docker Container Runtime
 	"apparmor_profile":      CheckAppArmor,
 	"selinux_options":       CheckSELinux,
-	"single_process":        CheckSingleMainProcess,
 	"kernel_capabilities":   CheckKernelCapabilities,
 	"privileged_containers": CheckPrivContainers,
 	"sensitive_dirs":        CheckSensitiveDirs,
@@ -117,7 +122,7 @@ var checklist = map[string]Check{
 	"host_devices":          CheckHostDevices,
 	"override_ulimit":       CheckDefaultUlimit,
 	//Docker Security Operations
-	"central_logging":  CheckCentralLogging,
+	//"central_logging":  CheckCentralLogging,
 	"container_sprawl": CheckContainerSprawl,
 }
 
