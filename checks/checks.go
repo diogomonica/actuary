@@ -106,6 +106,7 @@ var checklist = map[string]Check{
 	"legacy_registry":   CheckLegacyRegistry,
 	//Docker Container Images
 	"root_containers": CheckContainerUser,
+	"content_trust":   CheckContentTrust,
 	//Docker Container Runtime
 	"apparmor_profile":      CheckAppArmor,
 	"selinux_options":       CheckSELinux,

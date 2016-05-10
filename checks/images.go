@@ -11,6 +11,7 @@ package checks
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/diogomonica/actuary"
 	"github.com/docker/engine-api/client"
@@ -39,4 +40,15 @@ func CheckContainerUser(client *client.Client) (res Result) {
 	}
 
 	return res
+}
+
+func CheckContentTrust(client *client.Client) (res Result) {
+	res.Name = "4.5 Enable Content trust for Docker"
+	trust := os.Getenv("DOCKER_CONTENT_TRUST")
+	if trust == "1" {
+		res.Pass()
+	} else {
+		res.Fail("")
+	}
+	return
 }
