@@ -244,23 +244,23 @@ func getFileOwner(info os.FileInfo) (uid, gid string) {
 }
 
 //Helper function to check rules in auditctl
-func checkAuditRule(rule string) bool {
+func checkAuditRule(rule string) (b bool, err error) {
 	auditctlPath, err := exec.LookPath("auditctl")
 	if err != nil || auditctlPath == "" {
-		log.Panicf("Could not find auditctl tool")
+		return
 	}
 	cmd := exec.Command(auditctlPath, "-l")
 	output, err := cmd.Output()
 	if err != nil {
-		log.Panicf("Auditctl command returned with errors")
+		return
 	}
 	for _, line := range strings.Split(string(output), "\n") {
 		line = strings.TrimSpace(line)
 		if strings.Contains(line, rule) {
-			return true
+			return true, err
 		}
 	}
-	return false
+	return false, err
 }
 
 func stringInSlice(a string, list []string) bool {
