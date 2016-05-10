@@ -32,7 +32,6 @@ func init() {
 func main() {
 	var cmdArgs []string
 	var hash string
-	var auditName string
 
 	flag.Parse()
 	cli, err := client.NewClient("unix:///var/run/docker.sock", "v1.20", nil, clientHeaders)
@@ -60,7 +59,7 @@ func main() {
 	actions := checks.GetAuditDefinitions()
 	//loop through the audits
 	for category := range tomlProfile.Audit {
-		log.Printf("Running Audit: %s", auditName)
+		log.Printf("Running Audit: %s", tomlProfile.Audit[category].Name)
 		checks := tomlProfile.Audit[category].Checklist
 		//cross-reference checks
 		for _, check := range checks {
