@@ -11,56 +11,65 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/diogomonica/actuary"
 	"github.com/docker/engine-api/client"
 	"github.com/docker/engine-api/types"
 )
 
-func CheckCentralLogging(client *client.Client) (res Result) {
-	var badContainers []string
-	res.Name = "6.5 Use a centralized and remote log collection service"
-	containers := actuary.CreateContainerList(client)
-	if !containers.Running() {
-		res.Skip("No running containers")
+func CheckImageSprawl(client *client.Client) (res Result) {
+	var allImageIDs []string
+	var runImageIDs []string
+	res.Name = "6.4 Avoid image sprawl"
+	imgOpts := types.ImageListOptions{All: false}
+	allImages, err := client.ImageList(imgOpts)
+	if err != nil {
+		res.Skip("Unable to retrieve image list")
+		return
+	}
+	for _, image := range allImages {
+		allImageIDs = append(allImageIDs, image.ID)
+	}
+
+	conOpts := types.ContainerListOptions{All: true}
+	containers, err := client.ContainerList(conOpts)
+	if err != nil {
+		res.Skip("Unable to retrieve container list")
 		return
 	}
 
 	for _, container := range containers {
-		mounts := container.Info.Mounts
-		if len(mounts) == 0 {
-			badContainers = append(badContainers, container.ID)
-		}
+		runImageIDs = append(runImageIDs, container.ImageID)
 	}
-
-	if len(badContainers) == 0 {
-		res.Info(`Volumes found in all containers.Ensure centralized
-		logging is enabled`)
-	} else {
-		output := fmt.Sprintf(`Containers have no volumes, ensure centralized
-		 logging is enabled : %s`, badContainers)
+	if len(allImageIDs) > 100 {
+		output := fmt.Sprintf(`There are currently %d images`, len(allImageIDs))
 		res.Fail(output)
+	} else if len(runImageIDs) < (len(allImageIDs) / 2) {
+		output := fmt.Sprintf(`Only %d out of %d images are in use.`,
+			len(allImageIDs), len(runImageIDs))
+		res.Fail(output)
+	} else {
+		res.Pass()
 	}
 	return
 }
 
 func CheckContainerSprawl(client *client.Client) (res Result) {
 	var diff int
-	res.Name = "6.7 Avoid container sprawl"
+	res.Name = "6.5 Avoid container sprawl"
 	options := types.ContainerListOptions{All: false}
-	run_containers, err := client.ContainerList(options)
+	runContainers, err := client.ContainerList(options)
 	options = types.ContainerListOptions{All: true}
-	all_containers, err := client.ContainerList(options)
+	allContainers, err := client.ContainerList(options)
 	if err != nil {
 		log.Printf("Unable to get container list")
 		return res
 	}
 
-	diff = len(all_containers) - len(run_containers)
+	diff = len(allContainers) - len(runContainers)
 
 	if diff > 25 {
 		output := fmt.Sprintf(`There are currently a total of %d containers,
-			with only %d of them currently running`, len(all_containers),
-			len(run_containers))
+			with only %d of them currently running`, len(allContainers),
+			len(runContainers))
 		res.Fail(output)
 	} else {
 		res.Pass()

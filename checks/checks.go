@@ -132,7 +132,7 @@ var checklist = map[string]Check{
 	"cgroup_usage":          CheckCgroupUsage,
 	"add_privs":             CheckAdditionalPrivs,
 	//Docker Security Operations
-	//"central_logging":  CheckCentralLogging,
+	"image_sprawl":     CheckImageSprawl,
 	"container_sprawl": CheckContainerSprawl,
 }
 
