@@ -20,7 +20,7 @@ func CheckServiceOwner(client *client.Client) (res Result) {
 	refUser := "root"
 	fileInfo, err := getSystemdFile("docker.service")
 	if os.IsNotExist(err) {
-		res.Info("File could not be accessed")
+		res.Skip("File could not be accessed")
 		return
 	}
 
@@ -43,7 +43,7 @@ func CheckServicePerms(client *client.Client) (res Result) {
 	refPerms = 0644
 	fileInfo, err := getSystemdFile("docker.service")
 	if os.IsNotExist(err) {
-		res.Info("File could not be accessed")
+		res.Skip("File could not be accessed")
 		return
 	}
 
@@ -59,57 +59,12 @@ func CheckServicePerms(client *client.Client) (res Result) {
 	return res
 }
 
-// func CheckRegistryOwner(client *client.Client) (res Result) {
-// 	res.Name = `3.3 Verify that docker-registry.service file ownership is set
-// 	to root:root`
-// 	refUser := "root"
-// 	fileInfo, err := getSystemdFile("docker-registry.service")
-// 	if os.IsNotExist(err) {
-// 		res.Info("File could not be accessed")
-// 		return
-// 	}
-//
-// 	refUid, refGid := getUserInfo(refUser)
-// 	fileUid, fileGid := getFileOwner(fileInfo)
-// 	if (refUid == fileUid) && (refGid == fileGid) {
-// 		res.Status = "PASS"
-// 	} else {
-// 		res.Status = "WARN"
-// 		res.Output = fmt.Sprintf("User/group owner should be : %s", refUser)
-// 	}
-//
-// 	return res
-// }
-
-// func CheckRegistryPerms(client *client.Client) (res Result) {
-// 	var refPerms uint32
-// 	res.Name = `3.4 Verify that docker-registry.service file permissions
-// 		are set to 644 or more restrictive`
-// 	refPerms = 0644
-// 	fileInfo, err := getSystemdFile("docker-registry.service")
-// 	if os.IsNotExist(err) {
-// 		res.Info("File could not be accessed")
-// 		return
-// 	}
-//
-// 	isLeast, perms := hasLeastPerms(fileInfo, refPerms)
-// 	if isLeast == true {
-// 		res.Status = "PASS"
-// 	} else {
-// 		res.Status = "WARN"
-// 		res.Output = fmt.Sprintf("File has less restrictive permissions than expected: %v",
-// 			perms)
-// 	}
-//
-// 	return res
-// }
-
 func CheckSocketOwner(client *client.Client) (res Result) {
 	res.Name = "3.3 Verify that docker.socket file ownership is set to root:root"
 	refUser := "root"
 	fileInfo, err := getSystemdFile("docker.socket")
 	if os.IsNotExist(err) {
-		res.Info("File could not be accessed")
+		res.Skip("File could not be accessed")
 		return
 	}
 
@@ -132,7 +87,7 @@ func CheckSocketPerms(client *client.Client) (res Result) {
 	refPerms = 0644
 	fileInfo, err := getSystemdFile("docker.socket")
 	if os.IsNotExist(err) {
-		res.Info("File could not be accessed")
+		res.Skip("File could not be accessed")
 		return
 	}
 
@@ -153,7 +108,7 @@ func CheckDockerDirOwner(client *client.Client) (res Result) {
 	refUser := "root"
 	fileInfo, err := os.Stat("/etc/docker")
 	if os.IsNotExist(err) {
-		res.Info("File could not be accessed")
+		res.Skip("File could not be accessed")
 		return
 	}
 
@@ -176,7 +131,7 @@ func CheckDockerDirPerms(client *client.Client) (res Result) {
 	refPerms = 0755
 	fileInfo, err := os.Stat("/etc/docker")
 	if os.IsNotExist(err) {
-		res.Info("File could not be accessed")
+		res.Skip("File could not be accessed")
 		return
 	}
 
@@ -280,7 +235,7 @@ func CheckCACertOwner(client *client.Client) (res Result) {
 	_, certPath := GetCmdOption(dockerProc, "--tlscacert")
 	fileInfo, err := os.Stat(certPath)
 	if os.IsNotExist(err) {
-		res.Info("File could not be accessed")
+		res.Skip("File could not be accessed")
 		return
 	}
 
@@ -305,7 +260,7 @@ func CheckCACertPerms(client *client.Client) (res Result) {
 	_, certPath := GetCmdOption(dockerProc, "--tlscacert")
 	fileInfo, err := os.Stat(certPath)
 	if os.IsNotExist(err) {
-		res.Info("File could not be accessed")
+		res.Skip("File could not be accessed")
 		return
 	}
 
@@ -329,7 +284,7 @@ func CheckServerCertOwner(client *client.Client) (res Result) {
 	_, certPath := GetCmdOption(dockerProc, "--tlscert")
 	fileInfo, err := os.Stat(certPath)
 	if os.IsNotExist(err) {
-		res.Info("File could not be accessed")
+		res.Skip("File could not be accessed")
 		return
 	}
 
@@ -354,7 +309,7 @@ func CheckServerCertPerms(client *client.Client) (res Result) {
 	_, certPath := GetCmdOption(dockerProc, "--tlscert")
 	fileInfo, err := os.Stat(certPath)
 	if os.IsNotExist(err) {
-		res.Info("File could not be accessed")
+		res.Skip("File could not be accessed")
 		return
 	}
 
@@ -378,7 +333,7 @@ func CheckCertKeyOwner(client *client.Client) (res Result) {
 	_, certPath := GetCmdOption(dockerProc, "--tlskey")
 	fileInfo, err := os.Stat(certPath)
 	if os.IsNotExist(err) {
-		res.Info("File could not be accessed")
+		res.Skip("File could not be accessed")
 		return
 	}
 
@@ -403,7 +358,7 @@ func CheckCertKeyPerms(client *client.Client) (res Result) {
 	_, certPath := GetCmdOption(dockerProc, "--tlskey")
 	fileInfo, err := os.Stat(certPath)
 	if os.IsNotExist(err) {
-		res.Info("File could not be accessed")
+		res.Skip("File could not be accessed")
 		return
 	}
 
@@ -426,7 +381,7 @@ func CheckDockerSockOwner(client *client.Client) (res Result) {
 	refGroup := "docker"
 	fileInfo, err := os.Stat("/var/run/docker.sock")
 	if os.IsNotExist(err) {
-		res.Info("File could not be accessed")
+		res.Skip("File could not be accessed")
 		return
 	}
 
@@ -449,7 +404,7 @@ func CheckDockerSockPerms(client *client.Client) (res Result) {
 	refPerms = 0660
 	fileInfo, err := os.Stat("/var/run/docker.sock")
 	if os.IsNotExist(err) {
-		res.Info("File could not be accessed")
+		res.Skip("File could not be accessed")
 		return
 	}
 
@@ -466,17 +421,85 @@ func CheckDockerSockPerms(client *client.Client) (res Result) {
 }
 
 func CheckDaemonJSONOwner(client *client.Client) (res Result) {
+	res.Name = `3.17 Verify that daemon.json file ownership is set to root:root`
+	refUser := "root"
+	refGroup := "root"
+	fileInfo, err := os.Stat("/etc/docker/daemon.json")
+	if os.IsNotExist(err) {
+		res.Skip("File could not be accessed")
+		return
+	}
+	refUid, _ := getUserInfo(refUser)
+	refGid := getGroupId(refGroup)
+	fileUid, fileGid := getFileOwner(fileInfo)
+	if (refUid == fileUid) && (refGid == fileGid) {
+		res.Pass()
+	} else {
+		output := fmt.Sprintf("User/group owner should be : %s", refGroup)
+		res.Fail(output)
+	}
 	return
 }
 
 func CheckDaemonJSONPerms(client *client.Client) (res Result) {
+	var refPerms uint32
+	res.Name = `3.18 Verify that daemon.json file permissions are set to 644 or more
+restrictive`
+	refPerms = 0644
+	fileInfo, err := os.Stat("/etc/docker/daemon.json")
+	if os.IsNotExist(err) {
+		res.Skip("File could not be accessed")
+		return
+	}
+	isLeast, perms := hasLeastPerms(fileInfo, refPerms)
+	if isLeast == true {
+		res.Pass()
+	} else {
+		output := fmt.Sprintf("File has less restrictive permissions than expected: %v",
+			perms)
+		res.Fail(output)
+	}
 	return
 }
 
 func CheckDefaultOwner(client *client.Client) (res Result) {
+	res.Name = `3.19 Verify that /etc/default/docker file ownership is set to root:root`
+	refUser := "root"
+	refGroup := "root"
+	fileInfo, err := os.Stat("/etc/default/docker")
+	if os.IsNotExist(err) {
+		res.Skip("File could not be accessed")
+		return
+	}
+	refUid, _ := getUserInfo(refUser)
+	refGid := getGroupId(refGroup)
+	fileUid, fileGid := getFileOwner(fileInfo)
+	if (refUid == fileUid) && (refGid == fileGid) {
+		res.Pass()
+	} else {
+		output := fmt.Sprintf("User/group owner should be : %s", refGroup)
+		res.Fail(output)
+	}
 	return
 }
 
 func CheckDefaultPerms(client *client.Client) (res Result) {
+	var refPerms uint32
+	res.Name = `3.20 Verify that /etc/default/docker file permissions are set to 644 or
+more restrictive`
+	refPerms = 0644
+	fileInfo, err := os.Stat("/etc/default/docker")
+	if os.IsNotExist(err) {
+		res.Skip("File could not be accessed")
+		return
+	}
+	isLeast, perms := hasLeastPerms(fileInfo, refPerms)
+	if isLeast == true {
+		res.Pass()
+	} else {
+		output := fmt.Sprintf("File has less restrictive permissions than expected: %v",
+			perms)
+		res.Fail(output)
+	}
 	return
 }

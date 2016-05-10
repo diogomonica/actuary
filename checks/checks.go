@@ -86,6 +86,10 @@ var checklist = map[string]Check{
 	"certkey_perms":        CheckCertKeyPerms,
 	"socket_owner":         CheckDockerSockOwner,
 	"socket_perms":         CheckDockerSockPerms,
+	"daemonjson_owner":     CheckDaemonJSONOwner,
+	"daemonjson_perms":     CheckDaemonJSONPerms,
+	"dockerdef_owner":      CheckDefaultOwner,
+	"dockerdef_perms":      CheckDefaultPerms,
 	//Docker Configuration
 	"net_traffic":       RestrictNetTraffic,
 	"logging_level":     CheckLoggingLevel,
