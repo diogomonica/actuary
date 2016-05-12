@@ -42,7 +42,7 @@ When using the `-f` flag, Actuary will attempt to run a local file, which should
 
 Actuary has the ability of running against a remote Docker api. You will need to point Actuary to the remote API, and provide your TLS credentials, in case you are using them for Authentication:
 
-`# actuary --tlscacert=ca.pem --tlskey=key.pem --tlscert=cert.pem --server=tcp://<docker host>:<port> <hash>`
+`# actuary --tlspath=<path to load certs from> --server=tcp://<docker host>:<port> <hash>`
 
 ## Running a local check
 
@@ -58,4 +58,4 @@ Running it against your Docker instance by mounting in the Docker socket:
 
 By default, Actuary outputs the results to the console. If you wish to parse the results using any kind of program or script, you can tell Actuary to output the results in either XML or JSON:
 
-`# actuary --output=json <hash>`
+`# actuary --output=<json/xml> <hash>`
