@@ -135,148 +135,117 @@ func CheckTrustedUsers(client *client.Client) (res Result) {
 
 func AuditDockerDaemon(client *client.Client) (res Result) {
 	res.Name = "1.7 Audit docker daemon"
-	ruleExists, err := checkAuditRule("/usr/bin/docker")
-	if err != nil {
-		output := fmt.Sprintf("An error occured: %s", err)
-		res.Skip(output)
-		return
-	}
-
-	if ruleExists {
-		res.Pass()
+	err := checkAuditRule("/usr/bin/docker")
+	if err == nil {
+		defer res.Pass()
+	} else if err.Code == 1 {
+		defer res.Skip(err.Message)
 	} else {
-		res.Fail("")
+		defer res.Fail("")
 	}
-
 	return
 }
 
 func AuditLibDocker(client *client.Client) (res Result) {
 	res.Name = "1.8 Audit Docker files and directories - /var/lib/docker"
-	ruleExists, err := checkAuditRule("/var/lib/docker")
-	if err != nil {
-		output := fmt.Sprintf("An error occured: %s", err)
-		res.Skip(output)
-		return
-	}
-	if ruleExists {
-		res.Pass()
+	err := checkAuditRule("/var/lib/docker")
+	if err == nil {
+		defer res.Pass()
+	} else if err.Code == 1 {
+		defer res.Skip(err.Message)
 	} else {
-		res.Fail("")
+		defer res.Fail("")
 	}
-
 	return
 }
 
 func AuditEtcDocker(client *client.Client) (res Result) {
 	res.Name = "1.9 Audit Docker files and directories - /etc/docker"
-	ruleExists, err := checkAuditRule("/etc/docker")
-	if err != nil {
-		output := fmt.Sprintf("An error occured: %s", err)
-		res.Skip(output)
-		return
-	}
-	if ruleExists {
-		res.Pass()
+	err := checkAuditRule("/etc/docker")
+	if err == nil {
+		defer res.Pass()
+	} else if err.Code == 1 {
+		defer res.Skip(err.Message)
 	} else {
-		res.Fail("")
+		defer res.Fail("")
 	}
 	return
 }
 
 func AuditDockerService(client *client.Client) (res Result) {
 	res.Name = "1.10 Audit Docker files and directories - docker.service"
-	ruleExists, err := checkAuditRule("/usr/lib/systemd/system/docker.service")
-	if err != nil {
-		output := fmt.Sprintf("An error occured: %s", err)
-		res.Skip(output)
-		return
-	}
-	if ruleExists {
-		res.Pass()
+	err := checkAuditRule("/usr/lib/systemd/system/docker.service")
+	if err == nil {
+		defer res.Pass()
+	} else if err.Code == 1 {
+		defer res.Skip(err.Message)
 	} else {
-		res.Fail("")
+		defer res.Fail("")
 	}
 	return
 }
 
 func AuditDockerSocket(client *client.Client) (res Result) {
 	res.Name = "1.11 Audit Docker files and directories - docker.socket"
-	ruleExists, err := checkAuditRule("/usr/lib/systemd/system/docker.socket")
-	if err != nil {
-		output := fmt.Sprintf("An error occured: %s", err)
-		res.Skip(output)
-		return
-	}
-	if ruleExists {
-		res.Pass()
+	err := checkAuditRule("/usr/lib/systemd/system/docker.socket")
+	if err == nil {
+		defer res.Pass()
+	} else if err.Code == 1 {
+		defer res.Skip(err.Message)
 	} else {
-		res.Fail("")
+		defer res.Fail("")
 	}
 	return
 }
 
 func AuditDockerDefault(client *client.Client) (res Result) {
 	res.Name = "1.12 Audit Docker files and directories - /etc/default/docker"
-	ruleExists, err := checkAuditRule("/etc/default/docker")
-	if err != nil {
-		output := fmt.Sprintf("An error occured: %s", err)
-		res.Skip(output)
-		return
-	}
-	if ruleExists {
-		res.Pass()
+	err := checkAuditRule("/etc/default/docker")
+	if err == nil {
+		defer res.Pass()
+	} else if err.Code == 1 {
+		defer res.Skip(err.Message)
 	} else {
-		res.Fail("")
+		defer res.Fail("")
 	}
 	return
 }
 
 func AuditDaemonJSON(client *client.Client) (res Result) {
 	res.Name = "1.13 Audit Docker files and directories - /etc/docker/daemon.json"
-	ruleExists, err := checkAuditRule("/etc/docker/daemon.json")
-	if err != nil {
-		output := fmt.Sprintf("An error occured: %s", err)
-		res.Skip(output)
-		return
-	}
-	if ruleExists {
-		res.Pass()
+	err := checkAuditRule("/etc/docker/daemon.json")
+	if err == nil {
+		defer res.Pass()
+	} else if err.Code == 1 {
+		defer res.Skip(err.Message)
 	} else {
-		res.Fail("")
+		defer res.Fail("")
 	}
 	return
 }
 
 func AuditContainerd(client *client.Client) (res Result) {
-	var ruleExists bool
 	res.Name = "1.14 Audit Docker files and directories - /usr/bin/docker-containerd"
-	ruleExists, err := checkAuditRule("/usr/bin/docker-containerd")
-	if err != nil {
-		output := fmt.Sprintf("An error occured: %s", err)
-		res.Skip(output)
-		return
-	}
-	if ruleExists {
-		res.Pass()
+	err := checkAuditRule("/usr/bin/docker-containerd")
+	if err == nil {
+		defer res.Pass()
+	} else if err.Code == 1 {
+		defer res.Skip(err.Message)
 	} else {
-		res.Fail("")
+		defer res.Fail("")
 	}
 	return
 }
 
 func AuditRunc(client *client.Client) (res Result) {
 	res.Name = "1.15 Audit Docker files and directories - /usr/bin/docker-runc"
-	ruleExists, err := checkAuditRule("/usr/bin/docker-runc")
-	if err != nil {
-		output := fmt.Sprintf("An error occured: %s", err)
-		res.Skip(output)
-		return
-	}
-	if ruleExists {
-		res.Pass()
+	err := checkAuditRule("/usr/bin/docker-runc")
+	if err == nil {
+		defer res.Pass()
+	} else if err.Code == 1 {
+		defer res.Skip(err.Message)
 	} else {
-		res.Fail("")
+		defer res.Fail("")
 	}
 	return
 }
