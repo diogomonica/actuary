@@ -16,9 +16,8 @@ var profile = flag.String("profile", "", "Actuary profile file path")
 var output = flag.String("output", "", "output filename")
 var outputType = flag.String("type", "json", "output type - XML or JSON")
 var tlsPath = flag.String("tlspath", "", "Path to load certificates from")
-var server = flag.String("server", "tcp://127.0.0.1:2376", "Docker server to connect to tcp://<docker host>:<port>")
+var server = flag.String("server", "", "Docker server to connect to tcp://<docker host>:<port>")
 var tomlProfile profileutils.Profile
-var clientHeaders map[string]string
 var results []checks.Result
 var actions map[string]checks.Check
 
@@ -27,10 +26,7 @@ func init() {
 	flag.StringVar(output, "o", "", "output filename")
 	flag.StringVar(outputType, "", "json", "output type - XML or JSON")
 	flag.StringVar(tlsPath, "tls", "", "Path to load certificates from")
-	flag.StringVar(server, "s", "tcp://127.0.0.1:2376", "Docker server to connect to tcp://<docker host>:<port>")
-
-	clientHeaders = make(map[string]string)
-	clientHeaders["User-Agent"] = "engine-api-cli-1.0"
+	flag.StringVar(server, "s", "", "Docker server to connect to tcp://<docker host>:<port>")
 }
 
 func main() {
