@@ -1,3 +1,7 @@
+/* This test suite should NOT run on CircleCI due to elevated privilege
+requirements. You should run this on a local machine with full access
+to a Docker server*/
+
 package actuary
 
 import (
