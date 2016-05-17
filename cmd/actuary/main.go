@@ -15,8 +15,9 @@ import (
 var profile = flag.String("profile", "", "Actuary profile file path")
 var output = flag.String("output", "", "output filename")
 var outputType = flag.String("type", "json", "output type - XML or JSON")
+var tlsPath = flag.String("tlspath", "", "Path to load certificates from")
+var server = flag.String("server", "", "Docker server to connect to tcp://<docker host>:<port>")
 var tomlProfile profileutils.Profile
-var clientHeaders map[string]string
 var results []checks.Result
 var actions map[string]checks.Check
 
@@ -24,9 +25,8 @@ func init() {
 	flag.StringVar(profile, "f", "", "Actuary profile file path")
 	flag.StringVar(output, "o", "", "output filename")
 	flag.StringVar(outputType, "", "json", "output type - XML or JSON")
-
-	clientHeaders = make(map[string]string)
-	clientHeaders["User-Agent"] = "engine-api-cli-1.0"
+	flag.StringVar(tlsPath, "tls", "", "Path to load certificates from")
+	flag.StringVar(server, "s", "", "Docker server to connect to tcp://<docker host>:<port>")
 }
 
 func main() {
@@ -34,7 +34,15 @@ func main() {
 	var hash string
 
 	flag.Parse()
-	cli, err := client.NewClient("unix:///var/run/docker.sock", "v1.20", nil, clientHeaders)
+	if *tlsPath != "" {
+		os.Setenv("DOCKER_CERT_PATH", *tlsPath)
+	}
+	if *server != "" {
+		os.Setenv("DOCKER_HOST", *server)
+	} else {
+		os.Setenv("DOCKER_HOST", "unix:///var/run/docker.sock")
+	}
+	cli, err := client.NewEnvClient()
 	if err != nil {
 		log.Fatalf("Unable to connect to Docker daemon: %s", err)
 	}

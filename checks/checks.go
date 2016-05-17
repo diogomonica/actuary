@@ -53,6 +53,12 @@ func (r *Result) Info(s string) {
 	return
 }
 
+type auditdError struct {
+	Error   error
+	Message string
+	Code    int //1: Cannot read auditd rules. 2: Rule does not exist
+}
+
 var checklist = map[string]Check{
 	//Docker Host
 	"kernel_version":     CheckKernelVersion,
@@ -244,23 +250,23 @@ func getFileOwner(info os.FileInfo) (uid, gid string) {
 }
 
 //Helper function to check rules in auditctl
-func checkAuditRule(rule string) bool {
+func checkAuditRule(rule string) *auditdError {
 	auditctlPath, err := exec.LookPath("auditctl")
 	if err != nil || auditctlPath == "" {
-		log.Panicf("Could not find auditctl tool")
+		return &auditdError{err, "Could not find auditctl", 1}
 	}
 	cmd := exec.Command(auditctlPath, "-l")
 	output, err := cmd.Output()
 	if err != nil {
-		log.Panicf("Auditctl command returned with errors")
+		return &auditdError{err, "Unable to retrieve rule list", 1}
 	}
 	for _, line := range strings.Split(string(output), "\n") {
 		line = strings.TrimSpace(line)
 		if strings.Contains(line, rule) {
-			return true
+			return nil
 		}
 	}
-	return false
+	return &auditdError{nil, "Rule not found", 2}
 }
 
 func stringInSlice(a string, list []string) bool {
