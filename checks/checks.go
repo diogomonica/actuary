@@ -11,15 +11,10 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/docker/engine-api/client"
-	"github.com/docker/engine-api/types"
-	"github.com/docker/engine-api/types/strslice"
+	"github.com/diogomonica/actuary"
 	"github.com/mitchellh/go-ps"
 	"github.com/shirou/gopsutil/process"
 )
-
-//Check
-type Check func(t Target) Result
 
 //Result objects are returned from Check functions
 type Result struct {
@@ -55,11 +50,8 @@ func (r *Result) Info(s string) {
 	return
 }
 
-type auditdError struct {
-	Error   error
-	Message string
-	Code    int //1: Cannot read auditd rules. 2: Rule does not exist
-}
+//Check
+type Check func(t actuary.Target) Result
 
 var checklist = map[string]Check{
 	//Docker Host
@@ -149,7 +141,13 @@ func GetAuditDefinitions() map[string]Check {
 	return checklist
 }
 
-func GetProcCmdline(procname string) (cmd []string, err error) {
+type auditdError struct {
+	Error   error
+	Message string
+	Code    int //1: Cannot read auditd rules. 2: Rule does not exist
+}
+
+func getProcCmdline(procname string) (cmd []string, err error) {
 	var pid int
 
 	ps, _ := ps.Processes()
@@ -164,7 +162,7 @@ func GetProcCmdline(procname string) (cmd []string, err error) {
 	return cmd, err
 }
 
-func GetCmdOption(args []string, opt string) (exist bool, val string) {
+func getCmdOption(args []string, opt string) (exist bool, val string) {
 	var optBuf string
 	for _, arg := range args {
 		if strings.Contains(arg, opt) {
@@ -278,76 +276,4 @@ func stringInSlice(a string, list []string) bool {
 		}
 	}
 	return false
-}
-
-type Target struct {
-	Client     *client.Client
-	Info       types.Info
-	Containers ContainerList
-}
-
-func NewTarget() (a Target, err error) {
-	a.Client, err = client.NewEnvClient()
-	if err != nil {
-		fmt.Printf("Unable to create Docker client")
-		return
-	}
-	a.Info, err = a.Client.Info()
-	if err != nil {
-		fmt.Printf("Unable to create Docker client")
-		return
-	}
-	a.Containers = createContainerList(a.Client)
-	return
-}
-
-type ContainerInfo struct {
-	types.ContainerJSON
-}
-
-type Container struct {
-	ID   string
-	Info ContainerInfo
-}
-
-type ContainerList []Container
-
-func (c *ContainerInfo) AppArmor() string {
-	return c.AppArmorProfile
-}
-
-func (c *ContainerInfo) SELinux() []string {
-	return c.HostConfig.SecurityOpt
-}
-
-func (c *ContainerInfo) KernelCapabilities() *strslice.StrSlice {
-	return c.HostConfig.CapAdd
-}
-
-func (c *ContainerInfo) Privileged() bool {
-	return c.HostConfig.Privileged
-}
-
-func (l *ContainerList) Running() bool {
-	if len(*l) != 0 {
-		return true
-	}
-	return false
-}
-
-func createContainerList(c *client.Client) (l ContainerList) {
-	opts := types.ContainerListOptions{All: false}
-	containers, err := c.ContainerList(opts)
-	if err != nil {
-		log.Fatalf("Unable to get container list")
-	}
-	for _, cont := range containers {
-		entry := new(Container)
-		inspectData, _ := c.ContainerInspect(cont.ID)
-		info := &ContainerInfo{inspectData}
-		entry.ID = cont.ID
-		entry.Info = *info
-		l = append(l, *entry)
-	}
-	return
 }

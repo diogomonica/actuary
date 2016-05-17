@@ -11,9 +11,11 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+
+	"github.com/diogomonica/actuary"
 )
 
-func CheckServiceOwner(t Target) (res Result) {
+func CheckServiceOwner(t actuary.Target) (res Result) {
 	res.Name = "3.1 Verify that docker.service file ownership is set to root:root"
 	refUser := "root"
 	fileInfo, err := getSystemdFile("docker.service")
@@ -34,7 +36,7 @@ func CheckServiceOwner(t Target) (res Result) {
 	return
 }
 
-func CheckServicePerms(t Target) (res Result) {
+func CheckServicePerms(t actuary.Target) (res Result) {
 	var refPerms uint32
 	res.Name = `3.2 Verify that docker.service file permissions are set to
 		644 or more restrictive`
@@ -57,7 +59,7 @@ func CheckServicePerms(t Target) (res Result) {
 	return res
 }
 
-func CheckSocketOwner(t Target) (res Result) {
+func CheckSocketOwner(t actuary.Target) (res Result) {
 	res.Name = "3.3 Verify that docker.socket file ownership is set to root:root"
 	refUser := "root"
 	fileInfo, err := getSystemdFile("docker.socket")
@@ -78,7 +80,7 @@ func CheckSocketOwner(t Target) (res Result) {
 	return res
 }
 
-func CheckSocketPerms(t Target) (res Result) {
+func CheckSocketPerms(t actuary.Target) (res Result) {
 	var refPerms uint32
 	res.Name = `3.4 Verify that docker.socket file permissions are set to 644 or more
         restrictive`
@@ -101,7 +103,7 @@ func CheckSocketPerms(t Target) (res Result) {
 	return res
 }
 
-func CheckDockerDirOwner(t Target) (res Result) {
+func CheckDockerDirOwner(t actuary.Target) (res Result) {
 	res.Name = "3.5 Verify that /etc/docker directory ownership is set to root:root "
 	refUser := "root"
 	fileInfo, err := os.Stat("/etc/docker")
@@ -122,7 +124,7 @@ func CheckDockerDirOwner(t Target) (res Result) {
 	return res
 }
 
-func CheckDockerDirPerms(t Target) (res Result) {
+func CheckDockerDirPerms(t actuary.Target) (res Result) {
 	var refPerms uint32
 	res.Name = `3.6 Verify that /etc/docker directory permissions
 		are set to 755 or more restrictive`
@@ -145,7 +147,7 @@ func CheckDockerDirPerms(t Target) (res Result) {
 	return res
 }
 
-func CheckRegistryCertOwner(t Target) (res Result) {
+func CheckRegistryCertOwner(t actuary.Target) (res Result) {
 	var badFiles []string
 	res.Name = `3.7 Verify that registry certificate file ownership
 	 is set to root:root`
@@ -186,7 +188,7 @@ func CheckRegistryCertOwner(t Target) (res Result) {
 	return res
 }
 
-func CheckRegistryCertPerms(t Target) (res Result) {
+func CheckRegistryCertPerms(t actuary.Target) (res Result) {
 	var badFiles []string
 	var refPerms uint32
 	res.Name = `3.8 Verify that registry certificate file permissions
@@ -226,11 +228,11 @@ func CheckRegistryCertPerms(t Target) (res Result) {
 	return res
 }
 
-func CheckCACertOwner(t Target) (res Result) {
+func CheckCACertOwner(t actuary.Target) (res Result) {
 	res.Name = "3.9 Verify that TLS CA certificate file ownership is set to root:root"
 	refUser := "root"
-	dockerProc, _ := GetProcCmdline("docker")
-	_, certPath := GetCmdOption(dockerProc, "--tlscacert")
+	dockerProc, _ := getProcCmdline("docker")
+	_, certPath := getCmdOption(dockerProc, "--tlscacert")
 	fileInfo, err := os.Stat(certPath)
 	if os.IsNotExist(err) {
 		res.Skip("File could not be accessed")
@@ -249,13 +251,13 @@ func CheckCACertOwner(t Target) (res Result) {
 	return res
 }
 
-func CheckCACertPerms(t Target) (res Result) {
+func CheckCACertPerms(t actuary.Target) (res Result) {
 	var refPerms uint32
 	res.Name = `3.10 Verify that TLS CA certificate file permissions
 	are set to 444 or more restrictive`
 	refPerms = 0444
-	dockerProc, _ := GetProcCmdline("docker")
-	_, certPath := GetCmdOption(dockerProc, "--tlscacert")
+	dockerProc, _ := getProcCmdline("docker")
+	_, certPath := getCmdOption(dockerProc, "--tlscacert")
 	fileInfo, err := os.Stat(certPath)
 	if os.IsNotExist(err) {
 		res.Skip("File could not be accessed")
@@ -274,12 +276,12 @@ func CheckCACertPerms(t Target) (res Result) {
 	return res
 }
 
-func CheckServerCertOwner(t Target) (res Result) {
+func CheckServerCertOwner(t actuary.Target) (res Result) {
 	res.Name = `3.11 Verify that Docker server certificate file ownership is set to
         root:root`
 	refUser := "root"
-	dockerProc, _ := GetProcCmdline("docker")
-	_, certPath := GetCmdOption(dockerProc, "--tlscert")
+	dockerProc, _ := getProcCmdline("docker")
+	_, certPath := getCmdOption(dockerProc, "--tlscert")
 	fileInfo, err := os.Stat(certPath)
 	if os.IsNotExist(err) {
 		res.Skip("File could not be accessed")
@@ -298,13 +300,13 @@ func CheckServerCertOwner(t Target) (res Result) {
 	return res
 }
 
-func CheckServerCertPerms(t Target) (res Result) {
+func CheckServerCertPerms(t actuary.Target) (res Result) {
 	var refPerms uint32
 	res.Name = `3.12 Verify that Docker server certificate file permissions
 		are set to 444 or more restrictive`
 	refPerms = 0444
-	dockerProc, _ := GetProcCmdline("docker")
-	_, certPath := GetCmdOption(dockerProc, "--tlscert")
+	dockerProc, _ := getProcCmdline("docker")
+	_, certPath := getCmdOption(dockerProc, "--tlscert")
 	fileInfo, err := os.Stat(certPath)
 	if os.IsNotExist(err) {
 		res.Skip("File could not be accessed")
@@ -323,12 +325,12 @@ func CheckServerCertPerms(t Target) (res Result) {
 	return res
 }
 
-func CheckCertKeyOwner(t Target) (res Result) {
+func CheckCertKeyOwner(t actuary.Target) (res Result) {
 	res.Name = `3.13 Verify that Docker server certificate key file ownership is set to
         root:root`
 	refUser := "root"
-	dockerProc, _ := GetProcCmdline("docker")
-	_, certPath := GetCmdOption(dockerProc, "--tlskey")
+	dockerProc, _ := getProcCmdline("docker")
+	_, certPath := getCmdOption(dockerProc, "--tlskey")
 	fileInfo, err := os.Stat(certPath)
 	if os.IsNotExist(err) {
 		res.Skip("File could not be accessed")
@@ -347,13 +349,13 @@ func CheckCertKeyOwner(t Target) (res Result) {
 	return res
 }
 
-func CheckCertKeyPerms(t Target) (res Result) {
+func CheckCertKeyPerms(t actuary.Target) (res Result) {
 	var refPerms uint32
 	res.Name = `3.14 Verify that Docker server certificate key file
 	permissions are set to 400`
 	refPerms = 0400
-	dockerProc, _ := GetProcCmdline("docker")
-	_, certPath := GetCmdOption(dockerProc, "--tlskey")
+	dockerProc, _ := getProcCmdline("docker")
+	_, certPath := getCmdOption(dockerProc, "--tlskey")
 	fileInfo, err := os.Stat(certPath)
 	if os.IsNotExist(err) {
 		res.Skip("File could not be accessed")
@@ -372,7 +374,7 @@ func CheckCertKeyPerms(t Target) (res Result) {
 	return res
 }
 
-func CheckDockerSockOwner(t Target) (res Result) {
+func CheckDockerSockOwner(t actuary.Target) (res Result) {
 	res.Name = `3.15 Verify that Docker socket file ownership
 	is set to root:docker`
 	refUser := "root"
@@ -396,7 +398,7 @@ func CheckDockerSockOwner(t Target) (res Result) {
 	return res
 }
 
-func CheckDockerSockPerms(t Target) (res Result) {
+func CheckDockerSockPerms(t actuary.Target) (res Result) {
 	var refPerms uint32
 	res.Name = `3.16 Verify that Docker socket file permissions are set to 660`
 	refPerms = 0660
@@ -418,7 +420,7 @@ func CheckDockerSockPerms(t Target) (res Result) {
 	return res
 }
 
-func CheckDaemonJSONOwner(t Target) (res Result) {
+func CheckDaemonJSONOwner(t actuary.Target) (res Result) {
 	res.Name = `3.17 Verify that daemon.json file ownership is set to root:root`
 	refUser := "root"
 	refGroup := "root"
@@ -439,7 +441,7 @@ func CheckDaemonJSONOwner(t Target) (res Result) {
 	return
 }
 
-func CheckDaemonJSONPerms(t Target) (res Result) {
+func CheckDaemonJSONPerms(t actuary.Target) (res Result) {
 	var refPerms uint32
 	res.Name = `3.18 Verify that daemon.json file permissions are set to 644 or more
 restrictive`
@@ -460,7 +462,7 @@ restrictive`
 	return
 }
 
-func CheckDefaultOwner(t Target) (res Result) {
+func CheckDefaultOwner(t actuary.Target) (res Result) {
 	res.Name = `3.19 Verify that /etc/default/docker file ownership is set to root:root`
 	refUser := "root"
 	refGroup := "root"
@@ -481,7 +483,7 @@ func CheckDefaultOwner(t Target) (res Result) {
 	return
 }
 
-func CheckDefaultPerms(t Target) (res Result) {
+func CheckDefaultPerms(t actuary.Target) (res Result) {
 	var refPerms uint32
 	res.Name = `3.20 Verify that /etc/default/docker file permissions are set to 644 or
 more restrictive`

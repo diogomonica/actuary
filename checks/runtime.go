@@ -9,11 +9,13 @@ package checks
 import (
 	"fmt"
 
+	"github.com/diogomonica/actuary"
+
 	"strconv"
 	"strings"
 )
 
-func CheckAppArmor(t Target) (res Result) {
+func CheckAppArmor(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.1 Verify AppArmor Profile, if applicable"
 	containers := t.Containers
@@ -36,7 +38,7 @@ func CheckAppArmor(t Target) (res Result) {
 	return
 }
 
-func CheckSELinux(t Target) (res Result) {
+func CheckSELinux(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.1 Verify AppArmor Profile, if applicable"
 	containers := t.Containers
@@ -59,7 +61,7 @@ func CheckSELinux(t Target) (res Result) {
 	return
 }
 
-func CheckKernelCapabilities(t Target) (res Result) {
+func CheckKernelCapabilities(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.3 Restrict Linux Kernel Capabilities within containers"
 	containers := t.Containers
@@ -82,7 +84,7 @@ func CheckKernelCapabilities(t Target) (res Result) {
 	return
 }
 
-func CheckPrivContainers(t Target) (res Result) {
+func CheckPrivContainers(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.4 Do not use privileged containers"
 	containers := t.Containers
@@ -105,7 +107,7 @@ func CheckPrivContainers(t Target) (res Result) {
 	return
 }
 
-func CheckSensitiveDirs(t Target) (res Result) {
+func CheckSensitiveDirs(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.5 Do not mount sensitive host system directories on containers "
 	sensitiveDirs := []string{"/dev", "/etc", "/lib", "/proc", "/sys", "/usr"}
@@ -135,7 +137,7 @@ func CheckSensitiveDirs(t Target) (res Result) {
 	return
 }
 
-func CheckSSHRunning(t Target) (res Result) {
+func CheckSSHRunning(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.6 Do not run ssh within containers"
 	containers := t.Containers
@@ -164,7 +166,7 @@ func CheckSSHRunning(t Target) (res Result) {
 	return
 }
 
-func CheckPrivilegedPorts(t Target) (res Result) {
+func CheckPrivilegedPorts(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.7 Do not map privileged ports within containers"
 	containers := t.Containers
@@ -194,7 +196,7 @@ func CheckPrivilegedPorts(t Target) (res Result) {
 	return
 }
 
-func CheckNeededPorts(t Target) (res Result) {
+func CheckNeededPorts(t actuary.Target) (res Result) {
 	var containerPort map[string][]string
 	containerPort = make(map[string][]string)
 	res.Name = "5.8 Open only needed ports on container"
@@ -217,7 +219,7 @@ func CheckNeededPorts(t Target) (res Result) {
 	return res
 }
 
-func CheckHostNetworkMode(t Target) (res Result) {
+func CheckHostNetworkMode(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.9 Do not use host network mode on container"
 	containers := t.Containers
@@ -243,7 +245,7 @@ func CheckHostNetworkMode(t Target) (res Result) {
 	return
 }
 
-func CheckMemoryLimits(t Target) (res Result) {
+func CheckMemoryLimits(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.10 Limit memory usage for container"
 	containers := t.Containers
@@ -268,7 +270,7 @@ func CheckMemoryLimits(t Target) (res Result) {
 	return
 }
 
-func CheckCPUShares(t Target) (res Result) {
+func CheckCPUShares(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.11 Set container CPU priority appropriately"
 	containers := t.Containers
@@ -293,7 +295,7 @@ func CheckCPUShares(t Target) (res Result) {
 	return
 }
 
-func CheckReadonlyRoot(t Target) (res Result) {
+func CheckReadonlyRoot(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.12 Mount container's root filesystem as read only"
 	containers := t.Containers
@@ -317,7 +319,7 @@ func CheckReadonlyRoot(t Target) (res Result) {
 	return
 }
 
-func CheckBindHostInterface(t Target) (res Result) {
+func CheckBindHostInterface(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.13 Bind incoming container traffic to a specific host interface"
 	containers := t.Containers
@@ -345,7 +347,7 @@ func CheckBindHostInterface(t Target) (res Result) {
 	return
 }
 
-func CheckRestartPolicy(t Target) (res Result) {
+func CheckRestartPolicy(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.14 Set the 'on-failure' container restart policy to 5"
 	containers := t.Containers
@@ -370,7 +372,7 @@ func CheckRestartPolicy(t Target) (res Result) {
 	return
 }
 
-func CheckHostNamespace(t Target) (res Result) {
+func CheckHostNamespace(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.15 Do not share the host's process namespace"
 	containers := t.Containers
@@ -395,7 +397,7 @@ func CheckHostNamespace(t Target) (res Result) {
 	return
 }
 
-func CheckIPCNamespace(t Target) (res Result) {
+func CheckIPCNamespace(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.16 Do not share the host's IPC namespace"
 	containers := t.Containers
@@ -421,7 +423,7 @@ func CheckIPCNamespace(t Target) (res Result) {
 	return
 }
 
-func CheckHostDevices(t Target) (res Result) {
+func CheckHostDevices(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.17 Do not directly expose host devices to containers"
 	containers := t.Containers
@@ -448,7 +450,7 @@ func CheckHostDevices(t Target) (res Result) {
 	return
 }
 
-func CheckDefaultUlimit(t Target) (res Result) {
+func CheckDefaultUlimit(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.18 Override default ulimit at runtime only if needed "
 	containers := t.Containers
@@ -474,7 +476,7 @@ func CheckDefaultUlimit(t Target) (res Result) {
 	return
 }
 
-func CheckMountPropagation(t Target) (res Result) {
+func CheckMountPropagation(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.19 Do not set mount propagation mode to shared"
 	containers := t.Containers
@@ -501,7 +503,7 @@ func CheckMountPropagation(t Target) (res Result) {
 	return
 }
 
-func CheckUTSnamespace(t Target) (res Result) {
+func CheckUTSnamespace(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.20 Do not share the host's UTS namespace"
 	containers := t.Containers
@@ -527,7 +529,7 @@ func CheckUTSnamespace(t Target) (res Result) {
 	return
 }
 
-func CheckSeccompProfile(t Target) (res Result) {
+func CheckSeccompProfile(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.21 Do not disable default seccomp profile"
 	containers := t.Containers
@@ -552,7 +554,7 @@ func CheckSeccompProfile(t Target) (res Result) {
 	return
 }
 
-func CheckCgroupUsage(t Target) (res Result) {
+func CheckCgroupUsage(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.24 Confirm cgroup usage"
 	containers := t.Containers
@@ -577,7 +579,7 @@ func CheckCgroupUsage(t Target) (res Result) {
 	return
 }
 
-func CheckAdditionalPrivs(t Target) (res Result) {
+func CheckAdditionalPrivs(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.25 Restrict container from acquiring additional privileges"
 	containers := t.Containers

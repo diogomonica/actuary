@@ -12,9 +12,11 @@ package checks
 import (
 	"fmt"
 	"os"
+
+	"github.com/diogomonica/actuary"
 )
 
-func CheckContainerUser(t Target) (res Result) {
+func CheckContainerUser(t actuary.Target) (res Result) {
 	var rootContainers []string
 	res.Name = "4.1 Create a user for the container"
 	containers := t.Containers
@@ -39,7 +41,7 @@ func CheckContainerUser(t Target) (res Result) {
 	return res
 }
 
-func CheckContentTrust(t Target) (res Result) {
+func CheckContentTrust(t actuary.Target) (res Result) {
 	res.Name = "4.5 Enable Content trust for Docker"
 	trust := os.Getenv("DOCKER_CONTENT_TRUST")
 	if trust == "1" {

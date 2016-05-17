@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/diogomonica/actuary"
 	"github.com/diogomonica/actuary/checks"
 	"github.com/diogomonica/actuary/oututils"
 	"github.com/diogomonica/actuary/profileutils"
@@ -41,7 +42,7 @@ func main() {
 	} else {
 		os.Setenv("DOCKER_HOST", "unix:///var/run/docker.sock")
 	}
-	trgt, err := checks.NewTarget()
+	trgt, err := actuary.NewTarget()
 	if err != nil {
 		log.Fatalf("Unable to connect to Docker daemon: %s", err)
 	}

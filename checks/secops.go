@@ -11,10 +11,11 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/diogomonica/actuary"
 	"github.com/docker/engine-api/types"
 )
 
-func CheckImageSprawl(t Target) (res Result) {
+func CheckImageSprawl(t actuary.Target) (res Result) {
 	var allImageIDs []string
 	var runImageIDs []string
 	res.Name = "6.4 Avoid image sprawl"
@@ -51,7 +52,7 @@ func CheckImageSprawl(t Target) (res Result) {
 	return
 }
 
-func CheckContainerSprawl(t Target) (res Result) {
+func CheckContainerSprawl(t actuary.Target) (res Result) {
 	var diff int
 	res.Name = "6.5 Avoid container sprawl"
 	options := types.ContainerListOptions{All: false}
