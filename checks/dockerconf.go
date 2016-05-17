@@ -9,15 +9,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/docker/engine-api/client"
 	"github.com/docker/engine-api/types"
 )
 
-func RestrictNetTraffic(client *client.Client) (res Result) {
+func RestrictNetTraffic(t Target) (res Result) {
 	var netargs types.NetworkListOptions
 	res.Name = "2.1 Restrict network traffic between containers"
 
-	networks, err := client.NetworkList(netargs)
+	networks, err := t.Client.NetworkList(netargs)
 	if err != nil {
 		res.Skip("Cannot retrieve network list")
 		return
@@ -34,9 +33,8 @@ func RestrictNetTraffic(client *client.Client) (res Result) {
 	return
 }
 
-func CheckLoggingLevel(client *client.Client) (res Result) {
+func CheckLoggingLevel(t Target) (res Result) {
 	res.Name = "2.2 Set the logging level"
-
 	cmdLine, _ := GetProcCmdline("docker")
 	for _, arg := range cmdLine {
 		if strings.Contains(arg, "--log-level") {
@@ -52,9 +50,8 @@ func CheckLoggingLevel(client *client.Client) (res Result) {
 	return
 }
 
-func CheckIpTables(client *client.Client) (res Result) {
+func CheckIpTables(t Target) (res Result) {
 	res.Name = "2.3 Allow Docker to make changes to iptables"
-
 	cmdLine, _ := GetProcCmdline("docker")
 	for _, arg := range cmdLine {
 		if strings.Contains(arg, "--iptables") {
@@ -69,9 +66,8 @@ func CheckIpTables(client *client.Client) (res Result) {
 	return
 }
 
-func CheckInsecureRegistry(client *client.Client) (res Result) {
+func CheckInsecureRegistry(t Target) (res Result) {
 	res.Name = "2.4 Do not use insecure registries"
-
 	cmdLine, _ := GetProcCmdline("docker")
 	for _, arg := range cmdLine {
 		if strings.Contains(arg, "--insecure-registry") {
@@ -83,27 +79,22 @@ func CheckInsecureRegistry(client *client.Client) (res Result) {
 	return
 }
 
-func CheckAufsDriver(client *client.Client) (res Result) {
+func CheckAufsDriver(t Target) (res Result) {
 	res.Name = "2.5 Do not use the aufs storage driver"
-	info, err := client.Info()
-	if err != nil {
-		res.Skip("Unable to connect to Docker daemon")
-		return
-	}
+	info := t.Info
 	storageDriver := info.Driver
 
 	if storageDriver == "aufs" {
-		res.Status = "WARN"
+		res.Fail("")
 	} else {
 		res.Pass()
 	}
 	return
 }
 
-func CheckTLSAuth(client *client.Client) (res Result) {
+func CheckTLSAuth(t Target) (res Result) {
 	res.Name = "2.6 Configure TLS authentication for Docker daemon"
 	tlsOpts := []string{"--tlsverify", "--tlscacert", "--tlscert", "--tlskey"}
-
 	cmdLine, _ := GetProcCmdline("docker")
 	for _, arg := range cmdLine {
 		for i, tlsOpt := range tlsOpts {
@@ -122,9 +113,8 @@ func CheckTLSAuth(client *client.Client) (res Result) {
 	return
 }
 
-func CheckUlimit(client *client.Client) (res Result) {
+func CheckUlimit(t Target) (res Result) {
 	res.Name = "2.7 Set default ulimit as appropriate"
-
 	cmdLine, _ := GetProcCmdline("docker")
 	for _, arg := range cmdLine {
 		if strings.Contains(arg, "--default-ulimit") {
@@ -137,9 +127,8 @@ func CheckUlimit(client *client.Client) (res Result) {
 	return res
 }
 
-func CheckUserNamespace(client *client.Client) (res Result) {
+func CheckUserNamespace(t Target) (res Result) {
 	res.Name = "2.8 Enable user namespace support"
-
 	cmdLine, _ := GetProcCmdline("docker")
 	for _, arg := range cmdLine {
 		if strings.Contains(arg, "--userns-remap") {
@@ -152,9 +141,8 @@ func CheckUserNamespace(client *client.Client) (res Result) {
 	return res
 }
 
-func CheckDefaultCgroup(client *client.Client) (res Result) {
+func CheckDefaultCgroup(t Target) (res Result) {
 	res.Name = "2.9 Confirm default cgroup usage"
-
 	cmdLine, _ := GetProcCmdline("docker")
 	for _, arg := range cmdLine {
 		if strings.Contains(arg, "--cgroup-parent") {
@@ -167,9 +155,8 @@ func CheckDefaultCgroup(client *client.Client) (res Result) {
 	return res
 }
 
-func CheckBaseDevice(client *client.Client) (res Result) {
+func CheckBaseDevice(t Target) (res Result) {
 	res.Name = "2.10 Do not change base device size until needed"
-
 	cmdLine, _ := GetProcCmdline("docker")
 	for _, arg := range cmdLine {
 		if strings.Contains(arg, "--storage-opt dm.basesize") {
@@ -182,9 +169,8 @@ func CheckBaseDevice(client *client.Client) (res Result) {
 	return res
 }
 
-func CheckAuthPlugin(client *client.Client) (res Result) {
+func CheckAuthPlugin(t Target) (res Result) {
 	res.Name = "2.11 Use authorization plugin"
-
 	cmdLine, _ := GetProcCmdline("docker")
 	for _, arg := range cmdLine {
 		if strings.Contains(arg, "--authorization-plugin") {
@@ -196,9 +182,8 @@ func CheckAuthPlugin(client *client.Client) (res Result) {
 	return res
 }
 
-func CheckCentralLogging(client *client.Client) (res Result) {
+func CheckCentralLogging(t Target) (res Result) {
 	res.Name = "2.12 Configure centralized and remote logging"
-
 	cmdLine, _ := GetProcCmdline("docker")
 	for _, arg := range cmdLine {
 		if strings.Contains(arg, "--log-driver") {
@@ -210,9 +195,8 @@ func CheckCentralLogging(client *client.Client) (res Result) {
 	return res
 }
 
-func CheckLegacyRegistry(client *client.Client) (res Result) {
+func CheckLegacyRegistry(t Target) (res Result) {
 	res.Name = "2.13 Disable operations on legacy registry (v1)"
-
 	cmdLine, _ := GetProcCmdline("docker")
 	for _, arg := range cmdLine {
 		if strings.Contains(arg, "--disable-legacy-registry") {

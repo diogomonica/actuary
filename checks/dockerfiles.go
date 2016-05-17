@@ -11,11 +11,9 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-
-	"github.com/docker/engine-api/client"
 )
 
-func CheckServiceOwner(client *client.Client) (res Result) {
+func CheckServiceOwner(t Target) (res Result) {
 	res.Name = "3.1 Verify that docker.service file ownership is set to root:root"
 	refUser := "root"
 	fileInfo, err := getSystemdFile("docker.service")
@@ -36,7 +34,7 @@ func CheckServiceOwner(client *client.Client) (res Result) {
 	return
 }
 
-func CheckServicePerms(client *client.Client) (res Result) {
+func CheckServicePerms(t Target) (res Result) {
 	var refPerms uint32
 	res.Name = `3.2 Verify that docker.service file permissions are set to
 		644 or more restrictive`
@@ -59,7 +57,7 @@ func CheckServicePerms(client *client.Client) (res Result) {
 	return res
 }
 
-func CheckSocketOwner(client *client.Client) (res Result) {
+func CheckSocketOwner(t Target) (res Result) {
 	res.Name = "3.3 Verify that docker.socket file ownership is set to root:root"
 	refUser := "root"
 	fileInfo, err := getSystemdFile("docker.socket")
@@ -80,7 +78,7 @@ func CheckSocketOwner(client *client.Client) (res Result) {
 	return res
 }
 
-func CheckSocketPerms(client *client.Client) (res Result) {
+func CheckSocketPerms(t Target) (res Result) {
 	var refPerms uint32
 	res.Name = `3.4 Verify that docker.socket file permissions are set to 644 or more
         restrictive`
@@ -103,7 +101,7 @@ func CheckSocketPerms(client *client.Client) (res Result) {
 	return res
 }
 
-func CheckDockerDirOwner(client *client.Client) (res Result) {
+func CheckDockerDirOwner(t Target) (res Result) {
 	res.Name = "3.5 Verify that /etc/docker directory ownership is set to root:root "
 	refUser := "root"
 	fileInfo, err := os.Stat("/etc/docker")
@@ -124,7 +122,7 @@ func CheckDockerDirOwner(client *client.Client) (res Result) {
 	return res
 }
 
-func CheckDockerDirPerms(client *client.Client) (res Result) {
+func CheckDockerDirPerms(t Target) (res Result) {
 	var refPerms uint32
 	res.Name = `3.6 Verify that /etc/docker directory permissions
 		are set to 755 or more restrictive`
@@ -147,7 +145,7 @@ func CheckDockerDirPerms(client *client.Client) (res Result) {
 	return res
 }
 
-func CheckRegistryCertOwner(client *client.Client) (res Result) {
+func CheckRegistryCertOwner(t Target) (res Result) {
 	var badFiles []string
 	res.Name = `3.7 Verify that registry certificate file ownership
 	 is set to root:root`
@@ -188,7 +186,7 @@ func CheckRegistryCertOwner(client *client.Client) (res Result) {
 	return res
 }
 
-func CheckRegistryCertPerms(client *client.Client) (res Result) {
+func CheckRegistryCertPerms(t Target) (res Result) {
 	var badFiles []string
 	var refPerms uint32
 	res.Name = `3.8 Verify that registry certificate file permissions
@@ -228,7 +226,7 @@ func CheckRegistryCertPerms(client *client.Client) (res Result) {
 	return res
 }
 
-func CheckCACertOwner(client *client.Client) (res Result) {
+func CheckCACertOwner(t Target) (res Result) {
 	res.Name = "3.9 Verify that TLS CA certificate file ownership is set to root:root"
 	refUser := "root"
 	dockerProc, _ := GetProcCmdline("docker")
@@ -251,7 +249,7 @@ func CheckCACertOwner(client *client.Client) (res Result) {
 	return res
 }
 
-func CheckCACertPerms(client *client.Client) (res Result) {
+func CheckCACertPerms(t Target) (res Result) {
 	var refPerms uint32
 	res.Name = `3.10 Verify that TLS CA certificate file permissions
 	are set to 444 or more restrictive`
@@ -276,7 +274,7 @@ func CheckCACertPerms(client *client.Client) (res Result) {
 	return res
 }
 
-func CheckServerCertOwner(client *client.Client) (res Result) {
+func CheckServerCertOwner(t Target) (res Result) {
 	res.Name = `3.11 Verify that Docker server certificate file ownership is set to
         root:root`
 	refUser := "root"
@@ -300,7 +298,7 @@ func CheckServerCertOwner(client *client.Client) (res Result) {
 	return res
 }
 
-func CheckServerCertPerms(client *client.Client) (res Result) {
+func CheckServerCertPerms(t Target) (res Result) {
 	var refPerms uint32
 	res.Name = `3.12 Verify that Docker server certificate file permissions
 		are set to 444 or more restrictive`
@@ -325,7 +323,7 @@ func CheckServerCertPerms(client *client.Client) (res Result) {
 	return res
 }
 
-func CheckCertKeyOwner(client *client.Client) (res Result) {
+func CheckCertKeyOwner(t Target) (res Result) {
 	res.Name = `3.13 Verify that Docker server certificate key file ownership is set to
         root:root`
 	refUser := "root"
@@ -349,7 +347,7 @@ func CheckCertKeyOwner(client *client.Client) (res Result) {
 	return res
 }
 
-func CheckCertKeyPerms(client *client.Client) (res Result) {
+func CheckCertKeyPerms(t Target) (res Result) {
 	var refPerms uint32
 	res.Name = `3.14 Verify that Docker server certificate key file
 	permissions are set to 400`
@@ -374,7 +372,7 @@ func CheckCertKeyPerms(client *client.Client) (res Result) {
 	return res
 }
 
-func CheckDockerSockOwner(client *client.Client) (res Result) {
+func CheckDockerSockOwner(t Target) (res Result) {
 	res.Name = `3.15 Verify that Docker socket file ownership
 	is set to root:docker`
 	refUser := "root"
@@ -398,7 +396,7 @@ func CheckDockerSockOwner(client *client.Client) (res Result) {
 	return res
 }
 
-func CheckDockerSockPerms(client *client.Client) (res Result) {
+func CheckDockerSockPerms(t Target) (res Result) {
 	var refPerms uint32
 	res.Name = `3.16 Verify that Docker socket file permissions are set to 660`
 	refPerms = 0660
@@ -420,7 +418,7 @@ func CheckDockerSockPerms(client *client.Client) (res Result) {
 	return res
 }
 
-func CheckDaemonJSONOwner(client *client.Client) (res Result) {
+func CheckDaemonJSONOwner(t Target) (res Result) {
 	res.Name = `3.17 Verify that daemon.json file ownership is set to root:root`
 	refUser := "root"
 	refGroup := "root"
@@ -441,7 +439,7 @@ func CheckDaemonJSONOwner(client *client.Client) (res Result) {
 	return
 }
 
-func CheckDaemonJSONPerms(client *client.Client) (res Result) {
+func CheckDaemonJSONPerms(t Target) (res Result) {
 	var refPerms uint32
 	res.Name = `3.18 Verify that daemon.json file permissions are set to 644 or more
 restrictive`
@@ -462,7 +460,7 @@ restrictive`
 	return
 }
 
-func CheckDefaultOwner(client *client.Client) (res Result) {
+func CheckDefaultOwner(t Target) (res Result) {
 	res.Name = `3.19 Verify that /etc/default/docker file ownership is set to root:root`
 	refUser := "root"
 	refGroup := "root"
@@ -483,7 +481,7 @@ func CheckDefaultOwner(client *client.Client) (res Result) {
 	return
 }
 
-func CheckDefaultPerms(client *client.Client) (res Result) {
+func CheckDefaultPerms(t Target) (res Result) {
 	var refPerms uint32
 	res.Name = `3.20 Verify that /etc/default/docker file permissions are set to 644 or
 more restrictive`

@@ -42,7 +42,7 @@ func (l *ContainerList) Running() bool {
 	return false
 }
 
-func CreateContainerList(c *client.Client) (l ContainerList) {
+func createContainerList(c *client.Client) (l ContainerList) {
 	opts := types.ContainerListOptions{All: false}
 	containers, err := c.ContainerList(opts)
 	if err != nil {

@@ -12,12 +12,14 @@ import (
 	"syscall"
 
 	"github.com/docker/engine-api/client"
+	"github.com/docker/engine-api/types"
+	"github.com/docker/engine-api/types/strslice"
 	"github.com/mitchellh/go-ps"
 	"github.com/shirou/gopsutil/process"
 )
 
 //Check
-type Check func(client *client.Client) Result
+type Check func(t Target) Result
 
 //Result objects are returned from Check functions
 type Result struct {
@@ -276,4 +278,76 @@ func stringInSlice(a string, list []string) bool {
 		}
 	}
 	return false
+}
+
+type Target struct {
+	Client     *client.Client
+	Info       types.Info
+	Containers ContainerList
+}
+
+func NewTarget() (a Target, err error) {
+	a.Client, err = client.NewEnvClient()
+	if err != nil {
+		fmt.Printf("Unable to create Docker client")
+		return
+	}
+	a.Info, err = a.Client.Info()
+	if err != nil {
+		fmt.Printf("Unable to create Docker client")
+		return
+	}
+	a.Containers = createContainerList(a.Client)
+	return
+}
+
+type ContainerInfo struct {
+	types.ContainerJSON
+}
+
+type Container struct {
+	ID   string
+	Info ContainerInfo
+}
+
+type ContainerList []Container
+
+func (c *ContainerInfo) AppArmor() string {
+	return c.AppArmorProfile
+}
+
+func (c *ContainerInfo) SELinux() []string {
+	return c.HostConfig.SecurityOpt
+}
+
+func (c *ContainerInfo) KernelCapabilities() *strslice.StrSlice {
+	return c.HostConfig.CapAdd
+}
+
+func (c *ContainerInfo) Privileged() bool {
+	return c.HostConfig.Privileged
+}
+
+func (l *ContainerList) Running() bool {
+	if len(*l) != 0 {
+		return true
+	}
+	return false
+}
+
+func createContainerList(c *client.Client) (l ContainerList) {
+	opts := types.ContainerListOptions{All: false}
+	containers, err := c.ContainerList(opts)
+	if err != nil {
+		log.Fatalf("Unable to get container list")
+	}
+	for _, cont := range containers {
+		entry := new(Container)
+		inspectData, _ := c.ContainerInspect(cont.ID)
+		info := &ContainerInfo{inspectData}
+		entry.ID = cont.ID
+		entry.Info = *info
+		l = append(l, *entry)
+	}
+	return
 }
