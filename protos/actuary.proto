@@ -1,0 +1,31 @@
+syntax = "proto3";
+option go_package = "actuary";
+package diogomonica.actuary;
+
+import "google/api/annotations.proto";
+
+message ProfileHash {
+	string hash = 1;
+}
+
+message Profile {
+	bytes profile = 1;
+}
+
+message Empty {}
+
+service ProfileService{
+	rpc GetProfile(ProfileHash) returns (Profile) {
+		option (google.api.http) = {
+			get: "/v1/profile/{hash}"
+		};
+	}
+
+	rpc StoreProfile(Profile) returns (Empty) {
+		option (google.api.http) = {
+			post: "/v1/profile"
+			body: "*"
+		};
+	}
+}
+
