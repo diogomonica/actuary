@@ -42,12 +42,14 @@ func (l *ContainerList) Running() bool {
 	return false
 }
 
+//Target stores information regarding the audit's target Docker server
 type Target struct {
 	Client     *client.Client
 	Info       types.Info
 	Containers ContainerList
 }
 
+//NewTarget initiates a new Target struct
 func NewTarget() (a Target, err error) {
 	a.Client, err = client.NewEnvClient()
 	if err != nil {
