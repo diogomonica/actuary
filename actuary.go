@@ -1,7 +1,6 @@
 package actuary
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/docker/engine-api/client"
@@ -52,13 +51,11 @@ type Target struct {
 func NewTarget() (a Target, err error) {
 	a.Client, err = client.NewEnvClient()
 	if err != nil {
-		fmt.Printf("Unable to create Docker client")
-		return
+		log.Fatalf("unable to create Docker client: %v\n", err)
 	}
 	a.Info, err = a.Client.Info()
 	if err != nil {
-		fmt.Printf("Unable to create Docker client")
-		return
+		log.Fatalf("unable to fetch Docker daemon info: %v\n", err)
 	}
 	err = a.createContainerList()
 	return
@@ -68,7 +65,7 @@ func (t *Target) createContainerList() error {
 	opts := types.ContainerListOptions{All: false}
 	containers, err := t.Client.ContainerList(opts)
 	if err != nil {
-		log.Fatalf("Unable to get container list")
+		log.Fatalf("unable to get container list: %v\n", err)
 	}
 	for _, cont := range containers {
 		entry := new(Container)
