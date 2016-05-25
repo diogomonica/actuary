@@ -8,6 +8,7 @@ package checks
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/diogomonica/actuary"
 
@@ -147,7 +148,10 @@ func CheckSSHRunning(t actuary.Target) (res Result) {
 		return
 	}
 	for _, container := range containers {
-		procs, _ := t.Client.ContainerTop(container.ID, []string{})
+		procs, err := t.Client.ContainerTop(container.ID, []string{})
+		if err != nil {
+			log.Printf("unable to retrieve proc list for container %s: %v", container.ID, err)
+		}
 		//proc fields are [UID PID PPID C STIME TTY TIME CMD]
 		for _, proc := range procs.Processes {
 			procname := proc[7]
