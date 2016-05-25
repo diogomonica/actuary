@@ -14,13 +14,12 @@ import (
 	"os"
 
 	"github.com/diogomonica/actuary"
-	"github.com/docker/engine-api/client"
 )
 
-func CheckContainerUser(client *client.Client) (res Result) {
+func CheckContainerUser(t actuary.Target) (res Result) {
 	var rootContainers []string
 	res.Name = "4.1 Create a user for the container"
-	containers := actuary.CreateContainerList(client)
+	containers := t.Containers
 	if !containers.Running() {
 		res.Skip("No running containers")
 		return
@@ -42,7 +41,7 @@ func CheckContainerUser(client *client.Client) (res Result) {
 	return res
 }
 
-func CheckContentTrust(client *client.Client) (res Result) {
+func CheckContentTrust(t actuary.Target) (res Result) {
 	res.Name = "4.5 Enable Content trust for Docker"
 	trust := os.Getenv("DOCKER_CONTENT_TRUST")
 	if trust == "1" {

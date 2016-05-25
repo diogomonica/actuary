@@ -11,13 +11,10 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/docker/engine-api/client"
+	"github.com/diogomonica/actuary"
 	"github.com/mitchellh/go-ps"
 	"github.com/shirou/gopsutil/process"
 )
-
-//Check
-type Check func(client *client.Client) Result
 
 //Result objects are returned from Check functions
 type Result struct {
@@ -53,11 +50,8 @@ func (r *Result) Info(s string) {
 	return
 }
 
-type auditdError struct {
-	Error   error
-	Message string
-	Code    int //1: Cannot read auditd rules. 2: Rule does not exist
-}
+//Check
+type Check func(t actuary.Target) Result
 
 var checklist = map[string]Check{
 	//Docker Host
@@ -147,7 +141,13 @@ func GetAuditDefinitions() map[string]Check {
 	return checklist
 }
 
-func GetProcCmdline(procname string) (cmd []string, err error) {
+type auditdError struct {
+	Error   error
+	Message string
+	Code    int //1: Cannot read auditd rules. 2: Rule does not exist
+}
+
+func getProcCmdline(procname string) (cmd []string, err error) {
 	var pid int
 
 	ps, _ := ps.Processes()
@@ -162,7 +162,7 @@ func GetProcCmdline(procname string) (cmd []string, err error) {
 	return cmd, err
 }
 
-func GetCmdOption(args []string, opt string) (exist bool, val string) {
+func getCmdOption(args []string, opt string) (exist bool, val string) {
 	var optBuf string
 	for _, arg := range args {
 		if strings.Contains(arg, opt) {

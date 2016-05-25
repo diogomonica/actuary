@@ -14,13 +14,13 @@ import (
 	"os"
 	"strings"
 
-	"github.com/docker/engine-api/client"
+	"github.com/diogomonica/actuary"
 	"github.com/drael/GOnetstat"
 	version "github.com/hashicorp/go-version"
 )
 
 //code borrowed from github.com/dockersecuritytools/batten
-func CheckSeparatePartion(client *client.Client) (res Result) {
+func CheckSeparatePartion(t actuary.Target) (res Result) {
 	res.Name = "1.1 Create a separate partition for containers"
 	fstab := "/etc/fstab"
 	bytes, err := ioutil.ReadFile(fstab)
@@ -41,13 +41,9 @@ func CheckSeparatePartion(client *client.Client) (res Result) {
 	return
 }
 
-func CheckKernelVersion(client *client.Client) (res Result) {
+func CheckKernelVersion(t actuary.Target) (res Result) {
 	res.Name = "1.2 Use the updated Linux Kernel"
-	info, err := client.Info()
-	if err != nil {
-		log.Fatalf("Could not retrieve info for Docker host")
-	}
-
+	info := t.Info
 	constraints, _ := version.NewConstraint(">= 3.10")
 	hostVersion, err := version.NewVersion(info.KernelVersion)
 	if err != nil {
@@ -67,7 +63,7 @@ func CheckKernelVersion(client *client.Client) (res Result) {
 	return
 }
 
-func CheckRunningServices(client *client.Client) (res Result) {
+func CheckRunningServices(t actuary.Target) (res Result) {
 	var openPorts []int64
 	res.Name = "1.4 Remove all non-essential services from the host"
 	tcpData := GOnetstat.Tcp()
@@ -80,10 +76,10 @@ func CheckRunningServices(client *client.Client) (res Result) {
 	return
 }
 
-func CheckDockerVersion(client *client.Client) (res Result) {
+func CheckDockerVersion(t actuary.Target) (res Result) {
 	res.Name = "1.5 Keep Docker up to date"
 	verConstr := os.Getenv("VERSION")
-	info, err := client.ServerVersion()
+	info, err := t.Client.ServerVersion()
 	if err != nil {
 		log.Fatalf("Could not retrieve info for Docker host")
 	}
@@ -99,7 +95,7 @@ func CheckDockerVersion(client *client.Client) (res Result) {
 	return
 }
 
-func CheckTrustedUsers(client *client.Client) (res Result) {
+func CheckTrustedUsers(t actuary.Target) (res Result) {
 	var trustedUsers []string
 	res.Name = "1.6 Only allow trusted users to control Docker daemon"
 	groupFile := "/etc/group"
@@ -133,7 +129,7 @@ func CheckTrustedUsers(client *client.Client) (res Result) {
 	return
 }
 
-func AuditDockerDaemon(client *client.Client) (res Result) {
+func AuditDockerDaemon(t actuary.Target) (res Result) {
 	res.Name = "1.7 Audit docker daemon"
 	err := checkAuditRule("/usr/bin/docker")
 	if err == nil {
@@ -146,7 +142,7 @@ func AuditDockerDaemon(client *client.Client) (res Result) {
 	return
 }
 
-func AuditLibDocker(client *client.Client) (res Result) {
+func AuditLibDocker(t actuary.Target) (res Result) {
 	res.Name = "1.8 Audit Docker files and directories - /var/lib/docker"
 	err := checkAuditRule("/var/lib/docker")
 	if err == nil {
@@ -159,7 +155,7 @@ func AuditLibDocker(client *client.Client) (res Result) {
 	return
 }
 
-func AuditEtcDocker(client *client.Client) (res Result) {
+func AuditEtcDocker(t actuary.Target) (res Result) {
 	res.Name = "1.9 Audit Docker files and directories - /etc/docker"
 	err := checkAuditRule("/etc/docker")
 	if err == nil {
@@ -172,7 +168,7 @@ func AuditEtcDocker(client *client.Client) (res Result) {
 	return
 }
 
-func AuditDockerService(client *client.Client) (res Result) {
+func AuditDockerService(t actuary.Target) (res Result) {
 	res.Name = "1.10 Audit Docker files and directories - docker.service"
 	err := checkAuditRule("/usr/lib/systemd/system/docker.service")
 	if err == nil {
@@ -185,7 +181,7 @@ func AuditDockerService(client *client.Client) (res Result) {
 	return
 }
 
-func AuditDockerSocket(client *client.Client) (res Result) {
+func AuditDockerSocket(t actuary.Target) (res Result) {
 	res.Name = "1.11 Audit Docker files and directories - docker.socket"
 	err := checkAuditRule("/usr/lib/systemd/system/docker.socket")
 	if err == nil {
@@ -198,7 +194,7 @@ func AuditDockerSocket(client *client.Client) (res Result) {
 	return
 }
 
-func AuditDockerDefault(client *client.Client) (res Result) {
+func AuditDockerDefault(t actuary.Target) (res Result) {
 	res.Name = "1.12 Audit Docker files and directories - /etc/default/docker"
 	err := checkAuditRule("/etc/default/docker")
 	if err == nil {
@@ -211,7 +207,7 @@ func AuditDockerDefault(client *client.Client) (res Result) {
 	return
 }
 
-func AuditDaemonJSON(client *client.Client) (res Result) {
+func AuditDaemonJSON(t actuary.Target) (res Result) {
 	res.Name = "1.13 Audit Docker files and directories - /etc/docker/daemon.json"
 	err := checkAuditRule("/etc/docker/daemon.json")
 	if err == nil {
@@ -224,7 +220,7 @@ func AuditDaemonJSON(client *client.Client) (res Result) {
 	return
 }
 
-func AuditContainerd(client *client.Client) (res Result) {
+func AuditContainerd(t actuary.Target) (res Result) {
 	res.Name = "1.14 Audit Docker files and directories - /usr/bin/docker-containerd"
 	err := checkAuditRule("/usr/bin/docker-containerd")
 	if err == nil {
@@ -237,7 +233,7 @@ func AuditContainerd(client *client.Client) (res Result) {
 	return
 }
 
-func AuditRunc(client *client.Client) (res Result) {
+func AuditRunc(t actuary.Target) (res Result) {
 	res.Name = "1.15 Audit Docker files and directories - /usr/bin/docker-runc"
 	err := checkAuditRule("/usr/bin/docker-runc")
 	if err == nil {

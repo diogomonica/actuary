@@ -6,10 +6,10 @@ import (
 	"os"
 	"strings"
 
+	"github.com/diogomonica/actuary"
 	"github.com/diogomonica/actuary/checks"
 	"github.com/diogomonica/actuary/oututils"
 	"github.com/diogomonica/actuary/profileutils"
-	"github.com/docker/engine-api/client"
 )
 
 var profile = flag.String("profile", "", "Actuary profile file path")
@@ -42,7 +42,7 @@ func main() {
 	} else {
 		os.Setenv("DOCKER_HOST", "unix:///var/run/docker.sock")
 	}
-	cli, err := client.NewEnvClient()
+	trgt, err := actuary.NewTarget()
 	if err != nil {
 		log.Fatalf("Unable to connect to Docker daemon: %s", err)
 	}
@@ -72,7 +72,7 @@ func main() {
 		//cross-reference checks
 		for _, check := range checks {
 			if _, ok := actions[check]; ok {
-				res := actions[check](cli)
+				res := actions[check](trgt)
 				results = append(results, res)
 				oututils.ConsolePrint(res)
 			} else {

@@ -42,19 +42,40 @@ func (l *ContainerList) Running() bool {
 	return false
 }
 
-func CreateContainerList(c *client.Client) (l ContainerList) {
-	opts := types.ContainerListOptions{All: false}
-	containers, err := c.ContainerList(opts)
+//Target stores information regarding the audit's target Docker server
+type Target struct {
+	Client     *client.Client
+	Info       types.Info
+	Containers ContainerList
+}
+
+//NewTarget initiates a new Target struct
+func NewTarget() (a Target, err error) {
+	a.Client, err = client.NewEnvClient()
 	if err != nil {
-		log.Fatalf("Unable to get container list")
+		log.Fatalf("unable to create Docker client: %v\n", err)
+	}
+	a.Info, err = a.Client.Info()
+	if err != nil {
+		log.Fatalf("unable to fetch Docker daemon info: %v\n", err)
+	}
+	err = a.createContainerList()
+	return
+}
+
+func (t *Target) createContainerList() error {
+	opts := types.ContainerListOptions{All: false}
+	containers, err := t.Client.ContainerList(opts)
+	if err != nil {
+		log.Fatalf("unable to get container list: %v\n", err)
 	}
 	for _, cont := range containers {
 		entry := new(Container)
-		inspectData, _ := c.ContainerInspect(cont.ID)
+		inspectData, _ := t.Client.ContainerInspect(cont.ID)
 		info := &ContainerInfo{inspectData}
 		entry.ID = cont.ID
 		entry.Info = *info
-		l = append(l, *entry)
+		t.Containers = append(t.Containers, *entry)
 	}
-	return
+	return nil
 }

@@ -8,18 +8,18 @@ package checks
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/diogomonica/actuary"
-	"github.com/docker/engine-api/client"
 
 	"strconv"
 	"strings"
 )
 
-func CheckAppArmor(client *client.Client) (res Result) {
+func CheckAppArmor(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.1 Verify AppArmor Profile, if applicable"
-	containers := actuary.CreateContainerList(client)
+	containers := t.Containers
 	if !containers.Running() {
 		res.Skip("No running containers")
 		return
@@ -39,10 +39,10 @@ func CheckAppArmor(client *client.Client) (res Result) {
 	return
 }
 
-func CheckSELinux(client *client.Client) (res Result) {
+func CheckSELinux(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.1 Verify AppArmor Profile, if applicable"
-	containers := actuary.CreateContainerList(client)
+	containers := t.Containers
 	if !containers.Running() {
 		res.Skip("No running containers")
 		return
@@ -62,10 +62,10 @@ func CheckSELinux(client *client.Client) (res Result) {
 	return
 }
 
-func CheckKernelCapabilities(client *client.Client) (res Result) {
+func CheckKernelCapabilities(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.3 Restrict Linux Kernel Capabilities within containers"
-	containers := actuary.CreateContainerList(client)
+	containers := t.Containers
 	if !containers.Running() {
 		res.Skip("No running containers")
 		return
@@ -85,10 +85,10 @@ func CheckKernelCapabilities(client *client.Client) (res Result) {
 	return
 }
 
-func CheckPrivContainers(client *client.Client) (res Result) {
+func CheckPrivContainers(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.4 Do not use privileged containers"
-	containers := actuary.CreateContainerList(client)
+	containers := t.Containers
 	if !containers.Running() {
 		res.Skip("No running containers")
 		return
@@ -108,11 +108,11 @@ func CheckPrivContainers(client *client.Client) (res Result) {
 	return
 }
 
-func CheckSensitiveDirs(client *client.Client) (res Result) {
+func CheckSensitiveDirs(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.5 Do not mount sensitive host system directories on containers "
 	sensitiveDirs := []string{"/dev", "/etc", "/lib", "/proc", "/sys", "/usr"}
-	containers := actuary.CreateContainerList(client)
+	containers := t.Containers
 
 	if !containers.Running() {
 		res.Skip("No running containers")
@@ -138,17 +138,20 @@ func CheckSensitiveDirs(client *client.Client) (res Result) {
 	return
 }
 
-func CheckSSHRunning(client *client.Client) (res Result) {
+func CheckSSHRunning(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.6 Do not run ssh within containers"
-	containers := actuary.CreateContainerList(client)
+	containers := t.Containers
 
 	if !containers.Running() {
 		res.Skip("No running containers")
 		return
 	}
 	for _, container := range containers {
-		procs, _ := client.ContainerTop(container.ID, []string{})
+		procs, err := t.Client.ContainerTop(container.ID, []string{})
+		if err != nil {
+			log.Printf("unable to retrieve proc list for container %s: %v", container.ID, err)
+		}
 		//proc fields are [UID PID PPID C STIME TTY TIME CMD]
 		for _, proc := range procs.Processes {
 			procname := proc[7]
@@ -167,10 +170,10 @@ func CheckSSHRunning(client *client.Client) (res Result) {
 	return
 }
 
-func CheckPrivilegedPorts(client *client.Client) (res Result) {
+func CheckPrivilegedPorts(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.7 Do not map privileged ports within containers"
-	containers := actuary.CreateContainerList(client)
+	containers := t.Containers
 	if !containers.Running() {
 		res.Skip("No running containers")
 		return
@@ -197,11 +200,11 @@ func CheckPrivilegedPorts(client *client.Client) (res Result) {
 	return
 }
 
-func CheckNeededPorts(client *client.Client) (res Result) {
+func CheckNeededPorts(t actuary.Target) (res Result) {
 	var containerPort map[string][]string
 	containerPort = make(map[string][]string)
 	res.Name = "5.8 Open only needed ports on container"
-	containers := actuary.CreateContainerList(client)
+	containers := t.Containers
 	if !containers.Running() {
 		res.Skip("No running containers")
 		return
@@ -220,18 +223,17 @@ func CheckNeededPorts(client *client.Client) (res Result) {
 	return res
 }
 
-func CheckHostNetworkMode(client *client.Client) (res Result) {
+func CheckHostNetworkMode(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.9 Do not use host network mode on container"
-	containers := actuary.CreateContainerList(client)
+	containers := t.Containers
 	if !containers.Running() {
 		res.Skip("No running containers")
 		return
 	}
 
 	for _, container := range containers {
-		info, _ := client.ContainerInspect(container.ID)
-		mode := info.HostConfig.NetworkMode
+		mode := container.Info.HostConfig.NetworkMode
 		if mode == "host" {
 			badContainers = append(badContainers, container.ID)
 		}
@@ -247,17 +249,16 @@ func CheckHostNetworkMode(client *client.Client) (res Result) {
 	return
 }
 
-func CheckMemoryLimits(client *client.Client) (res Result) {
+func CheckMemoryLimits(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.10 Limit memory usage for container"
-	containers := actuary.CreateContainerList(client)
+	containers := t.Containers
 	if !containers.Running() {
 		res.Skip("No running containers")
 		return
 	}
 	for _, container := range containers {
-		info, _ := client.ContainerInspect(container.ID)
-		mem := info.HostConfig.Memory
+		mem := container.Info.HostConfig.Memory
 		if mem == 0 {
 			badContainers = append(badContainers, container.ID)
 		}
@@ -273,10 +274,10 @@ func CheckMemoryLimits(client *client.Client) (res Result) {
 	return
 }
 
-func CheckCPUShares(client *client.Client) (res Result) {
+func CheckCPUShares(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.11 Set container CPU priority appropriately"
-	containers := actuary.CreateContainerList(client)
+	containers := t.Containers
 	if !containers.Running() {
 		res.Skip("No running containers")
 		return
@@ -298,10 +299,10 @@ func CheckCPUShares(client *client.Client) (res Result) {
 	return
 }
 
-func CheckReadonlyRoot(client *client.Client) (res Result) {
+func CheckReadonlyRoot(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.12 Mount container's root filesystem as read only"
-	containers := actuary.CreateContainerList(client)
+	containers := t.Containers
 	if !containers.Running() {
 		res.Skip("No running containers")
 		return
@@ -322,10 +323,10 @@ func CheckReadonlyRoot(client *client.Client) (res Result) {
 	return
 }
 
-func CheckBindHostInterface(client *client.Client) (res Result) {
+func CheckBindHostInterface(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.13 Bind incoming container traffic to a specific host interface"
-	containers := actuary.CreateContainerList(client)
+	containers := t.Containers
 	if !containers.Running() {
 		res.Skip("No running containers")
 		return
@@ -350,10 +351,10 @@ func CheckBindHostInterface(client *client.Client) (res Result) {
 	return
 }
 
-func CheckRestartPolicy(client *client.Client) (res Result) {
+func CheckRestartPolicy(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.14 Set the 'on-failure' container restart policy to 5"
-	containers := actuary.CreateContainerList(client)
+	containers := t.Containers
 	if !containers.Running() {
 		res.Skip("No running containers")
 		return
@@ -375,10 +376,10 @@ func CheckRestartPolicy(client *client.Client) (res Result) {
 	return
 }
 
-func CheckHostNamespace(client *client.Client) (res Result) {
+func CheckHostNamespace(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.15 Do not share the host's process namespace"
-	containers := actuary.CreateContainerList(client)
+	containers := t.Containers
 	if !containers.Running() {
 		res.Skip("No running containers")
 		return
@@ -400,10 +401,10 @@ func CheckHostNamespace(client *client.Client) (res Result) {
 	return
 }
 
-func CheckIPCNamespace(client *client.Client) (res Result) {
+func CheckIPCNamespace(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.16 Do not share the host's IPC namespace"
-	containers := actuary.CreateContainerList(client)
+	containers := t.Containers
 	if !containers.Running() {
 		res.Skip("No running containers")
 		return
@@ -426,10 +427,10 @@ func CheckIPCNamespace(client *client.Client) (res Result) {
 	return
 }
 
-func CheckHostDevices(client *client.Client) (res Result) {
+func CheckHostDevices(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.17 Do not directly expose host devices to containers"
-	containers := actuary.CreateContainerList(client)
+	containers := t.Containers
 	if !containers.Running() {
 		res.Skip("No running containers")
 		return
@@ -453,10 +454,10 @@ func CheckHostDevices(client *client.Client) (res Result) {
 	return
 }
 
-func CheckDefaultUlimit(client *client.Client) (res Result) {
+func CheckDefaultUlimit(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.18 Override default ulimit at runtime only if needed "
-	containers := actuary.CreateContainerList(client)
+	containers := t.Containers
 	if !containers.Running() {
 		res.Skip("No running containers")
 		return
@@ -479,10 +480,10 @@ func CheckDefaultUlimit(client *client.Client) (res Result) {
 	return
 }
 
-func CheckMountPropagation(client *client.Client) (res Result) {
+func CheckMountPropagation(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.19 Do not set mount propagation mode to shared"
-	containers := actuary.CreateContainerList(client)
+	containers := t.Containers
 	if !containers.Running() {
 		res.Skip("No running containers")
 		return
@@ -506,10 +507,10 @@ func CheckMountPropagation(client *client.Client) (res Result) {
 	return
 }
 
-func CheckUTSnamespace(client *client.Client) (res Result) {
+func CheckUTSnamespace(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.20 Do not share the host's UTS namespace"
-	containers := actuary.CreateContainerList(client)
+	containers := t.Containers
 	if !containers.Running() {
 		res.Skip("No running containers")
 		return
@@ -532,10 +533,10 @@ func CheckUTSnamespace(client *client.Client) (res Result) {
 	return
 }
 
-func CheckSeccompProfile(client *client.Client) (res Result) {
+func CheckSeccompProfile(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.21 Do not disable default seccomp profile"
-	containers := actuary.CreateContainerList(client)
+	containers := t.Containers
 	if !containers.Running() {
 		res.Skip("No running containers")
 		return
@@ -557,10 +558,10 @@ func CheckSeccompProfile(client *client.Client) (res Result) {
 	return
 }
 
-func CheckCgroupUsage(client *client.Client) (res Result) {
+func CheckCgroupUsage(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.24 Confirm cgroup usage"
-	containers := actuary.CreateContainerList(client)
+	containers := t.Containers
 	if !containers.Running() {
 		res.Skip("No running containers")
 		return
@@ -582,10 +583,10 @@ func CheckCgroupUsage(client *client.Client) (res Result) {
 	return
 }
 
-func CheckAdditionalPrivs(client *client.Client) (res Result) {
+func CheckAdditionalPrivs(t actuary.Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.25 Restrict container from acquiring additional privileges"
-	containers := actuary.CreateContainerList(client)
+	containers := t.Containers
 	if !containers.Running() {
 		res.Skip("No running containers")
 		return

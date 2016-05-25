@@ -11,16 +11,16 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/docker/engine-api/client"
+	"github.com/diogomonica/actuary"
 	"github.com/docker/engine-api/types"
 )
 
-func CheckImageSprawl(client *client.Client) (res Result) {
+func CheckImageSprawl(t actuary.Target) (res Result) {
 	var allImageIDs []string
 	var runImageIDs []string
 	res.Name = "6.4 Avoid image sprawl"
 	imgOpts := types.ImageListOptions{All: false}
-	allImages, err := client.ImageList(imgOpts)
+	allImages, err := t.Client.ImageList(imgOpts)
 	if err != nil {
 		res.Skip("Unable to retrieve image list")
 		return
@@ -30,7 +30,7 @@ func CheckImageSprawl(client *client.Client) (res Result) {
 	}
 
 	conOpts := types.ContainerListOptions{All: true}
-	containers, err := client.ContainerList(conOpts)
+	containers, err := t.Client.ContainerList(conOpts)
 	if err != nil {
 		res.Skip("Unable to retrieve container list")
 		return
@@ -52,13 +52,13 @@ func CheckImageSprawl(client *client.Client) (res Result) {
 	return
 }
 
-func CheckContainerSprawl(client *client.Client) (res Result) {
+func CheckContainerSprawl(t actuary.Target) (res Result) {
 	var diff int
 	res.Name = "6.5 Avoid container sprawl"
 	options := types.ContainerListOptions{All: false}
-	runContainers, err := client.ContainerList(options)
+	runContainers, err := t.Client.ContainerList(options)
 	options = types.ContainerListOptions{All: true}
-	allContainers, err := client.ContainerList(options)
+	allContainers, err := t.Client.ContainerList(options)
 	if err != nil {
 		log.Printf("Unable to get container list")
 		return res
