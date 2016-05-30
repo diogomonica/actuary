@@ -149,39 +149,32 @@ type auditdError struct {
 
 //Returns the command line slice for a given process name
 func getProcCmdline(procname string) (cmd []string, err error) {
-	var pid int
-
+	var proc *process.Process
 	ps, _ := ps.Processes()
-	for i, _ := range ps {
+	for i := range ps {
 		if ps[i].Executable() == procname {
-			pid = ps[i].Pid()
+			pid := ps[i].Pid()
+			proc, err = process.NewProcess(int32(pid))
+			cmd, err = proc.CmdlineSlice()
 			break
 		}
 	}
-	proc, err := process.NewProcess(int32(pid))
-	cmd, err = proc.CmdlineSlice()
 	return cmd, err
 }
 
 //Checks if a command-line slice contains a given option and returns its value
 func getCmdOption(args []string, opt string) (exist bool, val string) {
-	var optBuf string
+	exist = false
 	for _, arg := range args {
 		if strings.Contains(arg, opt) {
-			optBuf = arg
 			exist = true
+			nameVal := strings.Split(arg, "=")
+			if len(nameVal) > 1 {
+				val = strings.TrimSuffix(nameVal[1], " ")
+			}
 			break
 		}
 	}
-	if exist {
-		nameVal := strings.Split(optBuf, "=")
-		if len(nameVal) > 1 {
-			val = strings.TrimSuffix(nameVal[1], " ")
-		}
-	} else {
-		exist = false
-	}
-
 	return exist, val
 }
 
