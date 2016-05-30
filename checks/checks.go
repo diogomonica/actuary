@@ -147,6 +147,7 @@ type auditdError struct {
 	Code    int //1: Cannot read auditd rules. 2: Rule does not exist
 }
 
+//Returns the command line slice for a given process name
 func getProcCmdline(procname string) (cmd []string, err error) {
 	var pid int
 
@@ -162,6 +163,7 @@ func getProcCmdline(procname string) (cmd []string, err error) {
 	return cmd, err
 }
 
+//Checks if a command-line slice contains a given option and returns its value
 func getCmdOption(args []string, opt string) (exist bool, val string) {
 	var optBuf string
 	for _, arg := range args {
@@ -183,6 +185,7 @@ func getCmdOption(args []string, opt string) (exist bool, val string) {
 	return exist, val
 }
 
+//Searches for a filename in known systemd paths
 func getSystemdFile(filename string) (info os.FileInfo, err error) {
 	var systemdPath string
 	knownPaths := []string{"/usr/lib/systemd/system/",
@@ -215,6 +218,7 @@ func hasLeastPerms(info os.FileInfo, safePerms uint32) (isLeast bool,
 	return isLeast, mode
 }
 
+// Returns UID, GID for a username
 func getUserInfo(username string) (uid, gid string) {
 	userInfo, err := user.Lookup(username)
 	if err != nil {
@@ -226,6 +230,7 @@ func getUserInfo(username string) (uid, gid string) {
 	return uid, gid
 }
 
+// Returns GID for a given group
 func getGroupId(groupname string) string {
 	bytes, err := ioutil.ReadFile("/etc/group")
 	if err != nil {
