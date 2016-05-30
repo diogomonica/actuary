@@ -136,6 +136,14 @@ var checklist = map[string]Check{
 	"container_sprawl": CheckContainerSprawl,
 }
 
+var systemdPaths = []string{"/usr/lib/systemd/system/",
+	"/lib/systemd/system/",
+	"/etc/systemd/system/",
+	"/etc/sysconfig/",
+	"/etc/default/",
+	"/etc/docker",
+}
+
 func GetAuditDefinitions() map[string]Check {
 
 	return checklist
@@ -178,25 +186,16 @@ func getCmdOption(args []string, opt string) (exist bool, val string) {
 	return exist, val
 }
 
-//Searches for a filename in known systemd paths
-func getSystemdFile(filename string) (info os.FileInfo, err error) {
-	var systemdPath string
-	knownPaths := []string{"/usr/lib/systemd/system/",
-		"/lib/systemd/system/",
-		"/etc/systemd/system/",
-		"/etc/sysconfig/",
-		"/etc/default/",
-		"/etc/docker",
-	}
-
-	for _, path := range knownPaths {
-		systemdPath = filepath.Join(path, filename)
-		info, err = os.Stat(systemdPath)
+//Searches for a filename in given dirs
+func lookupFile(filename string, dirs []string) (info os.FileInfo, err error) {
+	for _, path := range dirs {
+		fullPath := filepath.Join(path, filename)
+		info, err = os.Stat(fullPath)
 		if err == nil {
-			return info, err
+			return
 		}
 	}
-	return info, err
+	return
 }
 
 func hasLeastPerms(info os.FileInfo, safePerms uint32) (isLeast bool,

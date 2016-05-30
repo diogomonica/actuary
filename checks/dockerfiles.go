@@ -18,7 +18,7 @@ import (
 func CheckServiceOwner(t actuary.Target) (res Result) {
 	res.Name = "3.1 Verify that docker.service file ownership is set to root:root"
 	refUser := "root"
-	fileInfo, err := getSystemdFile("docker.service")
+	fileInfo, err := lookupFile("docker.service", systemdPaths)
 	if os.IsNotExist(err) {
 		res.Skip("File could not be accessed")
 		return
@@ -41,7 +41,7 @@ func CheckServicePerms(t actuary.Target) (res Result) {
 	res.Name = `3.2 Verify that docker.service file permissions are set to
 		644 or more restrictive`
 	refPerms = 0644
-	fileInfo, err := getSystemdFile("docker.service")
+	fileInfo, err := lookupFile("docker.service", systemdPaths)
 	if os.IsNotExist(err) {
 		res.Skip("File could not be accessed")
 		return
@@ -62,7 +62,7 @@ func CheckServicePerms(t actuary.Target) (res Result) {
 func CheckSocketOwner(t actuary.Target) (res Result) {
 	res.Name = "3.3 Verify that docker.socket file ownership is set to root:root"
 	refUser := "root"
-	fileInfo, err := getSystemdFile("docker.socket")
+	fileInfo, err := lookupFile("docker.socket", systemdPaths)
 	if os.IsNotExist(err) {
 		res.Skip("File could not be accessed")
 		return
@@ -85,7 +85,7 @@ func CheckSocketPerms(t actuary.Target) (res Result) {
 	res.Name = `3.4 Verify that docker.socket file permissions are set to 644 or more
         restrictive`
 	refPerms = 0644
-	fileInfo, err := getSystemdFile("docker.socket")
+	fileInfo, err := lookupFile("docker.socket", systemdPaths)
 	if os.IsNotExist(err) {
 		res.Skip("File could not be accessed")
 		return

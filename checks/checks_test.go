@@ -1,6 +1,7 @@
 package checks
 
 import (
+	"os"
 	"testing"
 )
 
@@ -14,5 +15,19 @@ func TestGetCmdOption(t *testing.T) {
 	}
 	if val != "1" {
 		t.Errorf("Expected val equal to 1, got %s instead", val)
+	}
+}
+
+func TestLookupFile(t *testing.T) {
+	t.Log("Creating dummy file")
+
+	os.Create("/tmp/dummy")
+	knownDirs := []string{"/etc/", "/tmp"}
+	info, err := lookupFile("dummy", knownDirs)
+	if err != nil {
+		t.Errorf("Unexpected error: %v\n", err)
+	}
+	if info.Name() != "dummy" {
+		t.Errorf("Expected filename 'dummy', got %s instead", info.Name())
 	}
 }
