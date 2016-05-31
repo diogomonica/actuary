@@ -31,3 +31,14 @@ func TestLookupFile(t *testing.T) {
 		t.Errorf("Expected filename 'dummy', got %s instead", info.Name())
 	}
 }
+
+func TestGetCmdOutput(t *testing.T) {
+	t.Log("Executing 'echo hello'")
+	out, err := getCmdOutput("echo", "hello")
+	if err != nil {
+		t.Errorf("Unexpected error: %v\n", err)
+	}
+	if string(out) != "hello\n" {
+		t.Errorf("Expected output 'hello', got %s instead", string(out))
+	}
+}

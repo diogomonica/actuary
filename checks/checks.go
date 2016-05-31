@@ -155,18 +155,23 @@ type auditdError struct {
 	Code    int //1: Cannot read auditd rules. 2: Rule does not exist
 }
 
+// Returns the PID of a given process name
+func getProcPID(proc string) (pid int) {
+	ps, _ := ps.Processes()
+	for i := range ps {
+		if ps[i].Executable() == proc {
+			pid = ps[i].Pid()
+		}
+	}
+	return pid
+}
+
 //Returns the command line slice for a given process name
 func getProcCmdline(procname string) (cmd []string, err error) {
 	var proc *process.Process
-	ps, _ := ps.Processes()
-	for i := range ps {
-		if ps[i].Executable() == procname {
-			pid := ps[i].Pid()
-			proc, err = process.NewProcess(int32(pid))
-			cmd, err = proc.CmdlineSlice()
-			break
-		}
-	}
+	pid := getProcPID(procname)
+	proc, err = process.NewProcess(int32(pid))
+	cmd, err = proc.CmdlineSlice()
 	return cmd, err
 }
 
@@ -223,12 +228,12 @@ func getUserInfo(username string) (uid, gid string) {
 }
 
 // Returns GID for a given group
-func getGroupId(groupname string) string {
-	bytes, err := ioutil.ReadFile("/etc/group")
+func getGroupID(groupname string) string {
+	groupFile, err := ioutil.ReadFile("/etc/group")
 	if err != nil {
 		return ""
 	}
-	for _, line := range strings.Split(string(bytes), "\n") {
+	for _, line := range strings.Split(string(groupFile), "\n") {
 		items := strings.Split(line, ":")
 		if groupname == items[0] {
 			gid := items[2]
@@ -246,14 +251,24 @@ func getFileOwner(info os.FileInfo) (uid, gid string) {
 	return uid, gid
 }
 
+//Looks for the path of an executable, runs it with options/args and returns output
+func getCmdOutput(exe string, opts ...string) (output []byte, err error) {
+	exePath, err := exec.LookPath(exe)
+	if err != nil {
+		log.Printf("could not find executable: %v", err)
+		return
+	}
+	cmd := exec.Command(exePath, strings.Join(opts, " "))
+	output, err = cmd.Output()
+	if err != nil {
+		log.Printf("unable to execute command: %v", err)
+	}
+	return
+}
+
 //Helper function to check rules in auditctl
 func checkAuditRule(rule string) *auditdError {
-	auditctlPath, err := exec.LookPath("auditctl")
-	if err != nil || auditctlPath == "" {
-		return &auditdError{err, "Could not find auditctl", 1}
-	}
-	cmd := exec.Command(auditctlPath, "-l")
-	output, err := cmd.Output()
+	output, err := getCmdOutput("auditctl", "-l")
 	if err != nil {
 		return &auditdError{err, "Unable to retrieve rule list", 1}
 	}
