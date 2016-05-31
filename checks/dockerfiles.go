@@ -386,7 +386,7 @@ func CheckDockerSockOwner(t actuary.Target) (res Result) {
 	}
 
 	refUid, _ := getUserInfo(refUser)
-	refGid := getGroupId(refGroup)
+	refGid := getGroupID(refGroup)
 	fileUid, fileGid := getFileOwner(fileInfo)
 	if (refUid == fileUid) && (refGid == fileGid) {
 		res.Status = "PASS"
@@ -430,7 +430,7 @@ func CheckDaemonJSONOwner(t actuary.Target) (res Result) {
 		return
 	}
 	refUid, _ := getUserInfo(refUser)
-	refGid := getGroupId(refGroup)
+	refGid := getGroupID(refGroup)
 	fileUid, fileGid := getFileOwner(fileInfo)
 	if (refUid == fileUid) && (refGid == fileGid) {
 		res.Pass()
@@ -472,7 +472,7 @@ func CheckDefaultOwner(t actuary.Target) (res Result) {
 		return
 	}
 	refUid, _ := getUserInfo(refUser)
-	refGid := getGroupId(refGroup)
+	refGid := getGroupID(refGroup)
 	fileUid, fileGid := getFileOwner(fileInfo)
 	if (refUid == fileUid) && (refGid == fileGid) {
 		res.Pass()
