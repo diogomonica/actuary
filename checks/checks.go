@@ -136,6 +136,14 @@ var checklist = map[string]Check{
 	"container_sprawl": CheckContainerSprawl,
 }
 
+var systemdPaths = []string{"/usr/lib/systemd/system/",
+	"/lib/systemd/system/",
+	"/etc/systemd/system/",
+	"/etc/sysconfig/",
+	"/etc/default/",
+	"/etc/docker",
+}
+
 func GetAuditDefinitions() map[string]Check {
 
 	return checklist
@@ -147,60 +155,52 @@ type auditdError struct {
 	Code    int //1: Cannot read auditd rules. 2: Rule does not exist
 }
 
-func getProcCmdline(procname string) (cmd []string, err error) {
-	var pid int
-
+// Returns the PID of a given process name
+func getProcPID(proc string) (pid int) {
 	ps, _ := ps.Processes()
-	for i, _ := range ps {
-		if ps[i].Executable() == procname {
+	for i := range ps {
+		if ps[i].Executable() == proc {
 			pid = ps[i].Pid()
-			break
 		}
 	}
-	proc, err := process.NewProcess(int32(pid))
+	return pid
+}
+
+//Returns the command line slice for a given process name
+func getProcCmdline(procname string) (cmd []string, err error) {
+	var proc *process.Process
+	pid := getProcPID(procname)
+	proc, err = process.NewProcess(int32(pid))
 	cmd, err = proc.CmdlineSlice()
 	return cmd, err
 }
 
+//Checks if a command-line slice contains a given option and returns its value
 func getCmdOption(args []string, opt string) (exist bool, val string) {
-	var optBuf string
+	exist = false
 	for _, arg := range args {
 		if strings.Contains(arg, opt) {
-			optBuf = arg
 			exist = true
+			nameVal := strings.Split(arg, "=")
+			if len(nameVal) > 1 {
+				val = strings.TrimSuffix(nameVal[1], " ")
+			}
 			break
 		}
 	}
-	if exist {
-		nameVal := strings.Split(optBuf, "=")
-		if len(nameVal) > 1 {
-			val = strings.TrimSuffix(nameVal[1], " ")
-		}
-	} else {
-		exist = false
-	}
-
 	return exist, val
 }
 
-func getSystemdFile(filename string) (info os.FileInfo, err error) {
-	var systemdPath string
-	knownPaths := []string{"/usr/lib/systemd/system/",
-		"/lib/systemd/system/",
-		"/etc/systemd/system/",
-		"/etc/sysconfig/",
-		"/etc/default/",
-		"/etc/docker",
-	}
-
-	for _, path := range knownPaths {
-		systemdPath = filepath.Join(path, filename)
-		info, err = os.Stat(systemdPath)
+//Searches for a filename in given dirs
+func lookupFile(filename string, dirs []string) (info os.FileInfo, err error) {
+	for _, path := range dirs {
+		fullPath := filepath.Join(path, filename)
+		info, err = os.Stat(fullPath)
 		if err == nil {
-			return info, err
+			return
 		}
 	}
-	return info, err
+	return
 }
 
 func hasLeastPerms(info os.FileInfo, safePerms uint32) (isLeast bool,
@@ -215,6 +215,7 @@ func hasLeastPerms(info os.FileInfo, safePerms uint32) (isLeast bool,
 	return isLeast, mode
 }
 
+// Returns UID, GID for a username
 func getUserInfo(username string) (uid, gid string) {
 	userInfo, err := user.Lookup(username)
 	if err != nil {
@@ -226,12 +227,13 @@ func getUserInfo(username string) (uid, gid string) {
 	return uid, gid
 }
 
-func getGroupId(groupname string) string {
-	bytes, err := ioutil.ReadFile("/etc/group")
+// Returns GID for a given group
+func getGroupID(groupname string) string {
+	groupFile, err := ioutil.ReadFile("/etc/group")
 	if err != nil {
 		return ""
 	}
-	for _, line := range strings.Split(string(bytes), "\n") {
+	for _, line := range strings.Split(string(groupFile), "\n") {
 		items := strings.Split(line, ":")
 		if groupname == items[0] {
 			gid := items[2]
@@ -249,14 +251,24 @@ func getFileOwner(info os.FileInfo) (uid, gid string) {
 	return uid, gid
 }
 
+//Looks for the path of an executable, runs it with options/args and returns output
+func getCmdOutput(exe string, opts ...string) (output []byte, err error) {
+	exePath, err := exec.LookPath(exe)
+	if err != nil {
+		log.Printf("could not find executable: %v", err)
+		return
+	}
+	cmd := exec.Command(exePath, strings.Join(opts, " "))
+	output, err = cmd.Output()
+	if err != nil {
+		log.Printf("unable to execute command: %v", err)
+	}
+	return
+}
+
 //Helper function to check rules in auditctl
 func checkAuditRule(rule string) *auditdError {
-	auditctlPath, err := exec.LookPath("auditctl")
-	if err != nil || auditctlPath == "" {
-		return &auditdError{err, "Could not find auditctl", 1}
-	}
-	cmd := exec.Command(auditctlPath, "-l")
-	output, err := cmd.Output()
+	output, err := getCmdOutput("auditctl", "-l")
 	if err != nil {
 		return &auditdError{err, "Unable to retrieve rule list", 1}
 	}
