@@ -1,81 +1,93 @@
-package actuary
+package main
 
 import (
+	"flag"
 	"log"
+	"os"
+	"strings"
 
-	"github.com/docker/engine-api/client"
-	"github.com/docker/engine-api/types"
-	"github.com/docker/engine-api/types/strslice"
+	"github.com/diogomonica/actuary/actuary"
+	"github.com/diogomonica/actuary/oututils"
+	"github.com/diogomonica/actuary/profileutils"
 )
 
-type ContainerInfo struct {
-	types.ContainerJSON
+var profile = flag.String("profile", "", "Actuary profile file path")
+var output = flag.String("output", "", "output filename")
+var outputType = flag.String("type", "json", "output type - XML or JSON")
+var tlsPath = flag.String("tlspath", "", "Path to load certificates from")
+var server = flag.String("server", "", "Docker server to connect to tcp://<docker host>:<port>")
+var tomlProfile profileutils.Profile
+var results []actuary.Result
+var actions map[string]actuary.Check
+
+func init() {
+	flag.StringVar(profile, "f", "", "Actuary profile file path")
+	flag.StringVar(output, "o", "", "output filename")
+	flag.StringVar(outputType, "", "json", "output type - XML or JSON")
+	flag.StringVar(tlsPath, "tls", "", "Path to load certificates from")
+	flag.StringVar(server, "s", "", "Docker server to connect to tcp://<docker host>:<port>")
 }
 
-type Container struct {
-	ID   string
-	Info ContainerInfo
-}
+func main() {
+	var cmdArgs []string
+	var hash string
 
-type ContainerList []Container
-
-func (c *ContainerInfo) AppArmor() string {
-	return c.AppArmorProfile
-}
-
-func (c *ContainerInfo) SELinux() []string {
-	return c.HostConfig.SecurityOpt
-}
-
-func (c *ContainerInfo) KernelCapabilities() *strslice.StrSlice {
-	return c.HostConfig.CapAdd
-}
-
-func (c *ContainerInfo) Privileged() bool {
-	return c.HostConfig.Privileged
-}
-
-func (l *ContainerList) Running() bool {
-	if len(*l) != 0 {
-		return true
+	flag.Parse()
+	if *tlsPath != "" {
+		os.Setenv("DOCKER_CERT_PATH", *tlsPath)
 	}
-	return false
-}
-
-//Target stores information regarding the audit's target Docker server
-type Target struct {
-	Client     *client.Client
-	Info       types.Info
-	Containers ContainerList
-}
-
-//NewTarget initiates a new Target struct
-func NewTarget() (a Target, err error) {
-	a.Client, err = client.NewEnvClient()
+	if *server != "" {
+		os.Setenv("DOCKER_HOST", *server)
+	} else {
+		os.Setenv("DOCKER_HOST", "unix:///var/run/docker.sock")
+	}
+	trgt, err := actuary.NewTarget()
 	if err != nil {
-		log.Fatalf("unable to create Docker client: %v\n", err)
+		log.Fatalf("Unable to connect to Docker daemon: %s", err)
 	}
-	a.Info, err = a.Client.Info()
-	if err != nil {
-		log.Fatalf("unable to fetch Docker daemon info: %v\n", err)
-	}
-	err = a.createContainerList()
-	return
-}
 
-func (t *Target) createContainerList() error {
-	opts := types.ContainerListOptions{All: false}
-	containers, err := t.Client.ContainerList(opts)
-	if err != nil {
-		log.Fatalf("unable to get container list: %v\n", err)
+	cmdArgs = flag.Args()
+	if len(cmdArgs) == 1 {
+		hash = cmdArgs[0]
+		tomlProfile, err = profileutils.GetFromURL(hash)
+		if err != nil {
+			log.Fatalf("Unable to fetch profile. Exiting...")
+		}
+	} else if len(cmdArgs) == 0 {
+		_, err := os.Stat(*profile)
+		if os.IsNotExist(err) {
+			log.Fatalf("Invalid profile path: %s", *profile)
+		}
+		tomlProfile = profileutils.GetFromFile(*profile)
+	} else {
+		log.Fatalf("Unsupported number of arguments. Use -h for help")
 	}
-	for _, cont := range containers {
-		entry := new(Container)
-		inspectData, _ := t.Client.ContainerInspect(cont.ID)
-		info := &ContainerInfo{inspectData}
-		entry.ID = cont.ID
-		entry.Info = *info
-		t.Containers = append(t.Containers, *entry)
+
+	actions := actuary.GetAuditDefinitions()
+	//loop through the audits
+	for category := range tomlProfile.Audit {
+		log.Printf("Running Audit: %s", tomlProfile.Audit[category].Name)
+		checks := tomlProfile.Audit[category].Checklist
+		//cross-reference checks
+		for _, check := range checks {
+			if _, ok := actions[check]; ok {
+				res := actions[check](trgt)
+				results = append(results, res)
+				oututils.ConsolePrint(res)
+			} else {
+				log.Panicf("No check named %s", check)
+			}
+		}
 	}
-	return nil
+
+	if *output != "" {
+		rep := oututils.CreateReport(*output)
+		rep.Results = results
+		switch strings.ToLower(*outputType) {
+		case "json":
+			rep.WriteJSON()
+		case "xml":
+			rep.WriteXML()
+		}
+	}
 }
