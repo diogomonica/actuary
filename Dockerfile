@@ -8,6 +8,6 @@ COPY . $GOPATH/src/github.com/diogomonica/actuary
 WORKDIR $GOPATH/src/github.com/diogomonica/actuary
 RUN go get github.com/tools/godep
 RUN $GOPATH/bin/godep restore
-RUN go install github.com/diogomonica/actuary/cmd/actuary 
+RUN go install github.com/diogomonica/actuary
 
 ENTRYPOINT ["/go/bin/actuary"]
