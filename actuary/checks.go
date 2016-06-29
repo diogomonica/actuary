@@ -149,10 +149,10 @@ type Container struct {
 
 type ContainerList []Container
 
-func (c *ContainerInfo) AppArmor() string {
-	return c.AppArmorProfile
-}
-
+// func (c *ContainerInfo) AppArmor() string {
+// 	return c.AppArmorProfile
+// }
+//
 func (c *ContainerInfo) SELinux() []string {
 	return c.HostConfig.SecurityOpt
 }
@@ -170,6 +170,78 @@ func (l *ContainerList) Running() bool {
 		return true
 	}
 	return false
+}
+
+// func AppArmor(c ContainerInfo) bool {
+// 	if c.AppArmorProfile == "" {
+// 		return false
+// 	}
+// 	return true
+// }
+
+// func (c *ContainerInfo) SELinux() bool {
+// 	if c.HostConfig.SecurityOpt == nil {
+// 		return false
+// 	}
+// 	return true
+// }
+//
+// func (c *ContainerInfo) KernelCapabilities() bool {
+// 	if c.HostConfig.CapAdd != nil {
+// 		return false
+// 	}
+// 	return true
+// }
+//
+// func (c *ContainerInfo) Privileged() bool {
+// 	if c.HostConfig.Privileged == true {
+// 		return false
+// 	}
+// 	return true
+// }
+//
+// func (c *ContainerInfo) SensitiveDirs() bool {
+// 	mounts := c.Mounts
+// 	sensitiveDirs := []string{"/dev", "/etc", "/lib", "/proc", "/sys", "/usr"}
+// 	for _, mount := range mounts {
+// 		for _, dir := range sensitiveDirs {
+// 			if strings.HasPrefix(mount.Source, dir) && mount.RW == true {
+// 				return false
+// 			}
+// 		}
+// 	}
+// 	return true
+// }
+//
+// func (c *ContainerInfo) PrivilegedPorts() bool {
+// 	ports := c.NetworkSettings.Ports
+// 	for _, port := range ports {
+// 		for _, portmap := range port {
+// 			hostPort, _ := strconv.Atoi(portmap.HostPort)
+// 			if hostPort < 1024 {
+// 				return false
+// 			}
+// 		}
+// 	}
+// 	return true
+// }
+
+//RunCheck returns a list of containers that failed the check
+func (l *ContainerList) runCheck(r *Result, f func(c ContainerInfo) bool, msg string) {
+	var badContainers []string
+	for _, container := range *l {
+		if f(container.Info) == false {
+			badContainers = append(badContainers, container.ID)
+		}
+	}
+	if len(badContainers) == 0 {
+		r.Pass()
+	} else {
+		output := fmt.Sprintf(msg,
+			badContainers)
+		r.Fail(output)
+	}
+	return
 }
 
 //Target stores information regarding the audit's target Docker server
