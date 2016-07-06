@@ -15,137 +15,104 @@ import (
 )
 
 func CheckAppArmor(t Target) (res Result) {
-	var badContainers []string
 	res.Name = "5.1 Verify AppArmor Profile, if applicable"
-	containers := t.Containers
-	if !containers.Running() {
+	if !t.Containers.Running() {
 		res.Skip("No running containers")
 		return
 	}
-	for _, container := range containers {
-		if container.Info.AppArmor() == "" {
-			badContainers = append(badContainers, container.ID)
+	apparmor := func(c ContainerInfo) bool {
+		if c.AppArmorProfile == "" {
+			return false
 		}
+		return true
 	}
-	if len(badContainers) == 0 {
-		res.Pass()
-	} else {
-		output := fmt.Sprintf("Containers with no AppArmor profile: %s",
-			badContainers)
-		res.Fail(output)
-	}
+
+	t.Containers.runCheck(&res, apparmor, "Containers with no AppArmor profile: %s")
 	return
 }
 
 func CheckSELinux(t Target) (res Result) {
-	var badContainers []string
 	res.Name = "5.1 Verify AppArmor Profile, if applicable"
-	containers := t.Containers
-	if !containers.Running() {
+	if !t.Containers.Running() {
 		res.Skip("No running containers")
 		return
 	}
-	for _, container := range containers {
-		if container.Info.SELinux() == nil {
-			badContainers = append(badContainers, container.ID)
+
+	selinux := func(c ContainerInfo) bool {
+		if c.HostConfig.SecurityOpt == nil {
+			return false
 		}
+		return true
 	}
-	if len(badContainers) == 0 {
-		res.Pass()
-	} else {
-		output := fmt.Sprintf("Containers with no SELinux options: %s",
-			badContainers)
-		res.Fail(output)
-	}
+	t.Containers.runCheck(&res, selinux, "Containers with no SELinux options: %s")
 	return
 }
 
 func CheckKernelCapabilities(t Target) (res Result) {
-	var badContainers []string
 	res.Name = "5.3 Restrict Linux Kernel Capabilities within containers"
-	containers := t.Containers
-	if !containers.Running() {
+	if !t.Containers.Running() {
 		res.Skip("No running containers")
 		return
 	}
-	for _, container := range containers {
-		if container.Info.KernelCapabilities() != nil {
-			badContainers = append(badContainers, container.ID)
+
+	kernelCap := func(c ContainerInfo) bool {
+		if c.HostConfig.CapAdd != nil {
+			return false
 		}
+		return true
 	}
-	if len(badContainers) == 0 {
-		res.Pass()
-	} else {
-		output := fmt.Sprintf("Containers running with added capabilities: %s",
-			badContainers)
-		res.Fail(output)
-	}
+	t.Containers.runCheck(&res, kernelCap, "Containers running with added capabilities: %s")
 	return
 }
 
 func CheckPrivContainers(t Target) (res Result) {
-	var badContainers []string
 	res.Name = "5.4 Do not use privileged containers"
-	containers := t.Containers
-	if !containers.Running() {
+	if !t.Containers.Running() {
 		res.Skip("No running containers")
 		return
 	}
-	for _, container := range containers {
-		if container.Info.Privileged() == true {
-			badContainers = append(badContainers, container.ID)
+
+	priv := func(c ContainerInfo) bool {
+		if c.HostConfig.Privileged == true {
+			return false
 		}
+		return true
 	}
-	if len(badContainers) == 0 {
-		res.Pass()
-	} else {
-		output := fmt.Sprintf("Privileged containers found: %s",
-			badContainers)
-		res.Fail(output)
-	}
+	t.Containers.runCheck(&res, priv, "Privileged containers found: %s")
 	return
 }
 
 func CheckSensitiveDirs(t Target) (res Result) {
-	var badContainers []string
 	res.Name = "5.5 Do not mount sensitive host system directories on containers "
-	sensitiveDirs := []string{"/dev", "/etc", "/lib", "/proc", "/sys", "/usr"}
-	containers := t.Containers
-
-	if !containers.Running() {
+	if !t.Containers.Running() {
 		res.Skip("No running containers")
 		return
 	}
-	for _, container := range containers {
-		mounts := container.Info.Mounts
+
+	sensitiveDirs := func(c ContainerInfo) bool {
+		mounts := c.Mounts
+		dirList := []string{"/dev", "/etc", "/lib", "/proc", "/sys", "/usr"}
 		for _, mount := range mounts {
-			for _, dir := range sensitiveDirs {
+			for _, dir := range dirList {
 				if strings.HasPrefix(mount.Source, dir) && mount.RW == true {
-					badContainers = append(badContainers, container.ID)
+					return false
 				}
 			}
 		}
+		return true
 	}
-	if len(badContainers) == 0 {
-		res.Pass()
-	} else {
-		output := fmt.Sprintf("Sensitive directories mounted on containers: %s",
-			badContainers)
-		res.Fail(output)
-	}
+	t.Containers.runCheck(&res, sensitiveDirs, "Sensitive directories mounted on containers: %s")
 	return
 }
 
 func CheckSSHRunning(t Target) (res Result) {
 	var badContainers []string
 	res.Name = "5.6 Do not run ssh within containers"
-	containers := t.Containers
-
-	if !containers.Running() {
+	if !t.Containers.Running() {
 		res.Skip("No running containers")
 		return
 	}
-	for _, container := range containers {
+	for _, container := range t.Containers {
 		procs, err := t.Client.ContainerTop(container.ID, []string{})
 		if err != nil {
 			log.Printf("unable to retrieve proc list for container %s: %v", container.ID, err)
@@ -169,32 +136,24 @@ func CheckSSHRunning(t Target) (res Result) {
 }
 
 func CheckPrivilegedPorts(t Target) (res Result) {
-	var badContainers []string
 	res.Name = "5.7 Do not map privileged ports within containers"
-	containers := t.Containers
-	if !containers.Running() {
+	if !t.Containers.Running() {
 		res.Skip("No running containers")
 		return
 	}
-	for _, container := range containers {
-		ports := container.Info.NetworkSettings.Ports
+	privPorts := func(c ContainerInfo) bool {
+		ports := c.NetworkSettings.Ports
 		for _, port := range ports {
 			for _, portmap := range port {
 				hostPort, _ := strconv.Atoi(portmap.HostPort)
 				if hostPort < 1024 {
-					badContainers = append(badContainers, container.ID)
+					return false
 				}
 			}
 		}
+		return true
 	}
-
-	if len(badContainers) == 0 {
-		res.Pass()
-	} else {
-		output := fmt.Sprintf("Containers with mapped privileged ports: %s",
-			badContainers)
-		res.Fail(output)
-	}
+	t.Containers.runCheck(&res, privPorts, "Containers with mapped privileged ports: %s")
 	return
 }
 
@@ -203,7 +162,7 @@ func CheckNeededPorts(t Target) (res Result) {
 	containerPort = make(map[string][]string)
 	res.Name = "5.8 Open only needed ports on container"
 	containers := t.Containers
-	if !containers.Running() {
+	if !t.Containers.Running() {
 		res.Skip("No running containers")
 		return
 	}
@@ -222,390 +181,248 @@ func CheckNeededPorts(t Target) (res Result) {
 }
 
 func CheckHostNetworkMode(t Target) (res Result) {
-	var badContainers []string
 	res.Name = "5.9 Do not use host network mode on container"
-	containers := t.Containers
-	if !containers.Running() {
+	if !t.Containers.Running() {
 		res.Skip("No running containers")
 		return
 	}
-
-	for _, container := range containers {
-		mode := container.Info.HostConfig.NetworkMode
-		if mode == "host" {
-			badContainers = append(badContainers, container.ID)
+	hostMode := func(c ContainerInfo) bool {
+		if c.HostConfig.NetworkMode != "host" {
+			return true
 		}
+		return false
 	}
-
-	if len(badContainers) == 0 {
-		res.Pass()
-	} else {
-		output := fmt.Sprintf("Privileged containers found: %s",
-			badContainers)
-		res.Fail(output)
-	}
+	t.Containers.runCheck(&res, hostMode, "Privileged containers found: %s")
 	return
 }
 
 func CheckMemoryLimits(t Target) (res Result) {
-	var badContainers []string
 	res.Name = "5.10 Limit memory usage for container"
-	containers := t.Containers
-	if !containers.Running() {
+	if !t.Containers.Running() {
 		res.Skip("No running containers")
 		return
 	}
-	for _, container := range containers {
-		mem := container.Info.HostConfig.Memory
-		if mem == 0 {
-			badContainers = append(badContainers, container.ID)
+	memLim := func(c ContainerInfo) bool {
+		if c.HostConfig.Memory != 0 {
+			return true
 		}
+		return false
 	}
-
-	if len(badContainers) == 0 {
-		res.Pass()
-	} else {
-		output := fmt.Sprintf("Containers with no memory limits: %s",
-			badContainers)
-		res.Fail(output)
-	}
+	t.Containers.runCheck(&res, memLim, "Containers with no memory limits: %s")
 	return
 }
 
 func CheckCPUShares(t Target) (res Result) {
-	var badContainers []string
 	res.Name = "5.11 Set container CPU priority appropriately"
-	containers := t.Containers
-	if !containers.Running() {
+	if !t.Containers.Running() {
 		res.Skip("No running containers")
 		return
 	}
-	for _, container := range containers {
-		shares := container.Info.HostConfig.CPUShares
+	cpuShares := func(c ContainerInfo) bool {
+		shares := c.HostConfig.CPUShares
 		if shares == 0 || shares == 1024 {
-			badContainers = append(badContainers, container.ID)
+			return false
 		}
+		return true
 	}
-
-	if len(badContainers) == 0 {
-		res.Pass()
-	} else {
-		output := fmt.Sprintf("Containers with CPU sharing disabled: %s",
-			badContainers)
-		res.Fail(output)
-	}
+	t.Containers.runCheck(&res, cpuShares, "Containers with CPU sharing disabled: %s")
 	return
 }
 
 func CheckReadonlyRoot(t Target) (res Result) {
-	var badContainers []string
 	res.Name = "5.12 Mount container's root filesystem as read only"
-	containers := t.Containers
-	if !containers.Running() {
+	if !t.Containers.Running() {
 		res.Skip("No running containers")
 		return
 	}
-	for _, container := range containers {
-		readonly := container.Info.HostConfig.ReadonlyRootfs
-		if readonly == false {
-			badContainers = append(badContainers, container.ID)
-		}
+	readOnly := func(c ContainerInfo) bool {
+		return c.HostConfig.ReadonlyRootfs
 	}
-	if len(badContainers) == 0 {
-		res.Pass()
-	} else {
-		output := fmt.Sprintf("Containers' root FS is not mounted as read-only: %s",
-			badContainers)
-		res.Fail(output)
-	}
+	t.Containers.runCheck(&res, readOnly, "Containers' root FS is not mounted as read-only: %s")
 	return
 }
 
 func CheckBindHostInterface(t Target) (res Result) {
-	var badContainers []string
 	res.Name = "5.13 Bind incoming container traffic to a specific host interface"
-	containers := t.Containers
-	if !containers.Running() {
+	if !t.Containers.Running() {
 		res.Skip("No running containers")
 		return
 	}
-	for _, container := range containers {
-		ports := container.Info.NetworkSettings.Ports
-		for _, port := range ports {
+	bindHost := func(c ContainerInfo) bool {
+		for _, port := range c.NetworkSettings.Ports {
 			for _, portmap := range port {
 				if portmap.HostIP == "0.0.0.0" {
-					badContainers = append(badContainers, container.ID)
+					return false
 				}
 			}
 		}
+		return true
 	}
-	if len(badContainers) == 0 {
-		res.Pass()
-	} else {
-		output := fmt.Sprintf("Containers traffic not bound to specific host interface: %s",
-			badContainers)
-		res.Fail(output)
-	}
+	t.Containers.runCheck(&res, bindHost, "Containers traffic not bound to specific host interface: %s")
 	return
 }
 
 func CheckRestartPolicy(t Target) (res Result) {
-	var badContainers []string
 	res.Name = "5.14 Set the 'on-failure' container restart policy to 5"
-	containers := t.Containers
-	if !containers.Running() {
+	if !t.Containers.Running() {
 		res.Skip("No running containers")
 		return
 	}
-	for _, container := range containers {
-		policy := container.Info.HostConfig.RestartPolicy
+	restartPolicy := func(c ContainerInfo) bool {
+		policy := c.HostConfig.RestartPolicy
 		if policy.Name != "on-failure" && policy.MaximumRetryCount < 5 {
-			badContainers = append(badContainers, container.ID)
+			return false
 		}
+		return true
 	}
-
-	if len(badContainers) == 0 {
-		res.Pass()
-	} else {
-		output := fmt.Sprintf("Containers with no restart policy: %s",
-			badContainers)
-		res.Fail(output)
-	}
+	t.Containers.runCheck(&res, restartPolicy, "Containers with no restart policy: %s")
 	return
 }
 
 func CheckHostNamespace(t Target) (res Result) {
-	var badContainers []string
 	res.Name = "5.15 Do not share the host's process namespace"
-	containers := t.Containers
-	if !containers.Running() {
+	if !t.Containers.Running() {
 		res.Skip("No running containers")
 		return
 	}
-	for _, container := range containers {
-		mode := container.Info.HostConfig.PidMode
-		if mode == "host" {
-			badContainers = append(badContainers, container.ID)
+	hostNamespace := func(c ContainerInfo) bool {
+		if c.HostConfig.PidMode == "host" {
+			return false
 		}
+		return true
 	}
-
-	if len(badContainers) == 0 {
-		res.Pass()
-	} else {
-		output := fmt.Sprintf("Containers sharing host's process namespace: %s",
-			badContainers)
-		res.Fail(output)
-	}
+	t.Containers.runCheck(&res, hostNamespace, "Containers sharing host's process namespace: %s")
 	return
 }
 
 func CheckIPCNamespace(t Target) (res Result) {
-	var badContainers []string
 	res.Name = "5.16 Do not share the host's IPC namespace"
-	containers := t.Containers
-	if !containers.Running() {
+	if !t.Containers.Running() {
 		res.Skip("No running containers")
 		return
 	}
-	for _, container := range containers {
-		mode := container.Info.HostConfig.IpcMode
-		if mode == "host" {
-			badContainers = append(badContainers, container.ID)
+	ipc := func(c ContainerInfo) bool {
+		if c.HostConfig.IpcMode == "host" {
+			return false
 		}
+		return true
 	}
-
-	if len(badContainers) == 0 {
-		res.Pass()
-	} else {
-		output := fmt.Sprintf("Containers sharing host's IPC namespace: %s",
-			badContainers)
-		res.Fail(output)
-	}
-
+	t.Containers.runCheck(&res, ipc, "Containers sharing host's IPC namespace: %s")
 	return
 }
 
 func CheckHostDevices(t Target) (res Result) {
-	var badContainers []string
 	res.Name = "5.17 Do not directly expose host devices to containers"
-	containers := t.Containers
-	if !containers.Running() {
+	if !t.Containers.Running() {
 		res.Skip("No running containers")
 		return
 	}
-
-	for _, container := range containers {
-		devices := container.Info.HostConfig.Devices
-		if len(devices) != 0 {
-			badContainers = append(badContainers, container.ID)
+	hostDevices := func(c ContainerInfo) bool {
+		if len(c.HostConfig.Devices) != 0 {
+			return false
 		}
+		return true
 	}
-
-	if len(badContainers) == 0 {
-		res.Pass()
-	} else {
-		output := fmt.Sprintf("Host devices exposed. Check your permissions: %s",
-			badContainers)
-		res.Fail(output)
-
-	}
+	t.Containers.runCheck(&res, hostDevices, "Host devices exposed. Check your permissions: %s")
 	return
 }
 
 func CheckDefaultUlimit(t Target) (res Result) {
-	var badContainers []string
 	res.Name = "5.18 Override default ulimit at runtime only if needed "
-	containers := t.Containers
-	if !containers.Running() {
+	if !t.Containers.Running() {
 		res.Skip("No running containers")
 		return
 	}
-	for _, container := range containers {
-		ulimit := container.Info.HostConfig.Ulimits
-		if ulimit != nil {
-			badContainers = append(badContainers, container.ID)
+	ulimit := func(c ContainerInfo) bool {
+		if c.HostConfig.Ulimits != nil {
+			return false
 		}
+		return true
 	}
-
-	if len(badContainers) == 0 {
-		res.Pass()
-	} else {
-		output := fmt.Sprintf("Containers overriding default ulimit: %s",
-			badContainers)
-		res.Fail(output)
-
-	}
+	t.Containers.runCheck(&res, ulimit, "Containers overriding default ulimit: %s")
 	return
 }
 
 func CheckMountPropagation(t Target) (res Result) {
-	var badContainers []string
 	res.Name = "5.19 Do not set mount propagation mode to shared"
-	containers := t.Containers
-	if !containers.Running() {
+	if !t.Containers.Running() {
 		res.Skip("No running containers")
 		return
 	}
-	for _, container := range containers {
-		mounts := container.Info.Mounts
-		for _, mount := range mounts {
+	mountProp := func(c ContainerInfo) bool {
+		for _, mount := range c.Mounts {
 			if mount.Mode == "shared" {
-				badContainers = append(badContainers, container.ID)
-				break
+				return false
 			}
 		}
+		return true
 	}
-	if len(badContainers) == 0 {
-		res.Pass()
-	} else {
-		output := fmt.Sprintf("Containers with mount propagation set to shared: %s",
-			badContainers)
-		res.Fail(output)
-	}
+	t.Containers.runCheck(&res, mountProp, "Containers with mount propagation set to shared: %s")
 	return
 }
 
 func CheckUTSnamespace(t Target) (res Result) {
-	var badContainers []string
 	res.Name = "5.20 Do not share the host's UTS namespace"
-	containers := t.Containers
-	if !containers.Running() {
+	if !t.Containers.Running() {
 		res.Skip("No running containers")
 		return
 	}
-	for _, container := range containers {
-		mode := container.Info.HostConfig.UTSMode
-		if mode == "host" {
-			badContainers = append(badContainers, container.ID)
+	utsNamespace := func(c ContainerInfo) bool {
+		if c.HostConfig.UTSMode == "host" {
+			return false
 		}
+		return true
 	}
-
-	if len(badContainers) == 0 {
-		res.Pass()
-	} else {
-		output := fmt.Sprintf("Containers sharing host's UTS namespace: %s",
-			badContainers)
-		res.Fail(output)
-	}
-
+	t.Containers.runCheck(&res, utsNamespace, "Containers sharing host's UTS namespace: %s")
 	return
 }
 
 func CheckSeccompProfile(t Target) (res Result) {
-	var badContainers []string
 	res.Name = "5.21 Do not disable default seccomp profile"
-	containers := t.Containers
-	if !containers.Running() {
+	if !t.Containers.Running() {
 		res.Skip("No running containers")
 		return
 	}
-	for _, container := range containers {
-		seccomp := container.Info.HostConfig.SecurityOpt
+	secComp := func(c ContainerInfo) bool {
+		seccomp := c.HostConfig.SecurityOpt
 		if len(seccomp) == 1 && seccomp[0] == "seccomp:unconfined" {
-			badContainers = append(badContainers, container.ID)
+			return false
 		}
+		return true
 	}
-
-	if len(badContainers) == 0 {
-		res.Pass()
-	} else {
-		output := fmt.Sprintf("Containers running with seccomp disabled: %s",
-			badContainers)
-		res.Fail(output)
-	}
+	t.Containers.runCheck(&res, secComp, "Containers running with seccomp disabled: %s")
 	return
 }
 
 func CheckCgroupUsage(t Target) (res Result) {
-	var badContainers []string
 	res.Name = "5.24 Confirm cgroup usage"
-	containers := t.Containers
-	if !containers.Running() {
+	if !t.Containers.Running() {
 		res.Skip("No running containers")
 		return
 	}
-	for _, container := range containers {
-		cgroup := container.Info.HostConfig.CgroupParent
-		if cgroup != "" {
-			badContainers = append(badContainers, container.ID)
+	cgroup := func(c ContainerInfo) bool {
+		if c.HostConfig.CgroupParent != "" {
+			return false
 		}
+		return true
 	}
-
-	if len(badContainers) == 0 {
-		res.Pass()
-	} else {
-		output := fmt.Sprintf("Containers not using default cgroup: %s",
-			badContainers)
-		res.Fail(output)
-	}
+	t.Containers.runCheck(&res, cgroup, "Containers not using default cgroup: %s")
 	return
 }
 
 func CheckAdditionalPrivs(t Target) (res Result) {
-	var badContainers []string
 	res.Name = "5.25 Restrict container from acquiring additional privileges"
-	containers := t.Containers
-	if !containers.Running() {
+	if !t.Containers.Running() {
 		res.Skip("No running containers")
 		return
 	}
-	for _, container := range containers {
-		secopts := container.Info.HostConfig.SecurityOpt
-		if len(secopts) == 0 {
-			badContainers = append(badContainers, container.ID)
-		} else {
-			if !stringInSlice("no-new-privileges", secopts) {
-				badContainers = append(badContainers, container.ID)
-			}
+	privs := func(c ContainerInfo) bool {
+		secopts := c.HostConfig.SecurityOpt
+		if !stringInSlice("no-new-privileges", secopts) {
+			return false
 		}
+		return true
 	}
-
-	if len(badContainers) == 0 {
-		res.Pass()
-	} else {
-		output := fmt.Sprintf("Containers unrestricted from acquiring additional privileges: %s",
-			badContainers)
-		res.Fail(output)
-	}
+	t.Containers.runCheck(&res, privs, "Containers unrestricted from acquiring additional privileges: %s")
 	return
 }

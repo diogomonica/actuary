@@ -13,7 +13,6 @@ import (
 
 	"github.com/docker/engine-api/client"
 	"github.com/docker/engine-api/types"
-	"github.com/docker/engine-api/types/strslice"
 	"github.com/mitchellh/go-ps"
 	"github.com/shirou/gopsutil/process"
 )
@@ -149,27 +148,29 @@ type Container struct {
 
 type ContainerList []Container
 
-func (c *ContainerInfo) AppArmor() string {
-	return c.AppArmorProfile
-}
-
-func (c *ContainerInfo) SELinux() []string {
-	return c.HostConfig.SecurityOpt
-}
-
-func (c *ContainerInfo) KernelCapabilities() *strslice.StrSlice {
-	return c.HostConfig.CapAdd
-}
-
-func (c *ContainerInfo) Privileged() bool {
-	return c.HostConfig.Privileged
-}
-
 func (l *ContainerList) Running() bool {
 	if len(*l) != 0 {
 		return true
 	}
 	return false
+}
+
+//RunCheck returns a list of containers that failed the check
+func (l *ContainerList) runCheck(r *Result, f func(c ContainerInfo) bool, msg string) {
+	var badContainers []string
+	for _, container := range *l {
+		if f(container.Info) == false {
+			badContainers = append(badContainers, container.ID)
+		}
+	}
+	if len(badContainers) == 0 {
+		r.Pass()
+	} else {
+		output := fmt.Sprintf(msg,
+			badContainers)
+		r.Fail(output)
+	}
+	return
 }
 
 //Target stores information regarding the audit's target Docker server
