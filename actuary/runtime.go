@@ -7,9 +7,9 @@ other containers on the host. Verifying container runtime is thus very important
 package actuary
 
 import (
+	"context"
 	"fmt"
 	"log"
-
 	"strconv"
 	"strings"
 )
@@ -113,13 +113,13 @@ func CheckSSHRunning(t Target) (res Result) {
 		return
 	}
 	for _, container := range t.Containers {
-		procs, err := t.Client.ContainerTop(container.ID, []string{})
+		procs, err := t.Client.ContainerTop(context.TODO(), container.ID, []string{})
 		if err != nil {
 			log.Printf("unable to retrieve proc list for container %s: %v", container.ID, err)
 		}
 		//proc fields are [UID PID PPID C STIME TTY TIME CMD]
 		for _, proc := range procs.Processes {
-			procname := proc[7]
+			procname := proc[3]
 			if strings.Contains(procname, "ssh") {
 				badContainers = append(badContainers, container.ID)
 			}
