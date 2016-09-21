@@ -6,11 +6,12 @@ daemon (server). The settings that are under this section affect ALL container i
 package actuary
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
-	"github.com/docker/engine-api/types"
+	"golang.org/x/net/context"
+
+	"github.com/docker/docker/api/types"
 )
 
 func RestrictNetTraffic(t Target) (res Result) {

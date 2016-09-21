@@ -8,12 +8,13 @@ secure foundation for executing containerized workloads.
 package actuary
 
 import (
-	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"strings"
+
+	"golang.org/x/net/context"
 
 	"github.com/drael/GOnetstat"
 	version "github.com/hashicorp/go-version"

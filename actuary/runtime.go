@@ -7,11 +7,12 @@ other containers on the host. Verifying container runtime is thus very important
 package actuary
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"strconv"
 	"strings"
+
+	"golang.org/x/net/context"
 )
 
 func CheckAppArmor(t Target) (res Result) {

@@ -8,11 +8,12 @@ policies to include containers.
 package actuary
 
 import (
-	"context"
 	"fmt"
 	"log"
 
-	"github.com/docker/engine-api/types"
+	"golang.org/x/net/context"
+
+	"github.com/docker/docker/api/types"
 )
 
 func CheckImageSprawl(t Target) (res Result) {

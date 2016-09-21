@@ -1,7 +1,6 @@
 package actuary
 
 import (
-	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -12,8 +11,10 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/docker/engine-api/client"
-	"github.com/docker/engine-api/types"
+	"golang.org/x/net/context"
+
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
 	"github.com/mitchellh/go-ps"
 	"github.com/shirou/gopsutil/process"
 )
