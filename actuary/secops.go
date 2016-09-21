@@ -8,6 +8,7 @@ policies to include containers.
 package actuary
 
 import (
+	"context"
 	"fmt"
 	"log"
 
@@ -19,7 +20,7 @@ func CheckImageSprawl(t Target) (res Result) {
 	var runImageIDs []string
 	res.Name = "6.4 Avoid image sprawl"
 	imgOpts := types.ImageListOptions{All: false}
-	allImages, err := t.Client.ImageList(imgOpts)
+	allImages, err := t.Client.ImageList(context.TODO(), imgOpts)
 	if err != nil {
 		res.Skip("Unable to retrieve image list")
 		return
@@ -29,7 +30,7 @@ func CheckImageSprawl(t Target) (res Result) {
 	}
 
 	conOpts := types.ContainerListOptions{All: true}
-	containers, err := t.Client.ContainerList(conOpts)
+	containers, err := t.Client.ContainerList(context.TODO(), conOpts)
 	if err != nil {
 		res.Skip("Unable to retrieve container list")
 		return
@@ -55,9 +56,9 @@ func CheckContainerSprawl(t Target) (res Result) {
 	var diff int
 	res.Name = "6.5 Avoid container sprawl"
 	options := types.ContainerListOptions{All: false}
-	runContainers, err := t.Client.ContainerList(options)
+	runContainers, err := t.Client.ContainerList(context.TODO(), options)
 	options = types.ContainerListOptions{All: true}
-	allContainers, err := t.Client.ContainerList(options)
+	allContainers, err := t.Client.ContainerList(context.TODO(), options)
 	if err != nil {
 		log.Printf("Unable to get container list")
 		return res

@@ -6,6 +6,7 @@ daemon (server). The settings that are under this section affect ALL container i
 package actuary
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -16,7 +17,7 @@ func RestrictNetTraffic(t Target) (res Result) {
 	var netargs types.NetworkListOptions
 	res.Name = "2.1 Restrict network traffic between containers"
 
-	networks, err := t.Client.NetworkList(netargs)
+	networks, err := t.Client.NetworkList(context.TODO(), netargs)
 	if err != nil {
 		res.Skip("Cannot retrieve network list")
 		return

@@ -1,6 +1,7 @@
 package actuary
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -186,7 +187,7 @@ func NewTarget() (a Target, err error) {
 	if err != nil {
 		log.Fatalf("unable to create Docker client: %v\n", err)
 	}
-	a.Info, err = a.Client.Info()
+	a.Info, err = a.Client.Info(context.TODO())
 	if err != nil {
 		log.Fatalf("unable to fetch Docker daemon info: %v\n", err)
 	}
@@ -196,13 +197,13 @@ func NewTarget() (a Target, err error) {
 
 func (t *Target) createContainerList() error {
 	opts := types.ContainerListOptions{All: false}
-	containers, err := t.Client.ContainerList(opts)
+	containers, err := t.Client.ContainerList(context.TODO(), opts)
 	if err != nil {
 		log.Fatalf("unable to get container list: %v\n", err)
 	}
 	for _, cont := range containers {
 		entry := new(Container)
-		inspectData, _ := t.Client.ContainerInspect(cont.ID)
+		inspectData, _ := t.Client.ContainerInspect(context.TODO(), cont.ID)
 		info := &ContainerInfo{inspectData}
 		entry.ID = cont.ID
 		entry.Info = *info
