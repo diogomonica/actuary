@@ -198,7 +198,7 @@ func NewTarget() (a Target, err error) {
 
 func (t *Target) createContainerList() error {
 	opts := types.ContainerListOptions{All: false}
-	containers, err := t.Client.ContainerList(context.TODO(), opts)
+	containers, err := t.Client.ContainerList(context.Background(), opts)
 	if err != nil {
 		log.Fatalf("unable to get container list: %v\n", err)
 	}
