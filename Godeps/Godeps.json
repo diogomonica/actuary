@@ -43,6 +43,11 @@
 			"Rev": "f199fadc7a713932fc827c63accbd67843d17691"
 		},
 		{
+			"ImportPath": "github.com/docker/docker/api/types/events",
+			"Comment": "docs-v1.12.0-rc4-2016-07-15-4432-gf199fad",
+			"Rev": "f199fadc7a713932fc827c63accbd67843d17691"
+		},
+		{
 			"ImportPath": "github.com/docker/docker/api/types/filters",
 			"Comment": "docs-v1.12.0-rc4-2016-07-15-4432-gf199fad",
 			"Rev": "f199fadc7a713932fc827c63accbd67843d17691"
@@ -84,6 +89,11 @@
 		},
 		{
 			"ImportPath": "github.com/docker/docker/api/types/versions",
+			"Comment": "docs-v1.12.0-rc4-2016-07-15-4432-gf199fad",
+			"Rev": "f199fadc7a713932fc827c63accbd67843d17691"
+		},
+		{
+			"ImportPath": "github.com/docker/docker/api/types/volume",
 			"Comment": "docs-v1.12.0-rc4-2016-07-15-4432-gf199fad",
 			"Rev": "f199fadc7a713932fc827c63accbd67843d17691"
 		},
@@ -154,6 +164,10 @@
 			"Rev": "e2d21980687ce16e58469d98dcee92d27fbbd7fb"
 		},
 		{
+			"ImportPath": "github.com/opencontainers/go-digest",
+			"Rev": "a6d0ee40d4207ea02364bd3b9e8e77b9159ba1eb"
+		},
+		{
 			"ImportPath": "github.com/opencontainers/runc/libcontainer/user",
 			"Comment": "v1.0.0-rc2-197-g1a9dd26",
 			"Rev": "1a9dd2678d2d6ad574f05cb7b9ae46ce65586725"
@@ -216,96 +230,6 @@
 		{
 			"ImportPath": "golang.org/x/sys/windows",
 			"Rev": "d75a52659825e75fff6158388dddc6a5b04f9ba5"
-		},
-		{
-			"ImportPath": "github.com/docker/docker/vendor/github.com/docker/go-connections/nat",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-4432-gf199fad",
-			"Rev": "f199fadc7a713932fc827c63accbd67843d17691"
-		},
-		{
-			"ImportPath": "github.com/docker/docker/vendor/github.com/docker/go-units",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-4432-gf199fad",
-			"Rev": "f199fadc7a713932fc827c63accbd67843d17691"
-		},
-		{
-			"ImportPath": "github.com/docker/docker/vendor/github.com/docker/distribution/reference",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-4432-gf199fad",
-			"Rev": "f199fadc7a713932fc827c63accbd67843d17691"
-		},
-		{
-			"ImportPath": "github.com/docker/docker/api/types/events",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-4432-gf199fad",
-			"Rev": "f199fadc7a713932fc827c63accbd67843d17691"
-		},
-		{
-			"ImportPath": "github.com/docker/docker/api/types/volume",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-4432-gf199fad",
-			"Rev": "f199fadc7a713932fc827c63accbd67843d17691"
-		},
-		{
-			"ImportPath": "github.com/docker/docker/vendor/github.com/docker/go-connections/sockets",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-4432-gf199fad",
-			"Rev": "f199fadc7a713932fc827c63accbd67843d17691"
-		},
-		{
-			"ImportPath": "github.com/docker/docker/vendor/github.com/docker/go-connections/tlsconfig",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-4432-gf199fad",
-			"Rev": "f199fadc7a713932fc827c63accbd67843d17691"
-		},
-		{
-			"ImportPath": "github.com/docker/docker/vendor/github.com/pkg/errors",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-4432-gf199fad",
-			"Rev": "f199fadc7a713932fc827c63accbd67843d17691"
-		},
-		{
-			"ImportPath": "github.com/docker/docker/vendor/golang.org/x/net/context",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-4432-gf199fad",
-			"Rev": "f199fadc7a713932fc827c63accbd67843d17691"
-		},
-		{
-			"ImportPath": "github.com/docker/docker/vendor/golang.org/x/net/context/ctxhttp",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-4432-gf199fad",
-			"Rev": "f199fadc7a713932fc827c63accbd67843d17691"
-		},
-		{
-			"ImportPath": "github.com/docker/docker/vendor/github.com/Microsoft/go-winio",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-4432-gf199fad",
-			"Rev": "f199fadc7a713932fc827c63accbd67843d17691"
-		},
-		{
-			"ImportPath": "github.com/docker/docker/vendor/github.com/Sirupsen/logrus",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-4432-gf199fad",
-			"Rev": "f199fadc7a713932fc827c63accbd67843d17691"
-		},
-		{
-			"ImportPath": "github.com/docker/docker/vendor/github.com/opencontainers/runc/libcontainer/user",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-4432-gf199fad",
-			"Rev": "f199fadc7a713932fc827c63accbd67843d17691"
-		},
-		{
-			"ImportPath": "github.com/docker/docker/vendor/golang.org/x/net/proxy",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-4432-gf199fad",
-			"Rev": "f199fadc7a713932fc827c63accbd67843d17691"
-		},
-		{
-			"ImportPath": "github.com/docker/docker/vendor/golang.org/x/sys/windows",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-4432-gf199fad",
-			"Rev": "f199fadc7a713932fc827c63accbd67843d17691"
-		},
-		{
-			"ImportPath": "github.com/docker/docker/vendor/golang.org/x/sys/unix",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-4432-gf199fad",
-			"Rev": "f199fadc7a713932fc827c63accbd67843d17691"
-		},
-		{
-			"ImportPath": "github.com/docker/distribution/vendor/github.com/opencontainers/go-digest",
-			"Comment": "v2.6.0-rc.1-64-g7dba427",
-			"Rev": "7dba427612198a11b161a27f9d40bb2dca1ccd20"
-		},
-		{
-			"ImportPath": "github.com/docker/docker/vendor/github.com/opencontainers/go-digest",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-4432-gf199fad",
-			"Rev": "f199fadc7a713932fc827c63accbd67843d17691"
 		}
 	]
 }
