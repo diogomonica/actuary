@@ -9,14 +9,16 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/docker/engine-api/types"
+	"golang.org/x/net/context"
+
+	"github.com/docker/docker/api/types"
 )
 
 func RestrictNetTraffic(t Target) (res Result) {
 	var netargs types.NetworkListOptions
 	res.Name = "2.1 Restrict network traffic between containers"
 
-	networks, err := t.Client.NetworkList(netargs)
+	networks, err := t.Client.NetworkList(context.TODO(), netargs)
 	if err != nil {
 		res.Skip("Cannot retrieve network list")
 		return

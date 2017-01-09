@@ -14,6 +14,8 @@ import (
 	"os"
 	"strings"
 
+	"golang.org/x/net/context"
+
 	"github.com/drael/GOnetstat"
 	version "github.com/hashicorp/go-version"
 )
@@ -78,7 +80,7 @@ func CheckRunningServices(t Target) (res Result) {
 func CheckDockerVersion(t Target) (res Result) {
 	res.Name = "1.5 Keep Docker up to date"
 	verConstr := os.Getenv("VERSION")
-	info, err := t.Client.ServerVersion()
+	info, err := t.Client.ServerVersion(context.TODO())
 	if err != nil {
 		log.Fatalf("Could not retrieve info for Docker host")
 	}
