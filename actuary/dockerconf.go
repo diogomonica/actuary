@@ -18,7 +18,7 @@ func RestrictNetTraffic(t Target) (res Result) {
 	var netargs types.NetworkListOptions
 	res.Name = "2.1 Restrict network traffic between containers"
 
-	networks, err := t.Client.NetworkList(context.TODO(), netargs)
+	networks, err := t.Client.NetworkList(context.Background(), netargs)
 	if err != nil {
 		res.Skip("Cannot retrieve network list")
 		return
@@ -147,7 +147,7 @@ func CheckDefaultCgroup(t Target) (res Result) {
 	res.Name = "2.9 Confirm default cgroup usage"
 	cmdLine, _ := getProcCmdline("docker")
 	for _, arg := range cmdLine {
-		if strings.Contains(arg, "--cgroup-parent") {
+		if !strings.Contains(arg, "--cgroup-parent") {
 			res.Pass()
 			return
 		}

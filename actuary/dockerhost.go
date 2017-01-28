@@ -49,7 +49,6 @@ func CheckKernelVersion(t Target) (res Result) {
 	hostVersion, err := version.NewVersion(info.KernelVersion)
 	if err != nil {
 		// necessary fix for incompatible kernel versions (e.g. Fedora 23)
-		log.Print("Incompatible kernel version")
 		output := "Incompatible kernel version reported"
 		res.Info(output)
 		return
@@ -80,7 +79,7 @@ func CheckRunningServices(t Target) (res Result) {
 func CheckDockerVersion(t Target) (res Result) {
 	res.Name = "1.5 Keep Docker up to date"
 	verConstr := os.Getenv("VERSION")
-	info, err := t.Client.ServerVersion(context.TODO())
+	info, err := t.Client.ServerVersion(context.Background())
 	if err != nil {
 		log.Fatalf("Could not retrieve info for Docker host")
 	}

@@ -188,7 +188,7 @@ func NewTarget() (a Target, err error) {
 	if err != nil {
 		log.Fatalf("unable to create Docker client: %v\n", err)
 	}
-	a.Info, err = a.Client.Info(context.TODO())
+	a.Info, err = a.Client.Info(context.Background())
 	if err != nil {
 		log.Fatalf("unable to fetch Docker daemon info: %v\n", err)
 	}
@@ -204,7 +204,7 @@ func (t *Target) createContainerList() error {
 	}
 	for _, cont := range containers {
 		entry := new(Container)
-		inspectData, _ := t.Client.ContainerInspect(context.TODO(), cont.ID)
+		inspectData, _ := t.Client.ContainerInspect(context.Background(), cont.ID)
 		info := &ContainerInfo{inspectData}
 		entry.ID = cont.ID
 		entry.Info = *info

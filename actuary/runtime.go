@@ -114,7 +114,7 @@ func CheckSSHRunning(t Target) (res Result) {
 		return
 	}
 	for _, container := range t.Containers {
-		procs, err := t.Client.ContainerTop(context.TODO(), container.ID, []string{})
+		procs, err := t.Client.ContainerTop(context.Background(), container.ID, []string{})
 		if err != nil {
 			log.Printf("unable to retrieve proc list for container %s: %v", container.ID, err)
 		}
