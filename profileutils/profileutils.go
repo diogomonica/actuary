@@ -19,6 +19,8 @@ type Profile struct {
 	}
 }
 
+
+
 //GetFromURL reads audit profile using the API
 func GetFromURL(hash string) (p Profile, err error) {
 	var url string

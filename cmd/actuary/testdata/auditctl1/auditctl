@@ -1,0 +1,10 @@
+#!/bin/sh
+echo "/usr/bin/docker"
+echo "/var/lib/docker"
+echo "/etc/docker"
+echo "/usr/lib/systemd/system/docker.service"
+echo "/usr/lib/systemd/system/docker.socket"
+echo "/etc/default/docker"
+echo "/etc/docker/daemon.json"
+echo "/usr/bin/docker-containerd"
+echo "/usr/bin/docker-runc"
