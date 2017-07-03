@@ -1,0 +1,355 @@
+<Result>
+ <Name>1.1 Create a separate partition for containers</Name>
+ <Status></Status>
+ <Output></Output>
+</Result>
+<Result>
+ <Name>1.2 Use the updated Linux Kernel</Name>
+ <Status>PASS</Status>
+ <Output></Output>
+</Result>
+<Result>
+ <Name>1.5 Keep Docker up to date</Name>
+ <Status>PASS</Status>
+ <Output></Output>
+</Result>
+<Result>
+ <Name>1.6 Only allow trusted users to control Docker daemon</Name>
+ <Status>INFO</Status>
+ <Output>The following users control the Docker daemon: []</Output>
+</Result>
+<Result>
+ <Name>1.7 Audit docker daemon</Name>
+ <Status>SKIP</Status>
+ <Output>Unable to retrieve rule list</Output>
+</Result>
+<Result>
+ <Name>1.8 Audit Docker files and directories - /var/lib/docker</Name>
+ <Status>SKIP</Status>
+ <Output>Unable to retrieve rule list</Output>
+</Result>
+<Result>
+ <Name>1.9 Audit Docker files and directories - /etc/docker</Name>
+ <Status>SKIP</Status>
+ <Output>Unable to retrieve rule list</Output>
+</Result>
+<Result>
+ <Name>1.10 Audit Docker files and directories - docker.service</Name>
+ <Status>SKIP</Status>
+ <Output>Unable to retrieve rule list</Output>
+</Result>
+<Result>
+ <Name>1.11 Audit Docker files and directories - docker.socket</Name>
+ <Status>SKIP</Status>
+ <Output>Unable to retrieve rule list</Output>
+</Result>
+<Result>
+ <Name>1.12 Audit Docker files and directories - /etc/default/docker</Name>
+ <Status>SKIP</Status>
+ <Output>Unable to retrieve rule list</Output>
+</Result>
+<Result>
+ <Name>1.13 Audit Docker files and directories - /etc/docker/daemon.json</Name>
+ <Status>SKIP</Status>
+ <Output>Unable to retrieve rule list</Output>
+</Result>
+<Result>
+ <Name>1.14 Audit Docker files and directories - /usr/bin/docker-containerd</Name>
+ <Status>SKIP</Status>
+ <Output>Unable to retrieve rule list</Output>
+</Result>
+<Result>
+ <Name>1.15 Audit Docker files and directories - /usr/bin/docker-runc</Name>
+ <Status>SKIP</Status>
+ <Output>Unable to retrieve rule list</Output>
+</Result>
+<Result>
+ <Name>2.1 Restrict network traffic between containers</Name>
+ <Status>WARN</Status>
+ <Output></Output>
+</Result>
+<Result>
+ <Name>2.2 Set the logging level</Name>
+ <Status>PASS</Status>
+ <Output></Output>
+</Result>
+<Result>
+ <Name>2.3 Allow Docker to make changes to iptables</Name>
+ <Status>PASS</Status>
+ <Output></Output>
+</Result>
+<Result>
+ <Name>2.5 Do not use the aufs storage driver</Name>
+ <Status>PASS</Status>
+ <Output></Output>
+</Result>
+<Result>
+ <Name>2.7 Set default ulimit as appropriate</Name>
+ <Status>WARN</Status>
+ <Output>Default ulimit doesn&#39;t appear to be set</Output>
+</Result>
+<Result>
+ <Name>2.8 Enable user namespace support</Name>
+ <Status>WARN</Status>
+ <Output>User namespace support is not enabled</Output>
+</Result>
+<Result>
+ <Name>2.9 Confirm default cgroup usage</Name>
+ <Status>WARN</Status>
+ <Output>Default cgroup is not used</Output>
+</Result>
+<Result>
+ <Name>2.10 Do not change base device size until needed</Name>
+ <Status>WARN</Status>
+ <Output>Default device size has been changed</Output>
+</Result>
+<Result>
+ <Name>2.11 Use authorization plugin</Name>
+ <Status>WARN</Status>
+ <Output></Output>
+</Result>
+<Result>
+ <Name>2.12 Configure centralized and remote logging</Name>
+ <Status>WARN</Status>
+ <Output></Output>
+</Result>
+<Result>
+ <Name>2.13 Disable operations on legacy registry (v1)</Name>
+ <Status>WARN</Status>
+ <Output></Output>
+</Result>
+<Result>
+ <Name>3.1 Verify that docker.service file ownership is set to root:root</Name>
+ <Status>SKIP</Status>
+ <Output>File could not be accessed</Output>
+</Result>
+<Result>
+ <Name>3.2 Verify that docker.service file permissions are set to&#xA;&#x9;&#x9;644 or more restrictive</Name>
+ <Status>SKIP</Status>
+ <Output>File could not be accessed</Output>
+</Result>
+<Result>
+ <Name>3.3 Verify that docker.socket file ownership is set to root:root</Name>
+ <Status>SKIP</Status>
+ <Output>File could not be accessed</Output>
+</Result>
+<Result>
+ <Name>3.4 Verify that docker.socket file permissions are set to 644 or more&#xA;        restrictive</Name>
+ <Status>SKIP</Status>
+ <Output>File could not be accessed</Output>
+</Result>
+<Result>
+ <Name>3.5 Verify that /etc/docker directory ownership is set to root:root </Name>
+ <Status>SKIP</Status>
+ <Output>File could not be accessed</Output>
+</Result>
+<Result>
+ <Name>3.6 Verify that /etc/docker directory permissions&#xA;&#x9;&#x9;are set to 755 or more restrictive</Name>
+ <Status>SKIP</Status>
+ <Output>File could not be accessed</Output>
+</Result>
+<Result>
+ <Name>3.7 Verify that registry certificate file ownership&#xA;&#x9; is set to root:root</Name>
+ <Status>INFO</Status>
+ <Output>Directory is inaccessible</Output>
+</Result>
+<Result>
+ <Name>3.8 Verify that registry certificate file permissions&#xA;&#x9;&#x9;are set to 444 or more restrictive</Name>
+ <Status>INFO</Status>
+ <Output>Directory is inaccessible</Output>
+</Result>
+<Result>
+ <Name>3.9 Verify that TLS CA certificate file ownership is set to root:root</Name>
+ <Status>SKIP</Status>
+ <Output>File could not be accessed</Output>
+</Result>
+<Result>
+ <Name>3.10 Verify that TLS CA certificate file permissions&#xA;&#x9;are set to 444 or more restrictive</Name>
+ <Status>SKIP</Status>
+ <Output>File could not be accessed</Output>
+</Result>
+<Result>
+ <Name>3.11 Verify that Docker server certificate file ownership is set to&#xA;        root:root</Name>
+ <Status>SKIP</Status>
+ <Output>File could not be accessed</Output>
+</Result>
+<Result>
+ <Name>3.12 Verify that Docker server certificate file permissions&#xA;&#x9;&#x9;are set to 444 or more restrictive</Name>
+ <Status>SKIP</Status>
+ <Output>File could not be accessed</Output>
+</Result>
+<Result>
+ <Name>3.13 Verify that Docker server certificate key file ownership is set to&#xA;        root:root</Name>
+ <Status>SKIP</Status>
+ <Output>File could not be accessed</Output>
+</Result>
+<Result>
+ <Name>3.14 Verify that Docker server certificate key file&#xA;&#x9;permissions are set to 400</Name>
+ <Status>SKIP</Status>
+ <Output>File could not be accessed</Output>
+</Result>
+<Result>
+ <Name>3.15 Verify that Docker socket file ownership&#xA;&#x9;is set to root:docker</Name>
+ <Status>WARN</Status>
+ <Output>User/group owner should be : docker</Output>
+</Result>
+<Result>
+ <Name>3.16 Verify that Docker socket file permissions are set to 660</Name>
+ <Status>WARN</Status>
+ <Output>File has less restrictive permissions than expected: -rwxr-xr-x</Output>
+</Result>
+<Result>
+ <Name>3.17 Verify that daemon.json file ownership is set to root:root</Name>
+ <Status>SKIP</Status>
+ <Output>File could not be accessed</Output>
+</Result>
+<Result>
+ <Name>3.18 Verify that daemon.json file permissions are set to 644 or more&#xA;restrictive</Name>
+ <Status>SKIP</Status>
+ <Output>File could not be accessed</Output>
+</Result>
+<Result>
+ <Name>3.19 Verify that /etc/default/docker file ownership is set to root:root</Name>
+ <Status>SKIP</Status>
+ <Output>File could not be accessed</Output>
+</Result>
+<Result>
+ <Name>3.20 Verify that /etc/default/docker file permissions are set to 644 or&#xA;more restrictive</Name>
+ <Status>SKIP</Status>
+ <Output>File could not be accessed</Output>
+</Result>
+<Result>
+ <Name>4.1 Create a user for the container</Name>
+ <Status>SKIP</Status>
+ <Output>No running containers</Output>
+</Result>
+<Result>
+ <Name>4.5 Enable Content trust for Docker</Name>
+ <Status>WARN</Status>
+ <Output></Output>
+</Result>
+<Result>
+ <Name>5.1 Verify AppArmor Profile, if applicable</Name>
+ <Status>SKIP</Status>
+ <Output>No running containers</Output>
+</Result>
+<Result>
+ <Name>5.1 Verify AppArmor Profile, if applicable</Name>
+ <Status>SKIP</Status>
+ <Output>No running containers</Output>
+</Result>
+<Result>
+ <Name>5.3 Restrict Linux Kernel Capabilities within containers</Name>
+ <Status>SKIP</Status>
+ <Output>No running containers</Output>
+</Result>
+<Result>
+ <Name>5.4 Do not use privileged containers</Name>
+ <Status>SKIP</Status>
+ <Output>No running containers</Output>
+</Result>
+<Result>
+ <Name>5.5 Do not mount sensitive host system directories on containers </Name>
+ <Status>SKIP</Status>
+ <Output>No running containers</Output>
+</Result>
+<Result>
+ <Name>5.6 Do not run ssh within containers</Name>
+ <Status>SKIP</Status>
+ <Output>No running containers</Output>
+</Result>
+<Result>
+ <Name>5.7 Do not map privileged ports within containers</Name>
+ <Status>SKIP</Status>
+ <Output>No running containers</Output>
+</Result>
+<Result>
+ <Name>5.8 Open only needed ports on container</Name>
+ <Status>SKIP</Status>
+ <Output>No running containers</Output>
+</Result>
+<Result>
+ <Name>5.9 Do not use host network mode on container</Name>
+ <Status>SKIP</Status>
+ <Output>No running containers</Output>
+</Result>
+<Result>
+ <Name>5.10 Limit memory usage for container</Name>
+ <Status>SKIP</Status>
+ <Output>No running containers</Output>
+</Result>
+<Result>
+ <Name>5.11 Set container CPU priority appropriately</Name>
+ <Status>SKIP</Status>
+ <Output>No running containers</Output>
+</Result>
+<Result>
+ <Name>5.12 Mount container&#39;s root filesystem as read only</Name>
+ <Status>SKIP</Status>
+ <Output>No running containers</Output>
+</Result>
+<Result>
+ <Name>5.13 Bind incoming container traffic to a specific host interface</Name>
+ <Status>SKIP</Status>
+ <Output>No running containers</Output>
+</Result>
+<Result>
+ <Name>5.14 Set the &#39;on-failure&#39; container restart policy to 5</Name>
+ <Status>SKIP</Status>
+ <Output>No running containers</Output>
+</Result>
+<Result>
+ <Name>5.15 Do not share the host&#39;s process namespace</Name>
+ <Status>SKIP</Status>
+ <Output>No running containers</Output>
+</Result>
+<Result>
+ <Name>5.16 Do not share the host&#39;s IPC namespace</Name>
+ <Status>SKIP</Status>
+ <Output>No running containers</Output>
+</Result>
+<Result>
+ <Name>5.17 Do not directly expose host devices to containers</Name>
+ <Status>SKIP</Status>
+ <Output>No running containers</Output>
+</Result>
+<Result>
+ <Name>5.18 Override default ulimit at runtime only if needed </Name>
+ <Status>SKIP</Status>
+ <Output>No running containers</Output>
+</Result>
+<Result>
+ <Name>5.19 Do not set mount propagation mode to shared</Name>
+ <Status>SKIP</Status>
+ <Output>No running containers</Output>
+</Result>
+<Result>
+ <Name>5.20 Do not share the host&#39;s UTS namespace</Name>
+ <Status>SKIP</Status>
+ <Output>No running containers</Output>
+</Result>
+<Result>
+ <Name>5.21 Do not disable default seccomp profile</Name>
+ <Status>SKIP</Status>
+ <Output>No running containers</Output>
+</Result>
+<Result>
+ <Name>5.24 Confirm cgroup usage</Name>
+ <Status>SKIP</Status>
+ <Output>No running containers</Output>
+</Result>
+<Result>
+ <Name>5.25 Restrict container from acquiring additional privileges</Name>
+ <Status>SKIP</Status>
+ <Output>No running containers</Output>
+</Result>
+<Result>
+ <Name>6.4 Avoid image sprawl</Name>
+ <Status>PASS</Status>
+ <Output></Output>
+</Result>
+<Result>
+ <Name>6.5 Avoid container sprawl</Name>
+ <Status>WARN</Status>
+ <Output>There are currently a total of 65 containers,&#xA;&#x9;&#x9;&#x9;with only 0 of them currently running</Output>
+</Result>

@@ -19,14 +19,28 @@ import (
 	"github.com/drael/GOnetstat"
 	version "github.com/hashicorp/go-version"
 )
+// Notes:
+	//Global variable def
+	//can look at unexported fields in test.go
+	//before start test, change variable
+	//directory called testdata
+	//testdata/whatever
 
+//GLOBAL VARIABLES:
+	var(
+		fstab = "/etc/fstab"
+		groupFile = "/etc/group"
+	)
 //code borrowed from github.com/dockersecuritytools/batten
-func CheckSeparatePartion(t Target) (res Result) {
+func  CheckSeparatePartition(t Target) (res Result) {
 	res.Name = "1.1 Create a separate partition for containers"
-	fstab := "/etc/fstab"
+	//fstab := "/etc/fstab" 
+	
+
 	bytes, err := ioutil.ReadFile(fstab)
+
 	if err != nil {
-		log.Printf("Cannor read fstab")
+		log.Printf("Cannot read fstab")
 		return res
 	}
 	lines := strings.Split(string(bytes), "\n")
@@ -47,6 +61,7 @@ func CheckKernelVersion(t Target) (res Result) {
 	info := t.Info
 	constraints, _ := version.NewConstraint(">= 3.10")
 	hostVersion, err := version.NewVersion(info.KernelVersion)
+
 	if err != nil {
 		// necessary fix for incompatible kernel versions (e.g. Fedora 23)
 		log.Print("Incompatible kernel version")
@@ -80,11 +95,18 @@ func CheckRunningServices(t Target) (res Result) {
 func CheckDockerVersion(t Target) (res Result) {
 	res.Name = "1.5 Keep Docker up to date"
 	verConstr := os.Getenv("VERSION")
+	
+	if len(verConstr) == 0 {
+        verConstr = "17.03"
+    }
+
 	info, err := t.Client.ServerVersion(context.TODO())
 	if err != nil {
 		log.Fatalf("Could not retrieve info for Docker host")
 	}
 	constraints, _ := version.NewConstraint(">= " + verConstr)
+
+
 	hostVersion, _ := version.NewVersion(info.Version)
 	if constraints.Check(hostVersion) {
 		res.Pass()
@@ -99,7 +121,7 @@ func CheckDockerVersion(t Target) (res Result) {
 func CheckTrustedUsers(t Target) (res Result) {
 	var trustedUsers []string
 	res.Name = "1.6 Only allow trusted users to control Docker daemon"
-	groupFile := "/etc/group"
+	//groupFile := "/etc/group"
 	content, err := ioutil.ReadFile(groupFile)
 	if err != nil {
 		log.Panicf("Could not read %s", groupFile)
