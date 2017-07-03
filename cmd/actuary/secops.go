@@ -22,6 +22,7 @@ func CheckImageSprawl(t Target) (res Result) {
 	res.Name = "6.4 Avoid image sprawl"
 	imgOpts := types.ImageListOptions{All: false}
 	allImages, err := t.Client.ImageList(context.TODO(), imgOpts)
+
 	if err != nil {
 		res.Skip("Unable to retrieve image list")
 		return
@@ -36,6 +37,8 @@ func CheckImageSprawl(t Target) (res Result) {
 		res.Skip("Unable to retrieve container list")
 		return
 	}
+
+	//log.Printf("IMAGES: %v", allImages)
 
 	for _, container := range containers {
 		runImageIDs = append(runImageIDs, container.ImageID)
@@ -66,6 +69,12 @@ func CheckContainerSprawl(t Target) (res Result) {
 	}
 
 	diff = len(allContainers) - len(runContainers)
+
+	//log.Printf("ALL: %v", len(allContainers))
+	//log.Printf("RUNNING: %v", len(runContainers))
+	//log.Printf("DIFF: %v", diff)
+
+
 
 	if diff > 25 {
 		output := fmt.Sprintf(`There are currently a total of %d containers,

@@ -1,0 +1,357 @@
+[
+  {
+    "Name": "1.1 Create a separate partition for containers",
+    "Status": "",
+    "Output": ""
+  },
+  {
+    "Name": "1.2 Use the updated Linux Kernel",
+    "Status": "PASS",
+    "Output": ""
+  },
+  {
+    "Name": "1.5 Keep Docker up to date",
+    "Status": "PASS",
+    "Output": ""
+  },
+  {
+    "Name": "1.6 Only allow trusted users to control Docker daemon",
+    "Status": "INFO",
+    "Output": "The following users control the Docker daemon: []"
+  },
+  {
+    "Name": "1.7 Audit docker daemon",
+    "Status": "SKIP",
+    "Output": "Unable to retrieve rule list"
+  },
+  {
+    "Name": "1.8 Audit Docker files and directories - /var/lib/docker",
+    "Status": "SKIP",
+    "Output": "Unable to retrieve rule list"
+  },
+  {
+    "Name": "1.9 Audit Docker files and directories - /etc/docker",
+    "Status": "SKIP",
+    "Output": "Unable to retrieve rule list"
+  },
+  {
+    "Name": "1.10 Audit Docker files and directories - docker.service",
+    "Status": "SKIP",
+    "Output": "Unable to retrieve rule list"
+  },
+  {
+    "Name": "1.11 Audit Docker files and directories - docker.socket",
+    "Status": "SKIP",
+    "Output": "Unable to retrieve rule list"
+  },
+  {
+    "Name": "1.12 Audit Docker files and directories - /etc/default/docker",
+    "Status": "SKIP",
+    "Output": "Unable to retrieve rule list"
+  },
+  {
+    "Name": "1.13 Audit Docker files and directories - /etc/docker/daemon.json",
+    "Status": "SKIP",
+    "Output": "Unable to retrieve rule list"
+  },
+  {
+    "Name": "1.14 Audit Docker files and directories - /usr/bin/docker-containerd",
+    "Status": "SKIP",
+    "Output": "Unable to retrieve rule list"
+  },
+  {
+    "Name": "1.15 Audit Docker files and directories - /usr/bin/docker-runc",
+    "Status": "SKIP",
+    "Output": "Unable to retrieve rule list"
+  },
+  {
+    "Name": "2.1 Restrict network traffic between containers",
+    "Status": "WARN",
+    "Output": ""
+  },
+  {
+    "Name": "2.2 Set the logging level",
+    "Status": "PASS",
+    "Output": ""
+  },
+  {
+    "Name": "2.3 Allow Docker to make changes to iptables",
+    "Status": "PASS",
+    "Output": ""
+  },
+  {
+    "Name": "2.5 Do not use the aufs storage driver",
+    "Status": "PASS",
+    "Output": ""
+  },
+  {
+    "Name": "2.7 Set default ulimit as appropriate",
+    "Status": "WARN",
+    "Output": "Default ulimit doesn't appear to be set"
+  },
+  {
+    "Name": "2.8 Enable user namespace support",
+    "Status": "WARN",
+    "Output": "User namespace support is not enabled"
+  },
+  {
+    "Name": "2.9 Confirm default cgroup usage",
+    "Status": "WARN",
+    "Output": "Default cgroup is not used"
+  },
+  {
+    "Name": "2.10 Do not change base device size until needed",
+    "Status": "WARN",
+    "Output": "Default device size has been changed"
+  },
+  {
+    "Name": "2.11 Use authorization plugin",
+    "Status": "WARN",
+    "Output": ""
+  },
+  {
+    "Name": "2.12 Configure centralized and remote logging",
+    "Status": "WARN",
+    "Output": ""
+  },
+  {
+    "Name": "2.13 Disable operations on legacy registry (v1)",
+    "Status": "WARN",
+    "Output": ""
+  },
+  {
+    "Name": "3.1 Verify that docker.service file ownership is set to root:root",
+    "Status": "SKIP",
+    "Output": "File could not be accessed"
+  },
+  {
+    "Name": "3.2 Verify that docker.service file permissions are set to\n\t\t644 or more restrictive",
+    "Status": "SKIP",
+    "Output": "File could not be accessed"
+  },
+  {
+    "Name": "3.3 Verify that docker.socket file ownership is set to root:root",
+    "Status": "SKIP",
+    "Output": "File could not be accessed"
+  },
+  {
+    "Name": "3.4 Verify that docker.socket file permissions are set to 644 or more\n        restrictive",
+    "Status": "SKIP",
+    "Output": "File could not be accessed"
+  },
+  {
+    "Name": "3.5 Verify that /etc/docker directory ownership is set to root:root ",
+    "Status": "SKIP",
+    "Output": "File could not be accessed"
+  },
+  {
+    "Name": "3.6 Verify that /etc/docker directory permissions\n\t\tare set to 755 or more restrictive",
+    "Status": "SKIP",
+    "Output": "File could not be accessed"
+  },
+  {
+    "Name": "3.7 Verify that registry certificate file ownership\n\t is set to root:root",
+    "Status": "INFO",
+    "Output": "Directory is inaccessible"
+  },
+  {
+    "Name": "3.8 Verify that registry certificate file permissions\n\t\tare set to 444 or more restrictive",
+    "Status": "INFO",
+    "Output": "Directory is inaccessible"
+  },
+  {
+    "Name": "3.9 Verify that TLS CA certificate file ownership is set to root:root",
+    "Status": "SKIP",
+    "Output": "File could not be accessed"
+  },
+  {
+    "Name": "3.10 Verify that TLS CA certificate file permissions\n\tare set to 444 or more restrictive",
+    "Status": "SKIP",
+    "Output": "File could not be accessed"
+  },
+  {
+    "Name": "3.11 Verify that Docker server certificate file ownership is set to\n        root:root",
+    "Status": "SKIP",
+    "Output": "File could not be accessed"
+  },
+  {
+    "Name": "3.12 Verify that Docker server certificate file permissions\n\t\tare set to 444 or more restrictive",
+    "Status": "SKIP",
+    "Output": "File could not be accessed"
+  },
+  {
+    "Name": "3.13 Verify that Docker server certificate key file ownership is set to\n        root:root",
+    "Status": "SKIP",
+    "Output": "File could not be accessed"
+  },
+  {
+    "Name": "3.14 Verify that Docker server certificate key file\n\tpermissions are set to 400",
+    "Status": "SKIP",
+    "Output": "File could not be accessed"
+  },
+  {
+    "Name": "3.15 Verify that Docker socket file ownership\n\tis set to root:docker",
+    "Status": "WARN",
+    "Output": "User/group owner should be : docker"
+  },
+  {
+    "Name": "3.16 Verify that Docker socket file permissions are set to 660",
+    "Status": "WARN",
+    "Output": "File has less restrictive permissions than expected: -rwxr-xr-x"
+  },
+  {
+    "Name": "3.17 Verify that daemon.json file ownership is set to root:root",
+    "Status": "SKIP",
+    "Output": "File could not be accessed"
+  },
+  {
+    "Name": "3.18 Verify that daemon.json file permissions are set to 644 or more\nrestrictive",
+    "Status": "SKIP",
+    "Output": "File could not be accessed"
+  },
+  {
+    "Name": "3.19 Verify that /etc/default/docker file ownership is set to root:root",
+    "Status": "SKIP",
+    "Output": "File could not be accessed"
+  },
+  {
+    "Name": "3.20 Verify that /etc/default/docker file permissions are set to 644 or\nmore restrictive",
+    "Status": "SKIP",
+    "Output": "File could not be accessed"
+  },
+  {
+    "Name": "4.1 Create a user for the container",
+    "Status": "SKIP",
+    "Output": "No running containers"
+  },
+  {
+    "Name": "4.5 Enable Content trust for Docker",
+    "Status": "WARN",
+    "Output": ""
+  },
+  {
+    "Name": "5.1 Verify AppArmor Profile, if applicable",
+    "Status": "SKIP",
+    "Output": "No running containers"
+  },
+  {
+    "Name": "5.1 Verify AppArmor Profile, if applicable",
+    "Status": "SKIP",
+    "Output": "No running containers"
+  },
+  {
+    "Name": "5.3 Restrict Linux Kernel Capabilities within containers",
+    "Status": "SKIP",
+    "Output": "No running containers"
+  },
+  {
+    "Name": "5.4 Do not use privileged containers",
+    "Status": "SKIP",
+    "Output": "No running containers"
+  },
+  {
+    "Name": "5.5 Do not mount sensitive host system directories on containers ",
+    "Status": "SKIP",
+    "Output": "No running containers"
+  },
+  {
+    "Name": "5.6 Do not run ssh within containers",
+    "Status": "SKIP",
+    "Output": "No running containers"
+  },
+  {
+    "Name": "5.7 Do not map privileged ports within containers",
+    "Status": "SKIP",
+    "Output": "No running containers"
+  },
+  {
+    "Name": "5.8 Open only needed ports on container",
+    "Status": "SKIP",
+    "Output": "No running containers"
+  },
+  {
+    "Name": "5.9 Do not use host network mode on container",
+    "Status": "SKIP",
+    "Output": "No running containers"
+  },
+  {
+    "Name": "5.10 Limit memory usage for container",
+    "Status": "SKIP",
+    "Output": "No running containers"
+  },
+  {
+    "Name": "5.11 Set container CPU priority appropriately",
+    "Status": "SKIP",
+    "Output": "No running containers"
+  },
+  {
+    "Name": "5.12 Mount container's root filesystem as read only",
+    "Status": "SKIP",
+    "Output": "No running containers"
+  },
+  {
+    "Name": "5.13 Bind incoming container traffic to a specific host interface",
+    "Status": "SKIP",
+    "Output": "No running containers"
+  },
+  {
+    "Name": "5.14 Set the 'on-failure' container restart policy to 5",
+    "Status": "SKIP",
+    "Output": "No running containers"
+  },
+  {
+    "Name": "5.15 Do not share the host's process namespace",
+    "Status": "SKIP",
+    "Output": "No running containers"
+  },
+  {
+    "Name": "5.16 Do not share the host's IPC namespace",
+    "Status": "SKIP",
+    "Output": "No running containers"
+  },
+  {
+    "Name": "5.17 Do not directly expose host devices to containers",
+    "Status": "SKIP",
+    "Output": "No running containers"
+  },
+  {
+    "Name": "5.18 Override default ulimit at runtime only if needed ",
+    "Status": "SKIP",
+    "Output": "No running containers"
+  },
+  {
+    "Name": "5.19 Do not set mount propagation mode to shared",
+    "Status": "SKIP",
+    "Output": "No running containers"
+  },
+  {
+    "Name": "5.20 Do not share the host's UTS namespace",
+    "Status": "SKIP",
+    "Output": "No running containers"
+  },
+  {
+    "Name": "5.21 Do not disable default seccomp profile",
+    "Status": "SKIP",
+    "Output": "No running containers"
+  },
+  {
+    "Name": "5.24 Confirm cgroup usage",
+    "Status": "SKIP",
+    "Output": "No running containers"
+  },
+  {
+    "Name": "5.25 Restrict container from acquiring additional privileges",
+    "Status": "SKIP",
+    "Output": "No running containers"
+  },
+  {
+    "Name": "6.4 Avoid image sprawl",
+    "Status": "PASS",
+    "Output": ""
+  },
+  {
+    "Name": "6.5 Avoid container sprawl",
+    "Status": "WARN",
+    "Output": "There are currently a total of 65 containers,\n\t\t\twith only 0 of them currently running"
+  }
+]

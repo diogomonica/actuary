@@ -13,7 +13,7 @@ import (
 
 var profile = flag.String("profile", "", "Actuary profile file path")
 var output = flag.String("output", "", "output filename")
-var outputType = flag.String("type", "json", "output type - XML or JSON")
+//var outputType = flag.String("type", "json", "output type - XML or JSON")
 var tlsPath = flag.String("tlspath", "", "Path to load certificates from")
 var server = flag.String("server", "", "Docker server to connect to tcp://<docker host>:<port>")
 var tomlProfile profileutils.Profile
@@ -23,7 +23,7 @@ var actions map[string]actuary.Check
 func init() {
 	flag.StringVar(profile, "f", "", "Actuary profile file path")
 	flag.StringVar(output, "o", "", "output filename")
-	flag.StringVar(outputType, "", "json", "output type - XML or JSON")
+	//flag.StringVar(outputType, "oT", "", "output type - XML or JSON")
 	flag.StringVar(tlsPath, "tls", "", "Path to load certificates from")
 	flag.StringVar(server, "s", "", "Docker server to connect to tcp://<docker host>:<port>")
 }
@@ -64,16 +64,24 @@ func main() {
 	}
 
 	actions := actuary.GetAuditDefinitions()
+
+	//log.Printf("XXXXXXXX %s", []actuary.Result)
+
 	//loop through the audits
 	for category := range tomlProfile.Audit {
-		log.Printf("Running Audit: %s", tomlProfile.Audit[category].Name)
+		if *output==""{
+			log.Printf("Running Audit: %s", tomlProfile.Audit[category].Name)
+		}	
 		checks := tomlProfile.Audit[category].Checklist
 		//cross-reference checks
 		for _, check := range checks {
 			if _, ok := actions[check]; ok {
 				res := actions[check](trgt)
 				results = append(results, res)
-				oututils.ConsolePrint(res)
+				//log.Printf("OUTPUTTYPE: %s", *outputType)
+				if *output==""{
+					oututils.ConsolePrint(res)
+				}
 			} else {
 				log.Panicf("No check named %s", check)
 			}
@@ -83,7 +91,7 @@ func main() {
 	if *output != "" {
 		rep := oututils.CreateReport(*output)
 		rep.Results = results
-		switch strings.ToLower(*outputType) {
+		switch strings.ToLower(*output) {
 		case "json":
 			rep.WriteJSON()
 		case "xml":

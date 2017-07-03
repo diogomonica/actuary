@@ -8,7 +8,7 @@ package actuary
 
 import (
 	"fmt"
-	"log"
+	//"log"
 	"strconv"
 	"strings"
 
@@ -93,7 +93,7 @@ func CheckSensitiveDirs(t Target) (res Result) {
 	sensitiveDirs := func(c ContainerInfo) bool {
 		mounts := c.Mounts
 		dirList := []string{"/dev", "/etc", "/lib", "/proc", "/sys", "/usr"}
-		for _, mount := range mounts {
+		for _, mount := range mounts {			
 			for _, dir := range dirList {
 				if strings.HasPrefix(mount.Source, dir) && mount.RW == true {
 					return false
@@ -115,12 +115,14 @@ func CheckSSHRunning(t Target) (res Result) {
 	}
 	for _, container := range t.Containers {
 		procs, err := t.Client.ContainerTop(context.TODO(), container.ID, []string{})
+		//log.Printf("ID: %s", container.ID)
 		if err != nil {
-			log.Printf("unable to retrieve proc list for container %s: %v", container.ID, err)
+			//log.Printf("unable to retrieve proc list for container %s: %v", container.ID, err)
 		}
 		//proc fields are [UID PID PPID C STIME TTY TIME CMD]
 		for _, proc := range procs.Processes {
 			procname := proc[3]
+			//log.Printf("PROCNAME: %s", proc)
 			if strings.Contains(procname, "ssh") {
 				badContainers = append(badContainers, container.ID)
 			}
@@ -144,6 +146,8 @@ func CheckPrivilegedPorts(t Target) (res Result) {
 	}
 	privPorts := func(c ContainerInfo) bool {
 		ports := c.NetworkSettings.Ports
+		//log.Printf("PORT: %v", ports)
+
 		for _, port := range ports {
 			for _, portmap := range port {
 				hostPort, _ := strconv.Atoi(portmap.HostPort)
@@ -203,6 +207,7 @@ func CheckMemoryLimits(t Target) (res Result) {
 		res.Skip("No running containers")
 		return
 	}
+	
 	memLim := func(c ContainerInfo) bool {
 		if c.HostConfig.Memory != 0 {
 			return true
