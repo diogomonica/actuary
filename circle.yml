@@ -12,9 +12,9 @@ dependencies:
 
 test:
   pre:
-    - go vet ./...
+    - cd $HOME/.go_project/src/github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME && go vet $(go list ./... | grep -v vendor/)
 
   override:
-    - cd $HOME/.go_project/src/github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME && go test ./...
+    - cd $HOME/.go_project/src/github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME && go test $(go list ./... | grep -v vendor/)
 
 
