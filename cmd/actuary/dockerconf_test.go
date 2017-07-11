@@ -61,7 +61,7 @@ func TestCheckLoggingLevelSuccess(t *testing.T) {
 }
 
 func TestCheckLoggingLevelFail(t *testing.T) {
-	testTarget, err := NewTestTarget([]string{"--log-level=notInfo"})
+	testTarget, err := NewTestTarget([]string{"--log-level=notinfo"})
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
@@ -89,7 +89,7 @@ func TestCheckIpTablesFail(t *testing.T) {
 }
 
 func TestCheckInsecureRegistrySuccess(t *testing.T) {
-	testTarget, err := NewTestTarget([]string{"--secure-registry"})
+	testTarget, err := NewTestTarget([]string{""})
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}

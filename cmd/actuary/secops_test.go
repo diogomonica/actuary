@@ -76,23 +76,20 @@ func TestCheckContainerSprawlSuccess(t *testing.T) {
 }
 
 func TestCheckContainerSprawlFail(t *testing.T) {
-	// PROBLEM: same API call with different parameter passed -- how to mock this?
-	// Needs a different response... Can't currently test fail case here
-	// var containerList1 typeContainerList
-	// var containerList2 typeContainerList
-	// list1 := containerList1.populateContainerList(10).typeContainers
-	// containerList2 = containerList2.populateContainerList(50)
-	// containerJSON1, err := json.Marshal(list1)
-	// containerJSON2, err := json.Marshal(containerList2)
-	// if err != nil {
-	// 	t.Errorf("Could not convert process list to json.")
-	// }
-	// p1 := callPairing{ "/containers/json", containerJSON1}
-	// p2 := callPairing{ "/containers/json?all=true", containerJSON2}
-	// ts := testServer(t, p1)
-	// res := CheckContainerSprawl(*testTarget)
-	// defer ts.Close()
-	// if res.Status == "PASS"{
-	// 	t.Errorf("More than 25 containers not running, should not pass.")
-	// }
+	testTarget, err := NewTestTarget([]string{""})
+	var containerList1 typeContainerList
+	var containerList2 typeContainerList
+	list1 := containerList1.populateContainerList(10).typeContainers
+	list2 := containerList2.populateContainerList(50).typeContainers
+	containerJSON1, err := json.Marshal(list1)
+	containerJSON2, err := json.Marshal(list2)
+	if err != nil {
+		t.Errorf("Could not convert process list to json.")
+	}
+	p1 := callPairing{"/containers/json", containerJSON1}
+	p2 := callPairing{"/container", containerJSON2}
+	ts := testTarget.testServer(t, p1, p2)
+	res := CheckContainerSprawl(*testTarget)
+	defer ts.Close()
+	assert.Equal(t, "WARN", res.Status, "More than 25 containers not running, should not pass.")
 }

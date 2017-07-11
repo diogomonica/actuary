@@ -63,9 +63,7 @@ func CheckContainerSprawl(t Target) (res Result) {
 		log.Printf("Unable to get container list")
 		return res
 	}
-
 	diff = len(allContainers) - len(runContainers)
-
 	if diff > 25 {
 		output := fmt.Sprintf(`There are currently a total of %d containers,
 			with only %d of them currently running`, len(allContainers),

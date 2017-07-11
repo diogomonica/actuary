@@ -53,8 +53,12 @@ func (list typeContainerList) populateContainerList(size int) typeContainerList 
 	return list
 }
 
-func NewTestTarget(proc []string) (a *Target, err error) {
-	target, err := NewTarget()
+func NewTestTarget(proc []string) (*Target, error) {
+	target := &Target{
+		Info:       types.Info{},
+		Containers: ContainerList{Container{ID: "Container_id1", Info: ContainerInfo{}}},
+	}
+
 	target.ProcFunc = func(procname string) (cmd []string, err error) {
 		err = nil
 		cmd = proc
@@ -64,8 +68,8 @@ func NewTestTarget(proc []string) (a *Target, err error) {
 		val = etcDocker
 		return
 	}
-	a = &target
-	return
+
+	return target, nil
 }
 
 func (target *Target) testServer(t *testing.T, pairings ...callPairing) (server *httptest.Server) {
@@ -76,10 +80,18 @@ func (target *Target) testServer(t *testing.T, pairings ...callPairing) (server 
 			fmt.Sprintf("/v1.31%s", pair.call),
 			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				w.Write(pair.obj)
+				param := r.URL.Query()["all"]
+				if pair.call == "/container" {
+					if len(param) > 0 {
+						w.Write(pairings[1].obj)
+					} else {
+						w.Write(pairings[0].obj)
+					}
+				} else {
+					w.Write(pair.obj)
+				}
 			}))
 	}
-
 	server = httptest.NewServer(mux)
 	// Manipulate testTarget client to point to server
 	target.Client, err = client.NewClient(server.URL, api.DefaultVersion, nil, nil)

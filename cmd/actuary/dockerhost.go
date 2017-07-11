@@ -83,7 +83,7 @@ func CheckDockerVersion(t Target) (res Result) {
 	res.Name = "1.5 Keep Docker up to date"
 	verConstr := os.Getenv("VERSION")
 	if len(verConstr) == 0 {
-		verConstr = "17.03"
+		verConstr = "17.06"
 	}
 	info, err := t.Client.ServerVersion(context.TODO())
 	if err != nil {

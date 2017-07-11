@@ -29,8 +29,9 @@ func TestCheckAppArmorSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	info := ContainerInfo{types.ContainerJSON{&types.ContainerJSONBase{AppArmorProfile: "yes"}, nil, nil, nil}}
 	f := func(c Container) Container {
-		c.Info.AppArmorProfile = "app armor"
+		c.Info = info
 		return c
 	}
 	containerTestsHelper(t, *testTarget, CheckAppArmor, f, "All containers have app armor profile, should pass.", "PASS")
@@ -41,8 +42,9 @@ func TestCheckAppArmorFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	info := ContainerInfo{types.ContainerJSON{&types.ContainerJSONBase{AppArmorProfile: ""}, nil, nil, nil}}
 	f := func(c Container) Container {
-		c.Info.AppArmorProfile = ""
+		c.Info = info
 		return c
 	}
 	containerTestsHelper(t, *testTarget, CheckAppArmor, f, "Container without app armor profile, should not pass.", "WARN")
@@ -53,8 +55,9 @@ func TestCheckSELinuxSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	info := ContainerInfo{types.ContainerJSON{&types.ContainerJSONBase{HostConfig: &container.HostConfig{SecurityOpt: []string{"SELinux", "Array"}}}, nil, nil, nil}}
 	f := func(c Container) Container {
-		c.Info.HostConfig.SecurityOpt = []string{"SELinux", "Array"}
+		c.Info = info
 		return c
 	}
 	containerTestsHelper(t, *testTarget, CheckSELinux, f, "All containers have SELinux options, should have passed.", "PASS")
@@ -65,8 +68,9 @@ func TestCheckSELinuxFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	info := ContainerInfo{types.ContainerJSON{&types.ContainerJSONBase{HostConfig: &container.HostConfig{SecurityOpt: nil}}, nil, nil, nil}}
 	f := func(c Container) Container {
-		c.Info.HostConfig.SecurityOpt = nil
+		c.Info = info
 		return c
 	}
 	containerTestsHelper(t, *testTarget, CheckSELinux, f, "No containers have SELinux options, should not have passed.", "WARN")
@@ -77,8 +81,9 @@ func TestCheckKernelCapabilitiesSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	info := ContainerInfo{types.ContainerJSON{&types.ContainerJSONBase{HostConfig: &container.HostConfig{CapAdd: nil}}, nil, nil, nil}}
 	f := func(c Container) Container {
-		c.Info.HostConfig.CapAdd = nil
+		c.Info = info
 		return c
 	}
 	containerTestsHelper(t, *testTarget, CheckKernelCapabilities, f, "No containers running with added capabilities, should have passed.", "PASS")
@@ -89,8 +94,9 @@ func TestCheckKernelCapabilitiesFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	info := ContainerInfo{types.ContainerJSON{&types.ContainerJSONBase{HostConfig: &container.HostConfig{CapAdd: []string{"added", "capabilities"}}}, nil, nil, nil}}
 	f := func(c Container) Container {
-		c.Info.HostConfig.CapAdd = []string{"added", "capabilities"}
+		c.Info = info
 		return c
 	}
 	containerTestsHelper(t, *testTarget, CheckKernelCapabilities, f, "Containers running with added capabilities, should not have passed.", "WARN")
@@ -101,8 +107,9 @@ func TestCheckPrivContainersSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	info := ContainerInfo{types.ContainerJSON{&types.ContainerJSONBase{HostConfig: &container.HostConfig{Privileged: false}}, nil, nil, nil}}
 	f := func(c Container) Container {
-		c.Info.HostConfig.Privileged = false
+		c.Info = info
 		return c
 	}
 	containerTestsHelper(t, *testTarget, CheckPrivContainers, f, "No containers are privileged, should have passed.", "PASS")
@@ -113,8 +120,9 @@ func TestCheckPrivContainersFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	info := ContainerInfo{types.ContainerJSON{&types.ContainerJSONBase{HostConfig: &container.HostConfig{Privileged: true}}, nil, nil, nil}}
 	f := func(c Container) Container {
-		c.Info.HostConfig.Privileged = true
+		c.Info = info
 		return c
 	}
 	containerTestsHelper(t, *testTarget, CheckPrivContainers, f, "Containers are privileged, should not have passed.", "WARN")
@@ -242,8 +250,9 @@ func TestCheckHostNetworkModeSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	info := ContainerInfo{types.ContainerJSON{&types.ContainerJSONBase{HostConfig: &container.HostConfig{NetworkMode: ""}}, nil, nil, nil}}
 	f := func(c Container) Container {
-		c.Info.HostConfig.NetworkMode = ""
+		c.Info = info
 		return c
 	}
 	containerTestsHelper(t, *testTarget, CheckHostNetworkMode, f, "No containers are privileged, should have passed.", "PASS")
@@ -254,8 +263,9 @@ func TestCheckHostNetworkModeFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	info := ContainerInfo{types.ContainerJSON{&types.ContainerJSONBase{HostConfig: &container.HostConfig{NetworkMode: "host"}}, nil, nil, nil}}
 	f := func(c Container) Container {
-		c.Info.HostConfig.NetworkMode = "host"
+		c.Info = info
 		return c
 	}
 	containerTestsHelper(t, *testTarget, CheckHostNetworkMode, f, "Containers are privileged, should not have passed.", "WARN")
@@ -266,8 +276,10 @@ func TestCheckMemoryLimitsSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	resource := container.Resources{Memory: 10.0}
+	info := ContainerInfo{types.ContainerJSON{&types.ContainerJSONBase{HostConfig: &container.HostConfig{Resources: resource}}, nil, nil, nil}}
 	f := func(c Container) Container {
-		c.Info.HostConfig.Memory = 10.0
+		c.Info = info
 		return c
 	}
 	containerTestsHelper(t, *testTarget, CheckMemoryLimits, f, "No containers have unlimited memory, should have passed.", "PASS")
@@ -278,8 +290,10 @@ func TestCheckMemoryLimitsFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	resource := container.Resources{Memory: 0}
+	info := ContainerInfo{types.ContainerJSON{&types.ContainerJSONBase{HostConfig: &container.HostConfig{Resources: resource}}, nil, nil, nil}}
 	f := func(c Container) Container {
-		c.Info.HostConfig.Memory = 0
+		c.Info = info
 		return c
 	}
 	containerTestsHelper(t, *testTarget, CheckMemoryLimits, f, "Container has unlimited memory, should not have passed.", "WARN")
@@ -290,8 +304,10 @@ func TestCheckCPUSharesSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	resource := container.Resources{CPUShares: 100}
+	info := ContainerInfo{types.ContainerJSON{&types.ContainerJSONBase{HostConfig: &container.HostConfig{Resources: resource}}, nil, nil, nil}}
 	f := func(c Container) Container {
-		c.Info.HostConfig.CPUShares = 100
+		c.Info = info
 		return c
 	}
 	containerTestsHelper(t, *testTarget, CheckCPUShares, f, "No containers with CPU sharing disable, should have passed.", "PASS")
@@ -302,8 +318,10 @@ func TestCheckCPUSharesFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	resource := container.Resources{CPUShares: 0}
+	info := ContainerInfo{types.ContainerJSON{&types.ContainerJSONBase{HostConfig: &container.HostConfig{Resources: resource}}, nil, nil, nil}}
 	f := func(c Container) Container {
-		c.Info.HostConfig.CPUShares = 0
+		c.Info = info
 		return c
 	}
 	containerTestsHelper(t, *testTarget, CheckCPUShares, f, "Containers with CPU sharing disabled, should not have passed.", "WARN")
@@ -314,8 +332,9 @@ func TestCheckReadonlyRootSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	info := ContainerInfo{types.ContainerJSON{&types.ContainerJSONBase{HostConfig: &container.HostConfig{ReadonlyRootfs: true}}, nil, nil, nil}}
 	f := func(c Container) Container {
-		c.Info.HostConfig.ReadonlyRootfs = true
+		c.Info = info
 		return c
 	}
 	containerTestsHelper(t, *testTarget, CheckReadonlyRoot, f, "Containers all have read only root filesystem, should have passed.", "PASS")
@@ -326,8 +345,9 @@ func TestCheckReadonlyRootFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	info := ContainerInfo{types.ContainerJSON{&types.ContainerJSONBase{HostConfig: &container.HostConfig{ReadonlyRootfs: false}}, nil, nil, nil}}
 	f := func(c Container) Container {
-		c.Info.HostConfig.ReadonlyRootfs = false
+		c.Info = info
 		return c
 	}
 	containerTestsHelper(t, *testTarget, CheckReadonlyRoot, f, "Containers' root FS is not mounted as read-only, should not have passed.", "WARN")
@@ -357,9 +377,9 @@ func TestCheckRestartPolicySuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	info := ContainerInfo{types.ContainerJSON{&types.ContainerJSONBase{HostConfig: &container.HostConfig{RestartPolicy: container.RestartPolicy{Name: "on-failure", MaximumRetryCount: 5}}}, nil, nil, nil}}
 	f := func(c Container) Container {
-		c.Info.HostConfig.RestartPolicy.Name = "on-failure"
-		c.Info.HostConfig.RestartPolicy.MaximumRetryCount = 5
+		c.Info = info
 		return c
 	}
 	containerTestsHelper(t, *testTarget, CheckRestartPolicy, f, "Containers all have restart policy set to 5, should have passed.", "PASS")
@@ -370,9 +390,9 @@ func TestCheckRestartPolicyFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	info := ContainerInfo{types.ContainerJSON{&types.ContainerJSONBase{HostConfig: &container.HostConfig{RestartPolicy: container.RestartPolicy{Name: "", MaximumRetryCount: 0}}}, nil, nil, nil}}
 	f := func(c Container) Container {
-		c.Info.HostConfig.RestartPolicy.Name = ""
-		c.Info.HostConfig.RestartPolicy.MaximumRetryCount = 0
+		c.Info = info
 		return c
 	}
 	containerTestsHelper(t, *testTarget, CheckRestartPolicy, f, "Containers with no restart policy, should not have passed.", "WARN")
@@ -383,8 +403,9 @@ func TestCheckHostNamespaceSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	info := ContainerInfo{types.ContainerJSON{&types.ContainerJSONBase{HostConfig: &container.HostConfig{PidMode: ""}}, nil, nil, nil}}
 	f := func(c Container) Container {
-		c.Info.HostConfig.PidMode = ""
+		c.Info = info
 		return c
 	}
 	containerTestsHelper(t, *testTarget, CheckHostNamespace, f, "Containers do not share the host's process namespace, should have passed.", "PASS")
@@ -395,8 +416,9 @@ func TestCheckHostNamespaceFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	info := ContainerInfo{types.ContainerJSON{&types.ContainerJSONBase{HostConfig: &container.HostConfig{PidMode: "host"}}, nil, nil, nil}}
 	f := func(c Container) Container {
-		c.Info.HostConfig.PidMode = "host"
+		c.Info = info
 		return c
 	}
 	containerTestsHelper(t, *testTarget, CheckHostNamespace, f, "Containers sharing host's process namespace, should not have passed.", "WARN")
@@ -407,8 +429,9 @@ func TestCheckIPCNamespaceSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	info := ContainerInfo{types.ContainerJSON{&types.ContainerJSONBase{HostConfig: &container.HostConfig{IpcMode: ""}}, nil, nil, nil}}
 	f := func(c Container) Container {
-		c.Info.HostConfig.IpcMode = ""
+		c.Info = info
 		return c
 	}
 	containerTestsHelper(t, *testTarget, CheckIPCNamespace, f, "Containers do not share the host's IPC namespace, should have passed.", "PASS")
@@ -419,8 +442,9 @@ func TestCheckIPCNamespaceFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	info := ContainerInfo{types.ContainerJSON{&types.ContainerJSONBase{HostConfig: &container.HostConfig{IpcMode: "host"}}, nil, nil, nil}}
 	f := func(c Container) Container {
-		c.Info.HostConfig.IpcMode = "host"
+		c.Info = info
 		return c
 	}
 	containerTestsHelper(t, *testTarget, CheckIPCNamespace, f, "Containers sharing host's IPC namespace, should not have passed.", "WARN")
@@ -490,8 +514,9 @@ func TestCheckUTSnamespaceSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	info := ContainerInfo{types.ContainerJSON{&types.ContainerJSONBase{HostConfig: &container.HostConfig{UTSMode: ""}}, nil, nil, nil}}
 	f := func(c Container) Container {
-		c.Info.HostConfig.UTSMode = ""
+		c.Info = info
 		return c
 	}
 	containerTestsHelper(t, *testTarget, CheckUTSnamespace, f, "Containers do not share host's UTS namespace, should have passed.", "PASS")
@@ -502,8 +527,9 @@ func TestCheckUTSnamespaceFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	info := ContainerInfo{types.ContainerJSON{&types.ContainerJSONBase{HostConfig: &container.HostConfig{UTSMode: "host"}}, nil, nil, nil}}
 	f := func(c Container) Container {
-		c.Info.HostConfig.UTSMode = "host"
+		c.Info = info
 		return c
 	}
 	containerTestsHelper(t, *testTarget, CheckUTSnamespace, f, "Containers share host's UTS namespace, should not have passed.", "WARN")
@@ -514,8 +540,9 @@ func TestCheckSeccompProfileSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	info := ContainerInfo{types.ContainerJSON{&types.ContainerJSONBase{HostConfig: &container.HostConfig{SecurityOpt: []string{"seccomp", "not disabled"}}}, nil, nil, nil}}
 	f := func(c Container) Container {
-		c.Info.HostConfig.SecurityOpt = []string{"seccomp", "not disabled"}
+		c.Info = info
 		return c
 	}
 	containerTestsHelper(t, *testTarget, CheckSeccompProfile, f, "Seccomp not disabled, should have passed.", "PASS")
@@ -526,8 +553,9 @@ func TestCheckSeccompProfileFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	info := ContainerInfo{types.ContainerJSON{&types.ContainerJSONBase{HostConfig: &container.HostConfig{SecurityOpt: []string{"seccomp:unconfined"}}}, nil, nil, nil}}
 	f := func(c Container) Container {
-		c.Info.HostConfig.SecurityOpt = []string{"seccomp:unconfined"}
+		c.Info = info
 		return c
 	}
 	containerTestsHelper(t, *testTarget, CheckSeccompProfile, f, "Containers running with seccomp disabled, should not have passed.", "WARN")
@@ -538,8 +566,10 @@ func TestCheckCgroupUsageSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	resource := container.Resources{CgroupParent: ""}
+	info := ContainerInfo{types.ContainerJSON{&types.ContainerJSONBase{HostConfig: &container.HostConfig{Resources: resource}}, nil, nil, nil}}
 	f := func(c Container) Container {
-		c.Info.HostConfig.CgroupParent = ""
+		c.Info = info
 		return c
 	}
 	containerTestsHelper(t, *testTarget, CheckCgroupUsage, f, "Containers all using default cgroup, should have passed.", "PASS")
@@ -550,8 +580,10 @@ func TestCheckCgroupUsageFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	resource := container.Resources{CgroupParent: "cgroup"}
+	info := ContainerInfo{types.ContainerJSON{&types.ContainerJSONBase{HostConfig: &container.HostConfig{Resources: resource}}, nil, nil, nil}}
 	f := func(c Container) Container {
-		c.Info.HostConfig.CgroupParent = "cgroup"
+		c.Info = info
 		return c
 	}
 	containerTestsHelper(t, *testTarget, CheckCgroupUsage, f, "Container not using default cgroup, should not have passed.", "WARN")
@@ -562,8 +594,9 @@ func TestCheckAdditionalPrivsSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	info := ContainerInfo{types.ContainerJSON{&types.ContainerJSONBase{HostConfig: &container.HostConfig{SecurityOpt: []string{"no-new-privileges"}}}, nil, nil, nil}}
 	f := func(c Container) Container {
-		c.Info.HostConfig.SecurityOpt = []string{"no-new-privileges"}
+		c.Info = info
 		return c
 	}
 	containerTestsHelper(t, *testTarget, CheckAdditionalPrivs, f, "Containers restricted from aquiring additional privileges, should have passed.", "PASS")
@@ -574,8 +607,9 @@ func TestCheckAdditionalPrivsFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	info := ContainerInfo{types.ContainerJSON{&types.ContainerJSONBase{HostConfig: &container.HostConfig{SecurityOpt: []string{""}}}, nil, nil, nil}}
 	f := func(c Container) Container {
-		c.Info.HostConfig.SecurityOpt = []string{""}
+		c.Info = info
 		return c
 	}
 	containerTestsHelper(t, *testTarget, CheckAdditionalPrivs, f, "Containers unrestricted from acquiring additional privileges, should not have passed.", "WARN")
