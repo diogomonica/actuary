@@ -1,0 +1,26 @@
+version: "3"
+services:
+  check:
+    image: oliviabarnett/actuary:actuary_image
+    command: check -f=mac-default.toml -s=http://localhost:8000/request
+    deploy:
+      mode: global
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: 50M
+      restart_policy:
+        condition: on-failure
+    networks:
+      - webnet
+  server:
+     image: oliviabarnett/actuary:actuary_image
+     command: server
+     deploy:
+        replicas: 1
+     networks:
+      - webnet
+     ports:
+      - "90:90"
+networks:
+  webnet:

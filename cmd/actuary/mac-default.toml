@@ -1,0 +1,108 @@
+[[Audit]]
+
+Name = "Host Configuration"
+Checklist = [
+           "separate_partition",
+	         "kernel_version",
+           "server_version",
+           "trusted_users",
+	         "audit_daemon",
+  	       "audit_lib",
+	         "audit_etc",
+	         "audit_service",
+	         "audit_socket",
+	         "audit_default",
+           "audit_daemonjson",
+           "audit_containerd",
+           "audit_runc",
+        ]
+
+
+[[Audit]]
+
+Name = "Docker daemon configuration"
+Checklist = [
+          "net_traffic",
+          "logging_level",
+          "allow_iptables",
+          "aufs_driver",
+          "default_ulimit",
+          "user_namespace",
+          "default_cgroup",
+          "device_size",
+          "auth_plugin",
+          "central_logging",
+          "legacy_registry",
+        ]
+
+
+[[Audit]]
+
+Name = "Docker daemon configuration files"
+Checklist = [
+          "docker.service_owner",
+          "docker.service_perms",
+          "docker.socket_owner",
+          "docker.socket_perms",
+          "dockerdir_owner",
+          "dockerdir_perms",
+          "registrycerts_owner",
+          "registrycerts_perms",
+          "cacert_owner",
+          "cacert_perms",
+          "servercert_owner",
+          "servercert_perms",
+          "certkey_owner",
+          "certkey_perms",
+          "socket_owner",
+          "socket_perms",
+          "daemonjson_owner",
+          "daemonjson_perms",
+          "dockerdef_owner",
+          "dockerdef_perms",
+        ]
+
+[[Audit]]
+
+Name = "Container Images and Build File"
+Checklist = [
+        "root_containers",
+        "content_trust",
+        ]
+
+[[Audit]]
+
+Name = "Container Runtime"
+Checklist = [
+        "apparmor_profile",
+        "selinux_options",
+        "kernel_capabilities",
+        "privileged_containers",
+        "sensitive_dirs",
+        "ssh_running",
+        "privileged_ports",
+        "needed_ports",
+        "host_net_mode",
+        "memory_usage",
+        "cpu_shares",
+        "readonly_rootfs",
+        "bind_specific_int",
+        "restart_policy",
+        "host_namespace",
+        "ipc_namespace",
+        "host_devices",
+        "override_ulimit",
+        "mount_propagation",
+        "uts_namespace",
+        "seccomp_profile",
+        "cgroup_usage",
+        "add_privs",
+        ]
+
+[[Audit]]
+
+Name = "Docker Security Operations"
+Checklist = [
+        "image_sprawl",
+        "container_sprawl",
+        ]
