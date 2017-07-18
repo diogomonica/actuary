@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"github.com/diogomonica/actuary/cmd/actuary"
+	"github.com/diogomonica/actuary/actuary"
 	"github.com/diogomonica/actuary/oututils"
 	"github.com/diogomonica/actuary/profileutils"
 	"log"

@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"io/ioutil"
 	"testing"
 )
 
@@ -110,8 +111,15 @@ func TestCheckSeparatePartitionSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	content := []byte("/filler /var/lib/docker")
+	dir, err := ioutil.TempDir("testdata", "fstab")
+	defer os.RemoveAll(dir)//redefine the global variable
 	temp := fstab
-	fstab = "testdata/fstabPass" //redefine the global variable
+	fstab = filepath.Join(dir, "fstab")
+	err = ioutil.WriteFile(fstab, content, 0666)
+	if err != nil {
+		t.Errorf("Could not write temp file: %s", err)
+	}
 	res := CheckSeparatePartition(*testTarget)
 	assert.Equal(t, "PASS", res.Status, "Fstab set to contain /var/lib/docker, should have passed")
 	// Restore
@@ -123,8 +131,15 @@ func TestCheckSeparatePartitionFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	content := []byte("/filler /wrong")
+	dir, err := ioutil.TempDir("testdata", "fstab")
+	defer os.RemoveAll(dir)//redefine the global variable
 	temp := fstab
-	fstab = "testdata/fstabFail" //redefine the global variable
+	fstab = filepath.Join(dir, "fstab")
+	err = ioutil.WriteFile(fstab, content, 0666)
+	if err != nil {
+		t.Errorf("Could not write temp file: %s", err)
+	}
 	res := CheckSeparatePartition(*testTarget)
 	assert.Equal(t, "WARN", res.Status, "Fstab does not contain /var/lib/docker, should not have passed")
 	// Restore
@@ -215,10 +230,18 @@ func TestCheckTrustedUsersSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	content := []byte("docker:users: user1, user2, user3")
+	dir, err := ioutil.TempDir("testdata", "groupFile")
+	defer os.RemoveAll(dir)//redefine the global variable
 	temp := groupFile
-	groupFile = "testData/groupPass"
+	groupFile = filepath.Join(dir, "groupFile")
+	err = ioutil.WriteFile(groupFile, content, 0666)
+	if err != nil {
+		t.Errorf("Could not write temp file: %s", err)
+	}
 	res := CheckTrustedUsers(*testTarget)
 	assert.Equal(t, "The following users control the Docker daemon: [user1 user2 user3]", res.Output, "Group file set to have two users (user1, user2, user3), should have passed")
+	// Restore
 	groupFile = temp
 }
 
@@ -227,10 +250,18 @@ func TestCheckTrustedUsersFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	content := []byte("docker:users:")
+	dir, err := ioutil.TempDir("testdata", "groupFile")
+	defer os.RemoveAll(dir)//redefine the global variable
 	temp := groupFile
-	groupFile = "testData/groupFail"
+	groupFile = filepath.Join(dir, "groupFile")
+	err = ioutil.WriteFile(groupFile, content, 0666)
+	if err != nil {
+		t.Errorf("Could not write temp file: %s", err)
+	}
 	res := CheckTrustedUsers(*testTarget)
 	assert.Equal(t, "The following users control the Docker daemon: []", res.Output, "Group file has no users.")
+	// Restore
 	groupFile = temp
 }
 
