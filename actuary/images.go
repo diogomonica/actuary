@@ -14,9 +14,6 @@ import (
 	"os"
 )
 
-// Global variables for testing
-var trust = os.Getenv("DOCKER_CONTENT_TRUST")
-
 func CheckContainerUser(t Target) (res Result) {
 	var rootContainers []string
 	res.Name = "4.1 Create a user for the container"
@@ -42,6 +39,7 @@ func CheckContainerUser(t Target) (res Result) {
 
 func CheckContentTrust(t Target) (res Result) {
 	res.Name = "4.5 Enable Content trust for Docker"
+	var trust = os.Getenv("DOCKER_CONTENT_TRUST")
 	if trust == "1" {
 		res.Pass()
 	} else {

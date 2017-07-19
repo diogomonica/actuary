@@ -13,18 +13,6 @@ import (
 	"os"
 )
 
-// Global variables for testing
-var (
-	refUser          = "root"        // RootUser is the username "root". it's used to ensure that the docker.service file has correct permissions
-	etcDocker        = "/etc/docker" // EtcDockr is the path to find etc/docker file
-	etcDockerCert    = "/etc/docker/cert.d"
-	refGroup         = "docker"
-	varRunDockerSock = "/var/run/docker.sock"
-	etcDockerDaemon  = "/etc/docker/daemon.json"
-	etcDefaultDocker = "/etc/default/docker"
-)
-var refPerms uint32 = 0644 // Original setting for file permissions
-
 func CheckServiceOwner(t Target) (res Result) {
 	res.Name = "3.1 Verify that docker.service file ownership is set to root:root"
 	fileInfo, err := lookupFile("docker.service", systemdPaths)
@@ -33,13 +21,13 @@ func CheckServiceOwner(t Target) (res Result) {
 		return
 	}
 
-	refUID, refGID := getUserInfo(refUser)
+	refUID, refGID := getUserInfo("root")
 	fileUID, fileGID := getFileOwner(fileInfo)
 
 	if (refUID == fileUID) && (refGID == fileGID) {
 		res.Pass()
 	} else {
-		output := fmt.Sprintf("User/group owner should be : %s", refUser)
+		output := fmt.Sprintf("User/group owner should be : %s", "root")
 		res.Fail(output)
 	}
 	return
@@ -48,6 +36,7 @@ func CheckServiceOwner(t Target) (res Result) {
 func CheckServicePerms(t Target) (res Result) {
 	res.Name = `3.2 Verify that docker.service file permissions are set to
 		644 or more restrictive`
+	var refPerms uint32 = 0644
 	fileInfo, err := lookupFile("docker.service", systemdPaths)
 	if os.IsNotExist(err) {
 		res.Skip("File could not be accessed")
@@ -71,13 +60,13 @@ func CheckSocketOwner(t Target) (res Result) {
 		res.Skip("File could not be accessed")
 		return
 	}
-	refUID, refGID := getUserInfo(refUser)
+	refUID, refGID := getUserInfo("root")
 	fileUID, fileGID := getFileOwner(fileInfo)
 	if (refUID == fileUID) && (refGID == fileGID) {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("User/group owner should be : %s", refUser)
+		res.Output = fmt.Sprintf("User/group owner should be : %s", "root")
 	}
 	return res
 }
@@ -85,6 +74,7 @@ func CheckSocketOwner(t Target) (res Result) {
 func CheckSocketPerms(t Target) (res Result) {
 	res.Name = `3.4 Verify that docker.socket file permissions are set to 644 or more
         restrictive`
+	var refPerms uint32 = 0644
 	fileInfo, err := lookupFile("docker.socket", systemdPaths)
 	if os.IsNotExist(err) {
 		res.Skip("File could not be accessed")
@@ -103,18 +93,18 @@ func CheckSocketPerms(t Target) (res Result) {
 
 func CheckDockerDirOwner(t Target) (res Result) {
 	res.Name = "3.5 Verify that /etc/docker directory ownership is set to root:root "
-	fileInfo, err := os.Stat(etcDocker)
+	fileInfo, err := os.Stat("/etc/docker")
 	if os.IsNotExist(err) {
 		res.Skip("File could not be accessed")
 		return
 	}
-	refUID, refGid := getUserInfo(refUser)
+	refUID, refGid := getUserInfo("root")
 	fileUID, fileGID := getFileOwner(fileInfo)
 	if (refUID == fileUID) && (refGid == fileGID) {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("User/group owner should be : %s", refUser)
+		res.Output = fmt.Sprintf("User/group owner should be : %s", "root")
 	}
 	return res
 }
@@ -122,7 +112,8 @@ func CheckDockerDirOwner(t Target) (res Result) {
 func CheckDockerDirPerms(t Target) (res Result) {
 	res.Name = `3.6 Verify that /etc/docker directory permissions
 		are set to 755 or more restrictive`
-	fileInfo, err := os.Stat(etcDocker)
+	var refPerms uint32 = 0644
+	fileInfo, err := os.Stat("/etc/docker")
 	if os.IsNotExist(err) {
 		res.Skip("File could not be accessed")
 		return
@@ -142,8 +133,8 @@ func CheckRegistryCertOwner(t Target) (res Result) {
 	var badFiles []string
 	res.Name = `3.7 Verify that registry certificate file ownership
 	 is set to root:root`
-	refUID, refGid := getUserInfo(refUser)
-	files, err := ioutil.ReadDir(etcDockerCert)
+	refUID, refGid := getUserInfo("root")
+	files, err := ioutil.ReadDir("/etc/docker/cert.d")
 	if err != nil {
 		res.Status = "INFO"
 		res.Output = fmt.Sprintf("Directory is inaccessible")
@@ -173,7 +164,7 @@ func CheckRegistryCertOwner(t Target) (res Result) {
 	} else {
 		res.Status = "WARN"
 		res.Output = fmt.Sprintf("Certificate files do not have %s as owner : %s",
-			refUser, badFiles)
+			"root", badFiles)
 	}
 	return res
 }
@@ -226,13 +217,13 @@ func CheckCACertOwner(t Target) (res Result) {
 		res.Skip("File could not be accessed")
 		return
 	}
-	refUID, refGid := getUserInfo(refUser)
+	refUID, refGid := getUserInfo("root")
 	fileUID, fileGID := getFileOwner(fileInfo)
 	if (refUID == fileUID) && (refGid == fileGID) {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("User/group owner should be : %s", refUser)
+		res.Output = fmt.Sprintf("User/group owner should be : %s", "root")
 	}
 	return res
 }
@@ -240,6 +231,7 @@ func CheckCACertOwner(t Target) (res Result) {
 func CheckCACertPerms(t Target) (res Result) {
 	res.Name = `3.10 Verify that TLS CA certificate file permissions
 	are set to 444 or more restrictive`
+	var refPerms uint32 = 0644
 	certPath := t.CertPath("docker", "--tlscacert")
 	fileInfo, err := os.Stat(certPath)
 	if os.IsNotExist(err) {
@@ -266,13 +258,13 @@ func CheckServerCertOwner(t Target) (res Result) {
 		res.Skip("File could not be accessed")
 		return
 	}
-	refUID, refGid := getUserInfo(refUser)
+	refUID, refGid := getUserInfo("root")
 	fileUID, fileGID := getFileOwner(fileInfo)
 	if (refUID == fileUID) && (refGid == fileGID) {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("User/group owner should be : %s", refUser)
+		res.Output = fmt.Sprintf("User/group owner should be : %s", "root")
 	}
 	return res
 }
@@ -281,6 +273,7 @@ func CheckServerCertPerms(t Target) (res Result) {
 	res.Name = `3.12 Verify that Docker server certificate file permissions
 		are set to 444 or more restrictive`
 	certPath := t.CertPath("docker", "--tlscert")
+	var refPerms uint32 = 0644
 	fileInfo, err := os.Stat(certPath)
 	if os.IsNotExist(err) {
 		res.Skip("File could not be accessed")
@@ -306,13 +299,13 @@ func CheckCertKeyOwner(t Target) (res Result) {
 		res.Skip("File could not be accessed")
 		return
 	}
-	refUID, refGid := getUserInfo(refUser)
+	refUID, refGid := getUserInfo("root")
 	fileUID, fileGID := getFileOwner(fileInfo)
 	if (refUID == fileUID) && (refGid == fileGID) {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("User/group owner should be : %s", refUser)
+		res.Output = fmt.Sprintf("User/group owner should be : %s", "root")
 	}
 	return res
 }
@@ -320,6 +313,7 @@ func CheckCertKeyOwner(t Target) (res Result) {
 func CheckCertKeyPerms(t Target) (res Result) {
 	res.Name = `3.14 Verify that Docker server certificate key file
 	permissions are set to 400`
+	var refPerms uint32 = 0644
 	certPath := t.CertPath("docker", "--tlskey")
 	fileInfo, err := os.Stat(certPath)
 	if os.IsNotExist(err) {
@@ -340,26 +334,27 @@ func CheckCertKeyPerms(t Target) (res Result) {
 func CheckDockerSockOwner(t Target) (res Result) {
 	res.Name = `3.15 Verify that Docker socket file ownership
 	is set to root:docker`
-	fileInfo, err := os.Stat(varRunDockerSock)
+	fileInfo, err := os.Stat("/var/run/docker.sock")
 	if os.IsNotExist(err) {
 		res.Skip("File could not be accessed")
 		return
 	}
-	refUID, _ := getUserInfo(refUser)
-	refGid := getGroupID(refGroup)
+	refUID, _ := getUserInfo("root")
+	refGid := getGroupID("docker")
 	fileUID, fileGID := getFileOwner(fileInfo)
 	if (refUID == fileUID) && (refGid == fileGID) {
 		res.Status = "PASS"
 	} else {
 		res.Status = "WARN"
-		res.Output = fmt.Sprintf("User/group owner should be : %s", refGroup)
+		res.Output = fmt.Sprintf("User/group owner should be : %s", "docker")
 	}
 	return res
 }
 
 func CheckDockerSockPerms(t Target) (res Result) {
 	res.Name = `3.16 Verify that Docker socket file permissions are set to 660`
-	fileInfo, err := os.Stat(varRunDockerSock)
+	fileInfo, err := os.Stat("/var/run/docker.sock")
+	var refPerms uint32 = 0644
 	if os.IsNotExist(err) {
 		res.Skip("File could not be accessed")
 		return
@@ -377,18 +372,18 @@ func CheckDockerSockPerms(t Target) (res Result) {
 
 func CheckDaemonJSONOwner(t Target) (res Result) {
 	res.Name = `3.17 Verify that daemon.json file ownership is set to root:root`
-	fileInfo, err := os.Stat(etcDockerDaemon)
+	fileInfo, err := os.Stat("/etc/docker/daemon.json")
 	if os.IsNotExist(err) {
 		res.Skip("File could not be accessed")
 		return
 	}
-	refUID, _ := getUserInfo(refUser)
-	refGid := getGroupID(refGroup)
+	refUID, _ := getUserInfo("root")
+	refGid := getGroupID("docker")
 	fileUID, fileGID := getFileOwner(fileInfo)
 	if (refUID == fileUID) && (refGid == fileGID) {
 		res.Pass()
 	} else {
-		output := fmt.Sprintf("User/group owner should be : %s", refGroup)
+		output := fmt.Sprintf("User/group owner should be : %s", "docker")
 		res.Fail(output)
 	}
 	return
@@ -397,7 +392,8 @@ func CheckDaemonJSONOwner(t Target) (res Result) {
 func CheckDaemonJSONPerms(t Target) (res Result) {
 	res.Name = `3.18 Verify that daemon.json file permissions are set to 644 or more
 restrictive`
-	fileInfo, err := os.Stat(etcDockerDaemon)
+	fileInfo, err := os.Stat("/etc/docker/daemon.json")
+	var refPerms uint32 = 0644
 	if os.IsNotExist(err) {
 		res.Skip("File could not be accessed")
 		return
@@ -415,18 +411,18 @@ restrictive`
 
 func CheckDefaultOwner(t Target) (res Result) {
 	res.Name = `3.19 Verify that /etc/default/docker file ownership is set to root:root`
-	fileInfo, err := os.Stat(etcDefaultDocker)
+	fileInfo, err := os.Stat("/etc/default/docker")
 	if os.IsNotExist(err) {
 		res.Skip("File could not be accessed")
 		return
 	}
-	refUID, _ := getUserInfo(refUser)
-	refGid := getGroupID(refGroup)
+	refUID, _ := getUserInfo("root")
+	refGid := getGroupID("docker")
 	fileUID, fileGID := getFileOwner(fileInfo)
 	if (refUID == fileUID) && (refGid == fileGID) {
 		res.Pass()
 	} else {
-		output := fmt.Sprintf("User/group owner should be : %s", refGroup)
+		output := fmt.Sprintf("User/group owner should be : %s", "docker")
 		res.Fail(output)
 	}
 	return
@@ -435,7 +431,8 @@ func CheckDefaultOwner(t Target) (res Result) {
 func CheckDefaultPerms(t Target) (res Result) {
 	res.Name = `3.20 Verify that /etc/default/docker file permissions are set to 644 or
 more restrictive`
-	fileInfo, err := os.Stat(etcDefaultDocker)
+	fileInfo, err := os.Stat("/etc/default/docker")
+	var refPerms uint32 = 0644
 	if os.IsNotExist(err) {
 		res.Skip("File could not be accessed")
 		return

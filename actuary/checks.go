@@ -180,6 +180,7 @@ type Target struct {
 	Containers ContainerList
 	ProcFunc   func(procname string) (cmd []string, err error)
 	CertPath   func(procname string, tlsOpt string) (val string)
+	BaseDir		string
 }
 
 //NewTarget initiates a new Target struct
@@ -195,6 +196,7 @@ func NewTarget() (a Target, err error) {
 	err = a.createContainerList()
 	a.ProcFunc = getProcCmdline
 	a.CertPath = getCertPath
+	a.BaseDir = ""
 	return
 }
 

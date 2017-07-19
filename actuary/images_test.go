@@ -3,6 +3,7 @@ package actuary
 import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/stretchr/testify/assert"
+	"os"
 	"testing"
 )
 
@@ -32,21 +33,27 @@ func TestCheckContainerUserFail(t *testing.T) {
 }
 
 func TestCheckContentTrustSuccess(t *testing.T) {
+	err := os.Setenv("DOCKER_CONTENT_TRUST", "1")
+	if err != nil {
+		t.Errorf("Could not set environment: %s", err)
+	}
 	testTarget, err := NewTestTarget([]string{""})
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
-	trust = "1"
 	res := CheckContentTrust(*testTarget)
 	assert.Equal(t, "PASS", res.Status, "Content trust for Docker enabled, should have passed.")
 }
 
 func TestCheckContentTrustFail(t *testing.T) {
+	err := os.Setenv("DOCKER_CONTENT_TRUST", "0")
+	if err != nil {
+		t.Errorf("Could not set environment: %s", err)
+	}
 	testTarget, err := NewTestTarget([]string{""})
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
-	trust = ""
 	res := CheckContentTrust(*testTarget)
 	assert.Equal(t, "WARN", res.Status, "Content trust for Docker disabled, should not have passed.")
 }

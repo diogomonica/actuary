@@ -15,21 +15,18 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
-)
-
-var (
-	fstab     = "/etc/fstab"
-	groupFile = "/etc/group"
 )
 
 // Code borrowed from github.com/dockersecuritytools/batten
 func CheckSeparatePartition(t Target) (res Result) {
 	res.Name = "1.1 Create a separate partition for containers"
-	bytes, err := ioutil.ReadFile(fstab)
+	fpath := filepath.Join(t.BaseDir, "etc/fstab")
+	bytes, err := ioutil.ReadFile(fpath)
 	if err != nil {
 		log.Printf("Cannot read fstab")
-		return res
+		return
 	}
 	lines := strings.Split(string(bytes), "\n")
 	for _, line := range lines {
@@ -105,9 +102,10 @@ func CheckDockerVersion(t Target) (res Result) {
 func CheckTrustedUsers(t Target) (res Result) {
 	var trustedUsers []string
 	res.Name = "1.6 Only allow trusted users to control Docker daemon"
-	content, err := ioutil.ReadFile(groupFile)
+	fpath := filepath.Join(t.BaseDir, "/etc/group")
+	content, err := ioutil.ReadFile(fpath)
 	if err != nil {
-		log.Panicf("Could not read %s", groupFile)
+		log.Panicf("Could not read %s", "/etc/group")
 	}
 	lines := strings.Split(string(content), "\n")
 

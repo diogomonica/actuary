@@ -8,8 +8,6 @@ import (
 )
 
 // 2. Docker daemon configuration
-// Calls .NetworkList(context.TODO(), netargs), fake a response network
-// Uses helper function "testServer," defined in dockerhost_test.go
 func TestRestrictNetTrafficSuccess(t *testing.T) {
 	testTarget, err := NewTestTarget([]string{""})
 	if err != nil {
