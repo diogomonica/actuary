@@ -108,11 +108,6 @@ func TestCheckSeparatePartitionSuccess(t *testing.T) {
 		t.Errorf("Could not create testTarget")
 	}
 	content := []byte("/filler /var/lib/docker")
-	dir, err := ioutil.TempDir("testdata/etc/", "fstab")
-	if err != nil {
-		t.Errorf("Could not create temporary directory")
-	}
-	defer os.RemoveAll(dir)
 	testTarget.BaseDir = "testdata"
 	err = ioutil.WriteFile("testdata/etc/fstab", content, 0666)
 	defer os.Remove("testdata/etc/fstab")
@@ -121,6 +116,7 @@ func TestCheckSeparatePartitionSuccess(t *testing.T) {
 	}
 	res := CheckSeparatePartition(*testTarget)
 	assert.Equal(t, "PASS", res.Status, "Fstab set to contain /var/lib/docker, should have passed")
+	testTarget.BaseDir = ""
 }
 
 func TestCheckSeparatePartitionFail(t *testing.T) {
@@ -129,11 +125,6 @@ func TestCheckSeparatePartitionFail(t *testing.T) {
 		t.Errorf("Could not create testTarget")
 	}
 	content := []byte("/filler /wrong")
-	dir, err := ioutil.TempDir("testdata/etc", "fstab")
-	if err != nil {
-		t.Errorf("Could not create temporary directory")
-	}
-	defer os.RemoveAll(dir)
 	testTarget.BaseDir = "testdata"
 	err = ioutil.WriteFile("testdata/etc/fstab", content, 0666)
 	defer os.Remove("testdata/etc/fstab")
@@ -142,6 +133,7 @@ func TestCheckSeparatePartitionFail(t *testing.T) {
 	}
 	res := CheckSeparatePartition(*testTarget)
 	assert.Equal(t, "WARN", res.Status, "Fstab does not contain /var/lib/docker, should not have passed")
+	testTarget.BaseDir = ""
 }
 
 // Checks info.KernelVersion of target. Fake info within testTarget
@@ -229,11 +221,6 @@ func TestCheckTrustedUsersSuccess(t *testing.T) {
 		t.Errorf("Could not create testTarget")
 	}
 	content := []byte("docker:users: user1, user2, user3")
-	dir, err := ioutil.TempDir("testdata/etc", "group")
-	if err != nil {
-		t.Errorf("Could not create temporary directory")
-	}
-	defer os.RemoveAll(dir)
 	testTarget.BaseDir = "testdata"
 	err = ioutil.WriteFile("testdata/etc/group", content, 0666)
 	defer os.Remove("testdata/etc/group")
@@ -242,6 +229,7 @@ func TestCheckTrustedUsersSuccess(t *testing.T) {
 	}
 	res := CheckTrustedUsers(*testTarget)
 	assert.Equal(t, "The following users control the Docker daemon: [user1 user2 user3]", res.Output, "Group file set to have two users (user1, user2, user3), should have passed")
+	testTarget.BaseDir = ""
 }
 
 func TestCheckTrustedUsersFail(t *testing.T) {
@@ -250,12 +238,6 @@ func TestCheckTrustedUsersFail(t *testing.T) {
 		t.Errorf("Could not create testTarget")
 	}
 	content := []byte("docker:users:")
-	dir, err := ioutil.TempDir("testdata/etc", "groupFile")
-	defer os.Remove("testdata/etc/fstab")
-	if err != nil {
-		t.Errorf("Could not create temporary directory")
-	}
-	defer os.RemoveAll(dir)
 	testTarget.BaseDir = "testdata"
 	err = ioutil.WriteFile("testdata/etc/group", content, 0666)
 	defer os.Remove("testdata/etc/group")
@@ -264,6 +246,7 @@ func TestCheckTrustedUsersFail(t *testing.T) {
 	}
 	res := CheckTrustedUsers(*testTarget)
 	assert.Equal(t, "The following users control the Docker daemon: []", res.Output, "Group file has no users.")
+	testTarget.BaseDir = ""
 }
 
 // This function is necessary in running all of the tests that check system files

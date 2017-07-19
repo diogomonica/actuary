@@ -48,7 +48,3 @@ Checklist = [
 	}
 	dummy.Destroy()
 }
-
-// func TestGetFromURL(t *testing.T) {
-//
-// }

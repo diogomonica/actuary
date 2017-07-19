@@ -92,9 +92,9 @@ var checklist = map[string]Check{
 	"dockerdef_owner":      CheckDefaultOwner,
 	"dockerdef_perms":      CheckDefaultPerms,
 	//Docker Configuration
-	"net_traffic":   RestrictNetTraffic,
-	"logging_level": CheckLoggingLevel,
-	//"allow_iptables":    CheckIpTables,
+	"net_traffic":       RestrictNetTraffic,
+	"logging_level":     CheckLoggingLevel,
+	"allow_iptables":    CheckIpTables,
 	"insecure_registry": CheckInsecureRegistry,
 	"aufs_driver":       CheckAufsDriver,
 	"tls_auth":          CheckTLSAuth,
@@ -180,7 +180,7 @@ type Target struct {
 	Containers ContainerList
 	ProcFunc   func(procname string) (cmd []string, err error)
 	CertPath   func(procname string, tlsOpt string) (val string)
-	BaseDir		string
+	BaseDir    string
 }
 
 //NewTarget initiates a new Target struct

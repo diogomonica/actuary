@@ -143,8 +143,7 @@ func CheckRegistryCertOwner(t Target) (res Result) {
 	for _, file := range files {
 		fmt.Println(file.Name())
 		if file.IsDir() {
-			log.Printf("FILENAME: %s", file.Name())
-			certs, err := ioutil.ReadDir(file.Name()) //DOES THIS WORK
+			certs, err := ioutil.ReadDir(file.Name())
 			if err != nil {
 				log.Fatal(err)
 			}
