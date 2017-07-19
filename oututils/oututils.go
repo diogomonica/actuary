@@ -4,13 +4,12 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"github.com/diogomonica/actuary/actuary"
+	"github.com/fatih/color"
 	"io/ioutil"
 	"log"
 	"os"
 	"path"
-
-	"github.com/diogomonica/actuary/actuary"
-	"github.com/fatih/color"
 )
 
 type Report struct {

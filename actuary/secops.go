@@ -9,11 +9,9 @@ package actuary
 
 import (
 	"fmt"
-	"log"
-
-	"golang.org/x/net/context"
-
 	"github.com/docker/docker/api/types"
+	"golang.org/x/net/context"
+	"log"
 )
 
 func CheckImageSprawl(t Target) (res Result) {
@@ -22,6 +20,7 @@ func CheckImageSprawl(t Target) (res Result) {
 	res.Name = "6.4 Avoid image sprawl"
 	imgOpts := types.ImageListOptions{All: false}
 	allImages, err := t.Client.ImageList(context.TODO(), imgOpts)
+
 	if err != nil {
 		res.Skip("Unable to retrieve image list")
 		return
@@ -64,9 +63,7 @@ func CheckContainerSprawl(t Target) (res Result) {
 		log.Printf("Unable to get container list")
 		return res
 	}
-
 	diff = len(allContainers) - len(runContainers)
-
 	if diff > 25 {
 		output := fmt.Sprintf(`There are currently a total of %d containers,
 			with only %d of them currently running`, len(allContainers),

@@ -2,6 +2,11 @@ package actuary
 
 import (
 	"fmt"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
+	"github.com/mitchellh/go-ps"
+	"github.com/shirou/gopsutil/process"
+	"golang.org/x/net/context"
 	"io/ioutil"
 	"log"
 	"os"
@@ -10,36 +15,29 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
-
-	"golang.org/x/net/context"
-
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/client"
-	"github.com/mitchellh/go-ps"
-	"github.com/shirou/gopsutil/process"
 )
 
-//Result objects are returned from Check functions
+// Result objects are returned from Check functions
 type Result struct {
 	Name   string
 	Status string
 	Output string
 }
 
-//Skip is used when a check won't run. Output is used to describe the reason.
+// Skip is used when a check won't run. Output is used to describe the reason.
 func (r *Result) Skip(s string) {
 	r.Status = "SKIP"
 	r.Output = s
 	return
 }
 
-//Pass is used when a check has passed
+// Pass is used when a check has passed
 func (r *Result) Pass() {
 	r.Status = "PASS"
 	return
 }
 
-//Fail is used when a check has failed. Output is used to describe the reason.
+// Fail is used when a check has failed. Output is used to describe the reason.
 func (r *Result) Fail(s string) {
 	r.Status = "WARN"
 	r.Output = s
@@ -59,7 +57,7 @@ type Check func(t Target) Result
 var checklist = map[string]Check{
 	//Docker Host
 	"kernel_version":     CheckKernelVersion,
-	"separate_partition": CheckSeparatePartion,
+	"separate_partition": CheckSeparatePartition,
 	"running_services":   CheckRunningServices,
 	"server_version":     CheckDockerVersion,
 	"trusted_users":      CheckTrustedUsers,
@@ -180,6 +178,9 @@ type Target struct {
 	Client     *client.Client
 	Info       types.Info
 	Containers ContainerList
+	ProcFunc   func(procname string) (cmd []string, err error)
+	CertPath   func(procname string, tlsOpt string) (val string)
+	BaseDir    string
 }
 
 //NewTarget initiates a new Target struct
@@ -190,14 +191,17 @@ func NewTarget() (a Target, err error) {
 	}
 	a.Info, err = a.Client.Info(context.TODO())
 	if err != nil {
-		log.Fatalf("unable to fetch Docker daemon info: %v\n", err)
+		log.Fatalf("unable to fetch Docker daemon INFO: %v\n", err)
 	}
 	err = a.createContainerList()
+	a.ProcFunc = getProcCmdline
+	a.CertPath = getCertPath
+	a.BaseDir = ""
 	return
 }
 
 func (t *Target) createContainerList() error {
-	opts := types.ContainerListOptions{All: false}
+	opts := types.ContainerListOptions{All: true}
 	containers, err := t.Client.ContainerList(context.Background(), opts)
 	if err != nil {
 		log.Fatalf("unable to get container list: %v\n", err)
@@ -222,7 +226,6 @@ var systemdPaths = []string{"/usr/lib/systemd/system/",
 }
 
 func GetAuditDefinitions() map[string]Check {
-
 	return checklist
 }
 
@@ -243,7 +246,7 @@ func getProcPID(proc string) (pid int) {
 	return pid
 }
 
-//Returns the command line slice for a given process name
+// Returns the command line slice for a given process name
 func getProcCmdline(procname string) (cmd []string, err error) {
 	var proc *process.Process
 	pid := getProcPID(procname)
@@ -252,7 +255,13 @@ func getProcCmdline(procname string) (cmd []string, err error) {
 	return cmd, err
 }
 
-//Checks if a command-line slice contains a given option and returns its value
+func getCertPath(procname string, tlsOpt string) (val string) {
+	dockerProc, _ := getProcCmdline(procname)
+	_, certPath := getCmdOption(dockerProc, tlsOpt)
+	return certPath
+}
+
+// Checks if a command-line slice contains a given option and returns its value
 func getCmdOption(args []string, opt string) (exist bool, val string) {
 	exist = false
 	for _, arg := range args {
@@ -268,7 +277,7 @@ func getCmdOption(args []string, opt string) (exist bool, val string) {
 	return exist, val
 }
 
-//Searches for a filename in given dirs
+// Searches for a filename in given dirs
 func lookupFile(filename string, dirs []string) (info os.FileInfo, err error) {
 	for _, path := range dirs {
 		fullPath := filepath.Join(path, filename)
@@ -288,7 +297,6 @@ func hasLeastPerms(info os.FileInfo, safePerms uint32) (isLeast bool,
 	} else {
 		isLeast = false
 	}
-
 	return isLeast, mode
 }
 
@@ -300,7 +308,6 @@ func getUserInfo(username string) (uid, gid string) {
 	}
 	uid = userInfo.Uid
 	gid = userInfo.Gid
-
 	return uid, gid
 }
 
@@ -321,14 +328,12 @@ func getGroupID(groupname string) string {
 }
 
 func getFileOwner(info os.FileInfo) (uid, gid string) {
-
 	uid = fmt.Sprint(info.Sys().(*syscall.Stat_t).Uid)
 	gid = fmt.Sprint(info.Sys().(*syscall.Stat_t).Gid)
-
 	return uid, gid
 }
 
-//Looks for the path of an executable, runs it with options/args and returns output
+// Looks for the path of an executable, runs it with options/args and returns output
 func getCmdOutput(exe string, opts ...string) (output []byte, err error) {
 	exePath, err := exec.LookPath(exe)
 	if err != nil {
@@ -343,7 +348,8 @@ func getCmdOutput(exe string, opts ...string) (output []byte, err error) {
 	return
 }
 
-//Helper function to check rules in auditctl
+// Helper function to check rules in auditctl
+// If expected output changes, make sure to change the data in testdata
 func checkAuditRule(rule string) *auditdError {
 	output, err := getCmdOutput("auditctl", "-l")
 	if err != nil {

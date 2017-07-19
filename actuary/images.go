@@ -28,20 +28,18 @@ func CheckContainerUser(t Target) (res Result) {
 			rootContainers = append(rootContainers, container.ID)
 		}
 	}
-
 	if len(rootContainers) == 0 {
 		res.Pass()
 	} else {
 		output := fmt.Sprintf("Containers running as root: %s", rootContainers)
 		res.Fail(output)
 	}
-
 	return res
 }
 
 func CheckContentTrust(t Target) (res Result) {
 	res.Name = "4.5 Enable Content trust for Docker"
-	trust := os.Getenv("DOCKER_CONTENT_TRUST")
+	var trust = os.Getenv("DOCKER_CONTENT_TRUST")
 	if trust == "1" {
 		res.Pass()
 	} else {

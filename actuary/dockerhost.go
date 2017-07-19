@@ -9,25 +9,24 @@ package actuary
 
 import (
 	"fmt"
+	"github.com/drael/GOnetstat"
+	version "github.com/hashicorp/go-version"
+	"golang.org/x/net/context"
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
-
-	"golang.org/x/net/context"
-
-	"github.com/drael/GOnetstat"
-	version "github.com/hashicorp/go-version"
 )
 
-//code borrowed from github.com/dockersecuritytools/batten
-func CheckSeparatePartion(t Target) (res Result) {
+// Code borrowed from github.com/dockersecuritytools/batten
+func CheckSeparatePartition(t Target) (res Result) {
 	res.Name = "1.1 Create a separate partition for containers"
-	fstab := "/etc/fstab"
-	bytes, err := ioutil.ReadFile(fstab)
+	fpath := filepath.Join(t.BaseDir, "etc/fstab")
+	bytes, err := ioutil.ReadFile(fpath)
 	if err != nil {
-		log.Printf("Cannor read fstab")
-		return res
+		log.Printf("Cannot read fstab")
+		return
 	}
 	lines := strings.Split(string(bytes), "\n")
 	for _, line := range lines {
@@ -48,7 +47,7 @@ func CheckKernelVersion(t Target) (res Result) {
 	constraints, _ := version.NewConstraint(">= 3.10")
 	hostVersion, err := version.NewVersion(info.KernelVersion)
 	if err != nil {
-		// necessary fix for incompatible kernel versions (e.g. Fedora 23)
+		// Necessary fix for incompatible kernel versions (e.g. Fedora 23)
 		log.Print("Incompatible kernel version")
 		output := "Incompatible kernel version reported"
 		res.Info(output)
@@ -80,11 +79,15 @@ func CheckRunningServices(t Target) (res Result) {
 func CheckDockerVersion(t Target) (res Result) {
 	res.Name = "1.5 Keep Docker up to date"
 	verConstr := os.Getenv("VERSION")
+	if len(verConstr) == 0 {
+		verConstr = "17.06"
+	}
 	info, err := t.Client.ServerVersion(context.TODO())
 	if err != nil {
 		log.Fatalf("Could not retrieve info for Docker host")
 	}
 	constraints, _ := version.NewConstraint(">= " + verConstr)
+
 	hostVersion, _ := version.NewVersion(info.Version)
 	if constraints.Check(hostVersion) {
 		res.Pass()
@@ -99,10 +102,10 @@ func CheckDockerVersion(t Target) (res Result) {
 func CheckTrustedUsers(t Target) (res Result) {
 	var trustedUsers []string
 	res.Name = "1.6 Only allow trusted users to control Docker daemon"
-	groupFile := "/etc/group"
-	content, err := ioutil.ReadFile(groupFile)
+	fpath := filepath.Join(t.BaseDir, "/etc/group")
+	content, err := ioutil.ReadFile(fpath)
 	if err != nil {
-		log.Panicf("Could not read %s", groupFile)
+		log.Panicf("Could not read %s", "/etc/group")
 	}
 	lines := strings.Split(string(content), "\n")
 

@@ -8,11 +8,9 @@ package actuary
 
 import (
 	"fmt"
-	"log"
+	"golang.org/x/net/context"
 	"strconv"
 	"strings"
-
-	"golang.org/x/net/context"
 )
 
 func CheckAppArmor(t Target) (res Result) {
@@ -27,7 +25,6 @@ func CheckAppArmor(t Target) (res Result) {
 		}
 		return true
 	}
-
 	t.Containers.runCheck(&res, apparmor, "Containers with no AppArmor profile: %s")
 	return
 }
@@ -38,7 +35,6 @@ func CheckSELinux(t Target) (res Result) {
 		res.Skip("No running containers")
 		return
 	}
-
 	selinux := func(c ContainerInfo) bool {
 		if c.HostConfig.SecurityOpt == nil {
 			return false
@@ -116,9 +112,8 @@ func CheckSSHRunning(t Target) (res Result) {
 	for _, container := range t.Containers {
 		procs, err := t.Client.ContainerTop(context.TODO(), container.ID, []string{})
 		if err != nil {
-			log.Printf("unable to retrieve proc list for container %s: %v", container.ID, err)
 		}
-		//proc fields are [UID PID PPID C STIME TTY TIME CMD]
+		// Proc fields are [UID PID PPID C STIME TTY TIME CMD]
 		for _, proc := range procs.Processes {
 			procname := proc[3]
 			if strings.Contains(procname, "ssh") {
@@ -169,7 +164,7 @@ func CheckNeededPorts(t Target) (res Result) {
 	}
 	for _, container := range containers {
 		ports := container.Info.NetworkSettings.Ports
-		for key, _ := range ports {
+		for key := range ports {
 			containerPort[container.ID] = append(containerPort[container.ID],
 				string(key))
 		}
@@ -203,6 +198,7 @@ func CheckMemoryLimits(t Target) (res Result) {
 		res.Skip("No running containers")
 		return
 	}
+
 	memLim := func(c ContainerInfo) bool {
 		if c.HostConfig.Memory != 0 {
 			return true

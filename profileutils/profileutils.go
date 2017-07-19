@@ -3,11 +3,10 @@ package profileutils
 import (
 	"crypto/sha1"
 	"fmt"
+	"github.com/BurntSushi/toml"
 	"io/ioutil"
 	"log"
 	"net/http"
-
-	"github.com/BurntSushi/toml"
 )
 
 const serverAddr = "http://127.0.0.1:8000/"

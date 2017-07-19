@@ -7,17 +7,14 @@ package actuary
 
 import (
 	"fmt"
-	"strings"
-
-	"golang.org/x/net/context"
-
 	"github.com/docker/docker/api/types"
+	"golang.org/x/net/context"
+	"strings"
 )
 
 func RestrictNetTraffic(t Target) (res Result) {
 	var netargs types.NetworkListOptions
 	res.Name = "2.1 Restrict network traffic between containers"
-
 	networks, err := t.Client.NetworkList(context.TODO(), netargs)
 	if err != nil {
 		res.Skip("Cannot retrieve network list")
@@ -37,7 +34,7 @@ func RestrictNetTraffic(t Target) (res Result) {
 
 func CheckLoggingLevel(t Target) (res Result) {
 	res.Name = "2.2 Set the logging level"
-	cmdLine, _ := getProcCmdline("docker")
+	cmdLine, _ := t.ProcFunc("docker")
 	for _, arg := range cmdLine {
 		if strings.Contains(arg, "--log-level") {
 			level := strings.Trim(strings.Split(arg, "=")[1], "\"")
@@ -54,7 +51,7 @@ func CheckLoggingLevel(t Target) (res Result) {
 
 func CheckIpTables(t Target) (res Result) {
 	res.Name = "2.3 Allow Docker to make changes to iptables"
-	cmdLine, _ := getProcCmdline("docker")
+	cmdLine, _ := t.ProcFunc("docker")
 	for _, arg := range cmdLine {
 		if strings.Contains(arg, "--iptables") {
 			val := strings.Trim(strings.Split(arg, "=")[1], "\"")
@@ -70,7 +67,7 @@ func CheckIpTables(t Target) (res Result) {
 
 func CheckInsecureRegistry(t Target) (res Result) {
 	res.Name = "2.4 Do not use insecure registries"
-	cmdLine, _ := getProcCmdline("docker")
+	cmdLine, _ := t.ProcFunc("docker")
 	for _, arg := range cmdLine {
 		if strings.Contains(arg, "--insecure-registry") {
 			res.Status = "WARN"
@@ -97,7 +94,7 @@ func CheckAufsDriver(t Target) (res Result) {
 func CheckTLSAuth(t Target) (res Result) {
 	res.Name = "2.6 Configure TLS authentication for Docker daemon"
 	tlsOpts := []string{"--tlsverify", "--tlscacert", "--tlscert", "--tlskey"}
-	cmdLine, _ := getProcCmdline("docker")
+	cmdLine, _ := t.ProcFunc("docker")
 	for _, arg := range cmdLine {
 		for i, tlsOpt := range tlsOpts {
 			if strings.Contains(arg, tlsOpt) {
@@ -117,7 +114,7 @@ func CheckTLSAuth(t Target) (res Result) {
 
 func CheckUlimit(t Target) (res Result) {
 	res.Name = "2.7 Set default ulimit as appropriate"
-	cmdLine, _ := getProcCmdline("docker")
+	cmdLine, _ := t.ProcFunc("docker")
 	for _, arg := range cmdLine {
 		if strings.Contains(arg, "--default-ulimit") {
 			res.Pass()
@@ -131,7 +128,7 @@ func CheckUlimit(t Target) (res Result) {
 
 func CheckUserNamespace(t Target) (res Result) {
 	res.Name = "2.8 Enable user namespace support"
-	cmdLine, _ := getProcCmdline("docker")
+	cmdLine, _ := t.ProcFunc("docker")
 	for _, arg := range cmdLine {
 		if strings.Contains(arg, "--userns-remap") {
 			res.Pass()
@@ -145,7 +142,7 @@ func CheckUserNamespace(t Target) (res Result) {
 
 func CheckDefaultCgroup(t Target) (res Result) {
 	res.Name = "2.9 Confirm default cgroup usage"
-	cmdLine, _ := getProcCmdline("docker")
+	cmdLine, _ := t.ProcFunc("docker")
 	for _, arg := range cmdLine {
 		if strings.Contains(arg, "--cgroup-parent") {
 			res.Pass()
@@ -159,7 +156,7 @@ func CheckDefaultCgroup(t Target) (res Result) {
 
 func CheckBaseDevice(t Target) (res Result) {
 	res.Name = "2.10 Do not change base device size until needed"
-	cmdLine, _ := getProcCmdline("docker")
+	cmdLine, _ := t.ProcFunc("docker")
 	for _, arg := range cmdLine {
 		if strings.Contains(arg, "--storage-opt dm.basesize") {
 			res.Pass()
@@ -173,7 +170,7 @@ func CheckBaseDevice(t Target) (res Result) {
 
 func CheckAuthPlugin(t Target) (res Result) {
 	res.Name = "2.11 Use authorization plugin"
-	cmdLine, _ := getProcCmdline("docker")
+	cmdLine, _ := t.ProcFunc("docker")
 	for _, arg := range cmdLine {
 		if strings.Contains(arg, "--authorization-plugin") {
 			res.Pass()
@@ -186,7 +183,7 @@ func CheckAuthPlugin(t Target) (res Result) {
 
 func CheckCentralLogging(t Target) (res Result) {
 	res.Name = "2.12 Configure centralized and remote logging"
-	cmdLine, _ := getProcCmdline("docker")
+	cmdLine, _ := t.ProcFunc("docker")
 	for _, arg := range cmdLine {
 		if strings.Contains(arg, "--log-driver") {
 			res.Pass()
@@ -199,7 +196,7 @@ func CheckCentralLogging(t Target) (res Result) {
 
 func CheckLegacyRegistry(t Target) (res Result) {
 	res.Name = "2.13 Disable operations on legacy registry (v1)"
-	cmdLine, _ := getProcCmdline("docker")
+	cmdLine, _ := t.ProcFunc("docker")
 	for _, arg := range cmdLine {
 		if strings.Contains(arg, "--disable-legacy-registry") {
 			res.Pass()

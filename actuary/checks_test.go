@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-//tests getCmdOption helper function
+// Tests getCmdOption helper function
 func TestGetCmdOption(t *testing.T) {
 	t.Log("Creating dummy cmd line")
 	cmdLine := []string{"dummy", "--opt=1", "--opt2=2"}
