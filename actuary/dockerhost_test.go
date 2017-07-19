@@ -16,7 +16,6 @@ import (
 	"testing"
 )
 
-// variables for tests, helper functions
 // Rest of test files use the following functions/variables
 type callPairing struct {
 	call string
@@ -101,16 +100,28 @@ func (target *Target) testServer(t *testing.T, pairings ...callPairing) (server 
 	return
 }
 
+func testDataDir(t *testing.T, target *Target) {
+	dir, err := ioutil.TempDir("", "testdata")
+	if err != nil {
+		t.Errorf("Could not create testdata folder %s", err)
+	}
+	target.BaseDir = dir
+}
+
 // 1. host configuration
 func TestCheckSeparatePartitionSuccess(t *testing.T) {
 	testTarget, err := NewTestTarget([]string{""})
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	testDataDir(t, testTarget)
+	defer os.RemoveAll(testTarget.BaseDir)
 	content := []byte("/filler /var/lib/docker")
-	testTarget.BaseDir = "testdata"
-	err = ioutil.WriteFile("testdata/etc/fstab", content, 0666)
-	defer os.Remove("testdata/etc/fstab")
+	err = os.Mkdir(filepath.Join(testTarget.BaseDir, "etc"), 0777)
+	if err != nil {
+		t.Errorf("Could not create dir etc: %s", err)
+	}
+	err = ioutil.WriteFile(testTarget.BaseDir+"/etc/fstab", content, 0666)
 	if err != nil {
 		t.Errorf("Could not write temp file: %s", err)
 	}
@@ -124,10 +135,14 @@ func TestCheckSeparatePartitionFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	testDataDir(t, testTarget)
+	defer os.RemoveAll(testTarget.BaseDir)
 	content := []byte("/filler /wrong")
-	testTarget.BaseDir = "testdata"
-	err = ioutil.WriteFile("testdata/etc/fstab", content, 0666)
-	defer os.Remove("testdata/etc/fstab")
+	err = os.Mkdir(filepath.Join(testTarget.BaseDir, "etc"), 0777)
+	if err != nil {
+		t.Errorf("Could not create dir etc: %s", err)
+	}
+	err = ioutil.WriteFile(testTarget.BaseDir+"/etc/fstab", content, 0666)
 	if err != nil {
 		t.Errorf("Could not write temp file: %s", err)
 	}
@@ -220,10 +235,14 @@ func TestCheckTrustedUsersSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	testDataDir(t, testTarget)
+	defer os.RemoveAll(testTarget.BaseDir)
 	content := []byte("docker:users: user1, user2, user3")
-	testTarget.BaseDir = "testdata"
-	err = ioutil.WriteFile("testdata/etc/group", content, 0666)
-	defer os.Remove("testdata/etc/group")
+	err = os.Mkdir(filepath.Join(testTarget.BaseDir, "etc"), 0777)
+	if err != nil {
+		t.Errorf("Could not create dir etc: %s", err)
+	}
+	err = ioutil.WriteFile(testTarget.BaseDir+"/etc/group", content, 0666)
 	if err != nil {
 		t.Errorf("Could not write temp file: %s", err)
 	}
@@ -237,10 +256,14 @@ func TestCheckTrustedUsersFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget")
 	}
+	testDataDir(t, testTarget)
+	defer os.RemoveAll(testTarget.BaseDir)
 	content := []byte("docker:users:")
-	testTarget.BaseDir = "testdata"
-	err = ioutil.WriteFile("testdata/etc/group", content, 0666)
-	defer os.Remove("testdata/etc/group")
+	err = os.Mkdir(filepath.Join(testTarget.BaseDir, "etc"), 0777)
+	if err != nil {
+		t.Errorf("Could not create dir etc: %s", err)
+	}
+	err = ioutil.WriteFile(testTarget.BaseDir+"/etc/group", content, 0666)
 	if err != nil {
 		t.Errorf("Could not write temp file: %s", err)
 	}
@@ -275,13 +298,14 @@ func TestAuditDockerDaemonSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget: %s", err)
 	}
+	testDataDir(t, testTarget)
+	defer os.RemoveAll(testTarget.BaseDir)
 	content := []byte("#!/bin/bash \n echo \"/usr/bin/docker\"")
-	err = ioutil.WriteFile("testdata/auditctl", content, 0700)
+	err = ioutil.WriteFile(testTarget.BaseDir+"/auditctl", content, 0700)
 	if err != nil {
 		t.Errorf("Could not write temporary file %s", err)
 	}
-	defer os.Remove("testdata/auditctl")
-	changePath(t, "testdata/")
+	changePath(t, testTarget.BaseDir)
 	res := AuditDockerDaemon(*testTarget)
 	assert.Equal(t, "PASS", res.Status, "Audit of docker daemon should pass.")
 }
@@ -291,13 +315,14 @@ func TestAuditDockerDaemonFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget: %s", err)
 	}
+	testDataDir(t, testTarget)
+	defer os.RemoveAll(testTarget.BaseDir)
 	content := []byte("#!/bin/bash \n echo \"failing data\"")
-	err = ioutil.WriteFile("testdata/auditctl", content, 0700)
+	err = ioutil.WriteFile(testTarget.BaseDir+"/auditctl", content, 0700)
 	if err != nil {
 		t.Errorf("Could not write temporary file %s", err)
 	}
-	defer os.Remove("testdata/auditctl")
-	changePath(t, "testdata/")
+	changePath(t, testTarget.BaseDir)
 	res := AuditDockerDaemon(*testTarget)
 	assert.Equal(t, "WARN", res.Status, "Audit of docker daemon should not pass.")
 }
@@ -307,13 +332,14 @@ func TestAuditLibDockerSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget: %s", err)
 	}
+	testDataDir(t, testTarget)
+	defer os.RemoveAll(testTarget.BaseDir)
 	content := []byte("#!/bin/bash \n echo \"/var/lib/docker\"")
-	err = ioutil.WriteFile("testdata/auditctl", content, 0700)
+	err = ioutil.WriteFile(testTarget.BaseDir+"/auditctl", content, 0700)
 	if err != nil {
 		t.Errorf("Could not write temporary file %s", err)
 	}
-	//defer os.Remove("testdata/auditctl")
-	changePath(t, "testdata/")
+	changePath(t, testTarget.BaseDir)
 	res := AuditLibDocker(*testTarget)
 	assert.Equal(t, "PASS", res.Status, "Audit of /var/lib/docker should pass.")
 }
@@ -323,13 +349,14 @@ func TestAuditLibDockerFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget: %s", err)
 	}
-	content := []byte("#!/bin/bash \n echo \"failing data\"")
-	err = ioutil.WriteFile("testdata/auditctl", content, 0700)
+	testDataDir(t, testTarget)
+	defer os.RemoveAll(testTarget.BaseDir)
+	content := []byte("#!/bin/bash \n echo \"/failing data\"")
+	err = ioutil.WriteFile(testTarget.BaseDir+"/auditctl", content, 0700)
 	if err != nil {
 		t.Errorf("Could not write temporary file %s", err)
 	}
-	defer os.Remove("testdata/auditctl")
-	changePath(t, "testdata/")
+	changePath(t, testTarget.BaseDir)
 	res := AuditLibDocker(*testTarget)
 	assert.Equal(t, "WARN", res.Status, "Audit of /var/lib/docker should not pass.")
 }
@@ -339,13 +366,14 @@ func TestAuditEtcDockerSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget: %s", err)
 	}
+	testDataDir(t, testTarget)
+	defer os.RemoveAll(testTarget.BaseDir)
 	content := []byte("#!/bin/bash \n echo \"/etc/docker\"")
-	err = ioutil.WriteFile("testdata/auditctl", content, 0700)
+	err = ioutil.WriteFile(testTarget.BaseDir+"/auditctl", content, 0700)
 	if err != nil {
 		t.Errorf("Could not write temporary file %s", err)
 	}
-	defer os.Remove("testdata/auditctl")
-	changePath(t, "testdata/")
+	changePath(t, testTarget.BaseDir)
 	res := AuditEtcDocker(*testTarget)
 	assert.Equal(t, "PASS", res.Status, "Audit of /etc/docker should pass.")
 }
@@ -355,13 +383,14 @@ func TestAuditEtcDockerFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget: %s", err)
 	}
+	testDataDir(t, testTarget)
+	defer os.RemoveAll(testTarget.BaseDir)
 	content := []byte("#!/bin/bash \n echo \"failing data\"")
-	err = ioutil.WriteFile("testdata/auditctl", content, 0700)
+	err = ioutil.WriteFile(testTarget.BaseDir+"/auditctl", content, 0700)
 	if err != nil {
 		t.Errorf("Could not write temporary file %s", err)
 	}
-	defer os.Remove("testdata/auditctl")
-	changePath(t, "testdata/")
+	changePath(t, testTarget.BaseDir)
 	res := AuditEtcDocker(*testTarget)
 	assert.Equal(t, "WARN", res.Status, "Audit of /etc/docker should not pass.")
 }
@@ -371,13 +400,14 @@ func TestAuditDockerServiceSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget: %s", err)
 	}
+	testDataDir(t, testTarget)
+	defer os.RemoveAll(testTarget.BaseDir)
 	content := []byte("#!/bin/bash \n echo \"/usr/lib/systemd/system/docker.service\"")
-	err = ioutil.WriteFile("testdata/auditctl", content, 0700)
+	err = ioutil.WriteFile(testTarget.BaseDir+"/auditctl", content, 0700)
 	if err != nil {
 		t.Errorf("Could not write temporary file %s", err)
 	}
-	defer os.Remove("testdata/auditctl")
-	changePath(t, "testdata/")
+	changePath(t, testTarget.BaseDir)
 	res := AuditDockerService(*testTarget)
 	assert.Equal(t, "PASS", res.Status, "Audit of /usr/lib/systemd/system/docker.service should pass.")
 }
@@ -387,13 +417,14 @@ func TestAuditDockerServiceFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget: %s", err)
 	}
+	testDataDir(t, testTarget)
+	defer os.RemoveAll(testTarget.BaseDir)
 	content := []byte("#!/bin/bash \n echo \"failing data\"")
-	err = ioutil.WriteFile("testdata/auditctl", content, 0700)
+	err = ioutil.WriteFile(testTarget.BaseDir+"/auditctl", content, 0700)
 	if err != nil {
 		t.Errorf("Could not write temporary file %s", err)
 	}
-	defer os.Remove("testdata/auditctl")
-	changePath(t, "testdata/")
+	changePath(t, testTarget.BaseDir)
 	res := AuditDockerService(*testTarget)
 	assert.Equal(t, "WARN", res.Status, "Audit of /usr/lib/systemd/system/docker.service should not pass.")
 }
@@ -403,13 +434,14 @@ func TestAuditDockerSocketSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget: %s", err)
 	}
+	testDataDir(t, testTarget)
+	defer os.RemoveAll(testTarget.BaseDir)
 	content := []byte("#!/bin/bash \n echo \"/usr/lib/systemd/system/docker.socket\"")
-	err = ioutil.WriteFile("testdata/auditctl", content, 0700)
+	err = ioutil.WriteFile(testTarget.BaseDir+"/auditctl", content, 0700)
 	if err != nil {
 		t.Errorf("Could not write temporary file %s", err)
 	}
-	defer os.Remove("testdata/auditctl")
-	changePath(t, "testdata/")
+	changePath(t, testTarget.BaseDir)
 	res := AuditDockerSocket(*testTarget)
 	assert.Equal(t, "PASS", res.Status, "Audit of /usr/lib/systemd/system/docker.socket should pass.")
 }
@@ -419,13 +451,14 @@ func TestAuditDockerSocketFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget: %s", err)
 	}
+	testDataDir(t, testTarget)
+	defer os.RemoveAll(testTarget.BaseDir)
 	content := []byte("#!/bin/bash \n echo \"failing data\"")
-	err = ioutil.WriteFile("testdata/auditctl", content, 0700)
+	err = ioutil.WriteFile(testTarget.BaseDir+"/auditctl", content, 0700)
 	if err != nil {
 		t.Errorf("Could not write temporary file %s", err)
 	}
-	defer os.Remove("testdata/auditctl")
-	changePath(t, "testdata/")
+	changePath(t, testTarget.BaseDir)
 	res := AuditDockerSocket(*testTarget)
 	assert.Equal(t, "WARN", res.Status, "Audit of /usr/lib/systemd/system/docker.socket should not pass.")
 }
@@ -435,13 +468,14 @@ func TestAuditDockerDefaultSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget: %s", err)
 	}
+	testDataDir(t, testTarget)
+	defer os.RemoveAll(testTarget.BaseDir)
 	content := []byte("#!/bin/bash \n echo \"/etc/default/docker\"")
-	err = ioutil.WriteFile("testdata/auditctl", content, 0700)
+	err = ioutil.WriteFile(testTarget.BaseDir+"/auditctl", content, 0700)
 	if err != nil {
 		t.Errorf("Could not write temporary file %s", err)
 	}
-	defer os.Remove("testdata/auditctl")
-	changePath(t, "testdata/")
+	changePath(t, testTarget.BaseDir)
 	res := AuditDockerDefault(*testTarget)
 	assert.Equal(t, "PASS", res.Status, "Audit of /etc/default/docker should pass.")
 }
@@ -451,13 +485,14 @@ func TestAuditDockerDefaultFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget: %s", err)
 	}
+	testDataDir(t, testTarget)
+	defer os.RemoveAll(testTarget.BaseDir)
 	content := []byte("#!/bin/bash \n echo \"failing data\"")
-	err = ioutil.WriteFile("testdata/auditctl", content, 0700)
+	err = ioutil.WriteFile(testTarget.BaseDir+"/auditctl", content, 0700)
 	if err != nil {
 		t.Errorf("Could not write temporary file %s", err)
 	}
-	defer os.Remove("testdata/auditctl")
-	changePath(t, "testdata/")
+	changePath(t, testTarget.BaseDir)
 	res := AuditDockerDefault(*testTarget)
 	assert.Equal(t, "WARN", res.Status, "Audit of /etc/default/docker should not pass.")
 }
@@ -467,13 +502,14 @@ func TestAuditDaemonJSONSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget: %s", err)
 	}
+	testDataDir(t, testTarget)
+	defer os.RemoveAll(testTarget.BaseDir)
 	content := []byte("#!/bin/bash \n echo \"/etc/docker/daemon.json\"")
-	err = ioutil.WriteFile("testdata/auditctl", content, 0700)
+	err = ioutil.WriteFile(testTarget.BaseDir+"/auditctl", content, 0700)
 	if err != nil {
 		t.Errorf("Could not write temporary file %s", err)
 	}
-	defer os.Remove("testdata/auditctl")
-	changePath(t, "testdata/")
+	changePath(t, testTarget.BaseDir)
 	res := AuditDaemonJSON(*testTarget)
 	assert.Equal(t, "PASS", res.Status, "Audit of /etc/docker/daemon.json should pass.")
 }
@@ -483,13 +519,14 @@ func TestAuditDaemonJSONFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget: %s", err)
 	}
+	testDataDir(t, testTarget)
+	defer os.RemoveAll(testTarget.BaseDir)
 	content := []byte("#!/bin/bash \n echo \"failing data\"")
-	err = ioutil.WriteFile("testdata/auditctl", content, 0700)
+	err = ioutil.WriteFile(testTarget.BaseDir+"/auditctl", content, 0700)
 	if err != nil {
 		t.Errorf("Could not write temporary file %s", err)
 	}
-	defer os.Remove("testdata/auditctl")
-	changePath(t, "testdata/")
+	changePath(t, testTarget.BaseDir)
 	res := AuditDaemonJSON(*testTarget)
 	assert.Equal(t, "WARN", res.Status, "Audit of /etc/docker/daemon.json should not pass.")
 }
@@ -499,13 +536,14 @@ func TestAuditContainerdSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget: %s", err)
 	}
+	testDataDir(t, testTarget)
+	defer os.RemoveAll(testTarget.BaseDir)
 	content := []byte("#!/bin/bash \n echo \"/usr/bin/docker-containerd\"")
-	err = ioutil.WriteFile("testdata/auditctl", content, 0700)
+	err = ioutil.WriteFile(testTarget.BaseDir+"/auditctl", content, 0700)
 	if err != nil {
 		t.Errorf("Could not write temporary file %s", err)
 	}
-	defer os.Remove("testdata/auditctl")
-	changePath(t, "testdata/")
+	changePath(t, testTarget.BaseDir)
 	res := AuditContainerd(*testTarget)
 	assert.Equal(t, "PASS", res.Status, "Audit of /usr/bin/docker-containerd should pass.")
 }
@@ -515,13 +553,14 @@ func TestAuditContainerdFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget: %s", err)
 	}
+	testDataDir(t, testTarget)
+	defer os.RemoveAll(testTarget.BaseDir)
 	content := []byte("#!/bin/bash \n echo \"failing data\"")
-	err = ioutil.WriteFile("testdata/auditctl", content, 0700)
+	err = ioutil.WriteFile(testTarget.BaseDir+"/auditctl", content, 0700)
 	if err != nil {
 		t.Errorf("Could not write temporary file %s", err)
 	}
-	defer os.Remove("testdata/auditctl")
-	changePath(t, "testdata/")
+	changePath(t, testTarget.BaseDir)
 	res := AuditContainerd(*testTarget)
 	assert.Equal(t, "WARN", res.Status, "Audit of /usr/bin/docker-containerd should not pass.")
 }
@@ -531,13 +570,14 @@ func TestAuditRuncSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget: %s", err)
 	}
+	testDataDir(t, testTarget)
+	defer os.RemoveAll(testTarget.BaseDir)
 	content := []byte("#!/bin/bash \n echo \"/usr/bin/docker-runc\"")
-	err = ioutil.WriteFile("testdata/auditctl", content, 0700)
+	err = ioutil.WriteFile(testTarget.BaseDir+"/auditctl", content, 0700)
 	if err != nil {
 		t.Errorf("Could not write temporary file %s", err)
 	}
-	defer os.Remove("testdata/auditctl")
-	changePath(t, "testdata/")
+	changePath(t, testTarget.BaseDir)
 	res := AuditRunc(*testTarget)
 	assert.Equal(t, "PASS", res.Status, "Audit of /usr/bin/docker-runc should pass.")
 }
@@ -547,13 +587,14 @@ func TestAuditRuncFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create testTarget: %s", err)
 	}
+	testDataDir(t, testTarget)
+	defer os.RemoveAll(testTarget.BaseDir)
 	content := []byte("#!/bin/bash \n echo \"failing data\"")
-	err = ioutil.WriteFile("testdata/auditctl", content, 0700)
+	err = ioutil.WriteFile(testTarget.BaseDir+"/auditctl", content, 0700)
 	if err != nil {
 		t.Errorf("Could not write temporary file %s", err)
 	}
-	defer os.Remove("testdata/auditctl")
-	changePath(t, "testdata/")
+	changePath(t, testTarget.BaseDir)
 	res := AuditRunc(*testTarget)
 	assert.Equal(t, "WARN", res.Status, "Audit of /usr/bin/docker-runc should not pass.")
 }
