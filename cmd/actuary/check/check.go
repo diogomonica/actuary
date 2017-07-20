@@ -105,14 +105,14 @@ var (
 			var jsonStr = []byte(jsonResults)
 			req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
 			if err != nil {
-				log.Printf("ERROR: %v", err)
+				log.Printf("Could not create a new request: %v", err)
 			}
 			req.Header.Set("Content-Type", "application/json")
 
 			client := &http.Client{}
 			resp, err := client.Do(req)
 			if err != nil {
-				log.Printf("ERROR1: %v", err)
+				log.Printf("Could not send request to client: %v", err)
 			}
 			defer resp.Body.Close()
 

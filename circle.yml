@@ -16,5 +16,4 @@ test:
 
   override:
     - cd $HOME/.go_project/src/github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME && go test $(go list ./... | grep -v vendor/)
-
-
+#RACE CONDITIONS
