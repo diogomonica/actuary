@@ -87,7 +87,6 @@ func CheckDockerVersion(t Target) (res Result) {
 		log.Fatalf("Could not retrieve info for Docker host")
 	}
 	constraints, _ := version.NewConstraint(">= " + verConstr)
-
 	hostVersion, _ := version.NewVersion(info.Version)
 	if constraints.Check(hostVersion) {
 		res.Pass()
