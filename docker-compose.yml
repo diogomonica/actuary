@@ -11,6 +11,8 @@ services:
       - "8000:8000"
   check:
     image: oliviabarnett/actuary:actuary_image
+    environment: 
+      NODE: "{{.Node.ID}}"
     command: ["check", "-f=cmd/actuary/mac-default.toml", "-s=http://server:8000/request"]
     deploy:
       mode: global

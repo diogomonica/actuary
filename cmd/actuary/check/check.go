@@ -16,12 +16,18 @@ import (
 
 var profile string
 var output string
+
 var tlsPath string
 var server string
 var dockerServer string
 var tomlProfile profileutils.Profile
 var results []actuary.Result
 var actions map[string]actuary.Check
+
+type Request struct {
+	NodeID  []byte
+	Results []byte
+}
 
 func init() {
 	CheckCmd.Flags().StringVarP(&profile, "profile", "f", "", "file profile")
@@ -97,15 +103,26 @@ var (
 				}
 			}
 
+			if err != nil {
+				log.Fatalf("Unable to marshal node ID")
+			}
+
 			jsonResults, err := json.MarshalIndent(rep.Results, "", "  ")
 			if err != nil {
 				log.Fatalf("Unable to marshal results into JSON file")
 			}
+			var reqStruct = Request{NodeID: []byte(os.Getenv("NODE")), Results: jsonResults}
+			result, err := json.Marshal(reqStruct)
 
-			var jsonStr = []byte(jsonResults)
-			req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+			if err != nil {
+				log.Printf("Could not marshal request: %v", err)
+			}
+			req, err := http.NewRequest("POST", url, bytes.NewBuffer(result))
 			if err != nil {
 				log.Printf("Could not create a new request: %v", err)
+			}
+			if err != nil {
+				log.Printf("couldn't read req: %v", err)
 			}
 			req.Header.Set("Content-Type", "application/json")
 
