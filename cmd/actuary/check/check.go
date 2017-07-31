@@ -43,7 +43,7 @@ var (
 		Use:   "check <server name>",
 		Short: "Run actuary checklist on a node",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			url := server
+			urlPOST := server
 			var cmdArgs []string
 			var hash string
 			//flag.Parse()
@@ -117,21 +117,22 @@ var (
 			if err != nil {
 				log.Printf("Could not marshal request: %v", err)
 			}
-			req, err := http.NewRequest("POST", url, bytes.NewBuffer(result))
+			reqPost, err := http.NewRequest("POST", urlPOST, bytes.NewBuffer(result))
 			if err != nil {
 				log.Printf("Could not create a new request: %v", err)
 			}
 			if err != nil {
 				log.Printf("couldn't read req: %v", err)
 			}
-			req.Header.Set("Content-Type", "application/json")
+			reqPost.Header.Set("Content-Type", "application/json")
 
 			client := &http.Client{}
-			resp, err := client.Do(req)
+			respPost, err := client.Do(reqPost)
 			if err != nil {
-				log.Printf("Could not send request to client: %v", err)
+				log.Printf("Could not send post request to client: %v", err)
 			}
-			defer resp.Body.Close()
+
+			defer respPost.Body.Close()
 
 			return nil
 		},
