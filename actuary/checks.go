@@ -56,8 +56,8 @@ type Check func(t Target) Result
 
 var checklist = map[string]Check{
 	//Docker Host
-	"kernel_version":     CheckKernelVersion,
 	"separate_partition": CheckSeparatePartition,
+	"kernel_version":     CheckKernelVersion,
 	"running_services":   CheckRunningServices,
 	"server_version":     CheckDockerVersion,
 	"trusted_users":      CheckTrustedUsers,

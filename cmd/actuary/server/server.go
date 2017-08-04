@@ -1,22 +1,25 @@
 package server
 
 import (
+	"bytes"
 	"encoding/json"
 	"github.com/diogomonica/actuary/cmd/actuary/check"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
 	"github.com/spf13/cobra"
+	"golang.org/x/net/context"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
 )
 
 var htmlPath string
 
 func init() {
-	ServerCmd.Flags().StringVarP(&htmlPath, "htmlPath", "p", filepath.Join(os.Getenv("GOPATH"), "/src/github.com/diogomonica/actuary/cmd/actuary/results"), "Path to folder that holds html, js, css for browser.")
+	ServerCmd.Flags().StringVarP(&htmlPath, "htmlPath", "p", "/cmd/actuary/server/results", "Path to folder that holds html, js, css for browser -- relative to current working directory.")
 }
 
 type outputData struct {
@@ -34,13 +37,36 @@ var (
 			var report = outputData{Mu: &sync.Mutex{}, Outputs: m}
 			var reqList []check.Request
 
-			mux.HandleFunc("/request", func(w http.ResponseWriter, r *http.Request) {
+			// Get list of all nodes in the swarm via Docker API call
+			// Used for comparison to see which nodes have yet to be processed
+			ctx := context.Background()
+			cli, err := client.NewEnvClient()
+			if err != nil {
+				log.Fatalf("Could not create new client: %s", err)
+			}
+			nodeList, err := cli.NodeList(ctx, types.NodeListOptions{})
+			if err != nil {
+				log.Fatalf("Could not get list of nodes: %s", err)
+			}
+
+			// Send official list of nodes from docker client to browser
+			mux.HandleFunc("/getNodeList", func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", "text/html")
+				w.WriteHeader(http.StatusOK)
+				var b bytes.Buffer
+				for _, node := range nodeList {
+					b.Write([]byte(node.ID + " "))
+				}
+				b.WriteTo(w)
+			})
+
+			// Where nodes send DATA from check.go, where javascript requests receives specific node DATA
+			mux.HandleFunc("/results", func(w http.ResponseWriter, r *http.Request) {
 				if r.Method == "POST" {
 					output, err := ioutil.ReadAll(r.Body)
 					if err != nil {
 						log.Fatalf("Error reading: %s", err)
 					}
-					// Get nodeID, results passed in from check on a particular node
 					var req check.Request
 					err = json.Unmarshal(output, &req)
 					if err != nil {
@@ -48,54 +74,56 @@ var (
 					}
 					reqList = append(reqList, req)
 					nodeID := string(req.NodeID)
-					log.Printf("NODE ID %v", nodeID)
 					results := req.Results
 					report.Mu.Lock()
 					report.Outputs[nodeID] = results
 					report.Mu.Unlock()
+				} else if r.Method == "GET" {
+					nodeID := r.URL.Query().Get("nodeID")
+					if nodeID != "" {
+						w.Header().Set("Content-Type", "application/json")
+						w.WriteHeader(http.StatusOK)
+						report.Mu.Lock()
+						w.Write(report.Outputs[nodeID])
+						report.Mu.Unlock()
+					} else {
+						log.Fatalf("Node ID not entered")
+					}
 				}
 			})
 
+			// Path to return css/js/html
 			mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-				index := strings.Split(r.URL.Path, "/")
-				if index[len(index)-1] != "" {
-					w.Header().Set("Content-Type", "application/json") //change to writeHeader!
-					report.Mu.Lock()
-					w.Write(report.Outputs[index[len(index)-1]])
-					report.Mu.Unlock()
-				} else {
-					log.Fatalf("Node ID not entered")
+				currentDir, err := os.Getwd()
+				if err != nil {
+					log.Fatalf("Error getting current directory: %s", err)
 				}
-			})
-
-			mux.HandleFunc("/results/", func(w http.ResponseWriter, r *http.Request) {
-				path := htmlPath
-				handler := http.StripPrefix("/results/", http.FileServer(http.Dir(path)))
+				path := filepath.Join(currentDir, htmlPath)
+				handler := http.FileServer(http.Dir(path))
 				handler.ServeHTTP(w, r)
 			})
 
-			mux.HandleFunc("/getNodes", func(w http.ResponseWriter, r *http.Request) {
+			// Determine whether or not a specified node has been processed -- ie if its results are ready to be displayed
+			mux.HandleFunc("/checkNode", func(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("Content-Type", "text/html")
-				log.Printf("/getNodes HIT")
+				w.WriteHeader(http.StatusOK)
+				found := false
+				nodeID, err := ioutil.ReadAll(r.Body)
+				if err != nil {
+					log.Fatalf("Did not receive node ID: %v", err)
+				}
 				for _, req := range reqList {
-					w.Write(req.NodeID)
-					w.Write([]byte(" "))
-					log.Printf("WRITTEN NODE ID: %s", string(req.NodeID))
-				}
-			})
-
-			mux.HandleFunc("/all", func(w http.ResponseWriter, r *http.Request) {
-				if r.Method == "GET" {
-					w.Header().Set("Content-Type", "application/json") //change to writeHeader!
-					report.Mu.Lock()
-					for output := range report.Outputs {
-						w.Write([]byte(output))
+					if string(req.NodeID) == string(nodeID) {
+						w.Write([]byte("true"))
+						found = true
 					}
-					report.Mu.Unlock()
+				}
+				if !found {
+					w.Write([]byte("false"))
 				}
 			})
 
-			err := http.ListenAndServe(":8000", mux)
+			err = http.ListenAndServe(":8000", mux)
 			if err != nil {
 				log.Fatalf("Error with listen and serve: %s", err)
 			}

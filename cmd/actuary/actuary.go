@@ -4,8 +4,6 @@ import (
 	"github.com/diogomonica/actuary/cmd/actuary/check"
 	"github.com/diogomonica/actuary/cmd/actuary/server"
 	"github.com/spf13/cobra"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
 	"os"
 )
 
@@ -26,14 +24,8 @@ func init() {
 }
 
 func main() {
-	//This seems problematic -- fix this
 	if c, err := mainCmd.ExecuteC(); err != nil {
-		c.Println("Error:", grpc.ErrorDesc(err))
-		// if it's not a grpc, we assume it's a user error and we display the usage.
-		if grpc.Code(err) == codes.Unknown {
-			c.Println(c.UsageString())
-		}
-
+		c.Println("Error:", err)
 		os.Exit(-1)
 	}
 }

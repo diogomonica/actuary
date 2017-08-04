@@ -1,0 +1,62 @@
+.jumbotron {
+    padding: none;
+}
+
+.container-fluid {
+    padding: 20px 50px;
+}
+
+.scroll-box {
+	padding-top: none;
+	width: 100%;
+    overflow-y: scroll;  
+    overflow-x: visible;
+    height: 77vh;
+}
+
+#swarm-stats {
+	background-color: #eee;
+	padding: 0 0 2% 5%
+}
+#nodes-all {
+	height: 60vh;
+	padding-top: none;
+	overflow-y: scroll; 
+}
+
+.stats {
+	cursor: pointer;
+	font-weight: 500;
+}
+
+.data-element {
+	background-color: #eee;
+}
+
+.output {
+	font-style: italic;
+}
+
+.INFO {
+	color: #2330ED;
+}
+
+.PASS {
+	color: green;
+}
+
+.SKIP {
+	color: #E1CA2C;
+}
+
+.WARN {
+	color: red;
+}
+
+.tabContent {
+	display: none;
+}
+
+.pointer {
+	cursor: pointer;
+}

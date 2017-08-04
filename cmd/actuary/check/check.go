@@ -16,7 +16,6 @@ import (
 
 var profile string
 var output string
-
 var tlsPath string
 var server string
 var dockerServer string
@@ -37,7 +36,6 @@ func init() {
 	CheckCmd.Flags().StringVarP(&dockerServer, "dockerServer", "d", "", "Docker server to connect to tcp://<docker host>:<port>")
 }
 
-// docker service create --name actuary_check --global actuary_image actuary check --server <some hostname>
 var (
 	CheckCmd = &cobra.Command{
 		Use:   "check <server name>",
@@ -46,7 +44,6 @@ var (
 			urlPOST := server
 			var cmdArgs []string
 			var hash string
-			//flag.Parse()
 			if tlsPath != "" {
 				os.Setenv("DOCKER_CERT_PATH", tlsPath)
 			}
@@ -59,10 +56,8 @@ var (
 			if err != nil {
 				log.Fatalf("Unable to connect to Docker daemon: %s", err)
 			}
-
 			cmdArgs = flag.Args()
-
-			if len(cmdArgs) == 2 { //./actuary2 check -f=mac-default.toml
+			if len(cmdArgs) == 2 {
 				hash = cmdArgs[1]
 				tomlProfile, err = profileutils.GetFromURL(hash)
 				if err != nil {
@@ -77,7 +72,6 @@ var (
 			} else {
 				log.Fatalf("Unsupported number of arguments. Use -h for help")
 			}
-
 			actions := actuary.GetAuditDefinitions()
 			for category := range tomlProfile.Audit {
 				checks := tomlProfile.Audit[category].Checklist
@@ -102,38 +96,35 @@ var (
 					oututils.ConsolePrint(res)
 				}
 			}
-
 			if err != nil {
 				log.Fatalf("Unable to marshal node ID")
 			}
-
 			jsonResults, err := json.MarshalIndent(rep.Results, "", "  ")
 			if err != nil {
 				log.Fatalf("Unable to marshal results into JSON file")
 			}
 			var reqStruct = Request{NodeID: []byte(os.Getenv("NODE")), Results: jsonResults}
 			result, err := json.Marshal(reqStruct)
+			log.Printf("SENDING THIS NODE: %s", string([]byte(os.Getenv("NODE"))))
 
 			if err != nil {
-				log.Printf("Could not marshal request: %v", err)
+				log.Fatalf("Could not marshal request: %v", err)
 			}
 			reqPost, err := http.NewRequest("POST", urlPOST, bytes.NewBuffer(result))
 			if err != nil {
-				log.Printf("Could not create a new request: %v", err)
+				log.Fatalf("Could not create a new request: %v", err)
 			}
 			if err != nil {
-				log.Printf("couldn't read req: %v", err)
+				log.Fatalf("couldn't read req: %v", err)
 			}
 			reqPost.Header.Set("Content-Type", "application/json")
 
 			client := &http.Client{}
 			respPost, err := client.Do(reqPost)
 			if err != nil {
-				log.Printf("Could not send post request to client: %v", err)
+				log.Fatalf("Could not send post request to client: %v", err)
 			}
-
 			defer respPost.Body.Close()
-
 			return nil
 		},
 	}

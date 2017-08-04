@@ -26,6 +26,8 @@ func CheckSeparatePartition(t Target) (res Result) {
 	bytes, err := ioutil.ReadFile(fpath)
 	if err != nil {
 		log.Printf("Cannot read fstab")
+		output := "Cannot read fstab"
+		res.Info(output)
 		return
 	}
 	lines := strings.Split(string(bytes), "\n")
@@ -36,7 +38,7 @@ func CheckSeparatePartition(t Target) (res Result) {
 			return
 		}
 	}
-	output := "Containers NOT in seperate partition"
+	output := "Containers NOT in separate partition"
 	res.Fail(output)
 	return
 }
