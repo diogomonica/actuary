@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"github.com/diogomonica/actuary/cmd/actuary/check"
 	"github.com/docker/docker/api/types"
@@ -49,9 +50,28 @@ var (
 				log.Fatalf("Could not get list of nodes: %s", err)
 			}
 
+			cfg := &tls.Config{
+				MinVersion:               tls.VersionTLS12,
+				CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
+				PreferServerCipherSuites: true,
+				CipherSuites: []uint16{
+					tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+					tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
+					tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
+					tls.TLS_RSA_WITH_AES_256_CBC_SHA,
+				},
+			}
+			srv := &http.Server{
+				Addr:         ":8000",
+				Handler:      mux,
+				TLSConfig:    cfg,
+				TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
+			}
+
 			// Send official list of nodes from docker client to browser
 			mux.HandleFunc("/getNodeList", func(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("Content-Type", "text/html")
+				w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
 				w.WriteHeader(http.StatusOK)
 				var b bytes.Buffer
 				for _, node := range nodeList {
@@ -62,6 +82,7 @@ var (
 
 			// Where nodes send DATA from check.go, where javascript requests receives specific node DATA
 			mux.HandleFunc("/results", func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
 				if r.Method == "POST" {
 					output, err := ioutil.ReadAll(r.Body)
 					if err != nil {
@@ -99,6 +120,7 @@ var (
 					log.Fatalf("Error getting current directory: %s", err)
 				}
 				path := filepath.Join(currentDir, htmlPath)
+				w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
 				handler := http.FileServer(http.Dir(path))
 				handler.ServeHTTP(w, r)
 			})
@@ -106,6 +128,7 @@ var (
 			// Determine whether or not a specified node has been processed -- ie if its results are ready to be displayed
 			mux.HandleFunc("/checkNode", func(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("Content-Type", "text/html")
+				w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
 				w.WriteHeader(http.StatusOK)
 				found := false
 				nodeID, err := ioutil.ReadAll(r.Body)
@@ -122,10 +145,13 @@ var (
 					w.Write([]byte("false"))
 				}
 			})
+			// Hardcoded server.crt and server.key
+			log.Printf("CERT %s", os.Getenv("TLS_CERT"))
+			log.Printf("KEY %s", os.Getenv("TLS_KEY"))
 
-			err = http.ListenAndServe(":8000", mux)
+			err = srv.ListenAndServeTLS(os.Getenv("TLS_CERT"), os.Getenv("TLS_KEY"))
 			if err != nil {
-				log.Fatalf("Error with listen and serve: %s", err)
+				log.Fatalf("ListenAndServeTLS: %s", err)
 			}
 			return nil
 		},

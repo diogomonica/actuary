@@ -2,6 +2,7 @@ package check
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"flag"
 	"github.com/diogomonica/actuary/actuary"
@@ -34,6 +35,26 @@ func init() {
 	CheckCmd.Flags().StringVarP(&tlsPath, "tlsPath", "t", "", "Path to load certificates from")
 	CheckCmd.Flags().StringVarP(&server, "server", "s", "", "Server for aggregating results")
 	CheckCmd.Flags().StringVarP(&dockerServer, "dockerServer", "d", "", "Docker server to connect to tcp://<docker host>:<port>")
+}
+
+func HttpClient() (client *http.Client) {
+	uckey := os.Getenv("X509_USER_KEY")
+	ucert := os.Getenv("X509_USER_CERT")
+	x509cert, err := tls.LoadX509KeyPair(ucert, uckey)
+	if err != nil {
+		panic(err.Error())
+	}
+	certs := []tls.Certificate{x509cert}
+	if len(certs) == 0 {
+		client = &http.Client{}
+		return
+	}
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{Certificates: certs,
+			InsecureSkipVerify: true},
+	}
+	client = &http.Client{Transport: tr}
+	return
 }
 
 var (
@@ -105,7 +126,6 @@ var (
 			}
 			var reqStruct = Request{NodeID: []byte(os.Getenv("NODE")), Results: jsonResults}
 			result, err := json.Marshal(reqStruct)
-			log.Printf("SENDING THIS NODE: %s", string([]byte(os.Getenv("NODE"))))
 
 			if err != nil {
 				log.Fatalf("Could not marshal request: %v", err)
@@ -119,7 +139,8 @@ var (
 			}
 			reqPost.Header.Set("Content-Type", "application/json")
 
-			client := &http.Client{}
+			client := HttpClient()
+
 			respPost, err := client.Do(reqPost)
 			if err != nil {
 				log.Fatalf("Could not send post request to client: %v", err)

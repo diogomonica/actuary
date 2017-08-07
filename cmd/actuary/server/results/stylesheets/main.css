@@ -1,5 +1,11 @@
 .jumbotron {
     padding: none;
+    background-color: rgba(51, 107, 134, 0.93);
+    color: white;
+}
+
+body {
+	color: #254356;
 }
 
 .container-fluid {
@@ -16,7 +22,9 @@
 
 #swarm-stats {
 	background-color: #eee;
-	padding: 0 0 2% 5%
+	padding: 0 0 2% 5%;
+	color: #254356;
+	font-weight: 500;
 }
 #nodes-all {
 	height: 60vh;
@@ -59,4 +67,9 @@
 
 .pointer {
 	cursor: pointer;
+}
+
+ul {
+	list-style-type: disc;
+	font-size: large;
 }

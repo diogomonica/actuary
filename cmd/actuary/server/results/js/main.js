@@ -9,17 +9,20 @@ window.onload=function(){
 	getNodeList(domain).then(function(response){
 		var nodeList = response.split(" ")
 		if ((nodeList.length-1) == 1){
-			var swarmAll = $('<h2>/>').attr("id", "swarm-all").addClass("pointer").text((nodeList.length-1) + " node")
+			var swarmAll = $('<h3>/>').attr("id", "swarm-all").addClass("pointer").text((nodeList.length-1) + " node")
 		}else{
-			var swarmAll = $('<h2>/>').attr("id", "swarm-all").addClass("pointer").text((nodeList.length-1) + " nodes")
+			var swarmAll = $('<h3>/>').attr("id", "swarm-all").addClass("pointer").text((nodeList.length-1) + " nodes")
 		}
 		$('#swarm-data').append(
 			$('<div/>').attr("id", "swarm-stats").append(
 				swarmAll,
-				$('<h3>/>').attr("id", "swarm-passing").addClass("pointer").text("0 passed"),
-				$('<h3>/>').attr("id", "swarm-failing").addClass("pointer").text("0 failed"),
-				$('<h3>/>').attr("id", "swarm-undetermined").addClass("pointer").text("0 undetermined")
-		))
+				$('<ul></ul>').append(
+					$('<li></li>').attr("id", "swarm-passing").addClass("pointer").text("0 passed"),
+					$('<li></li>').attr("id", "swarm-failing").addClass("pointer").text("0 failed"),
+					$('<li></li>').attr("id", "swarm-undetermined").addClass("pointer").text("0 undetermined")
+				)
+			)
+		)
 		// Clicking functionality for filtering nodes by passing, failing, undetermined
 		$("#swarm-all").click(function(){
 			if (dataSelected != "") {
