@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 var profile string
@@ -140,6 +141,8 @@ var (
 			reqPost.Header.Set("Content-Type", "application/json")
 
 			client := HttpClient()
+
+			time.Sleep(5000 * time.Millisecond)
 
 			respPost, err := client.Do(reqPost)
 			if err != nil {

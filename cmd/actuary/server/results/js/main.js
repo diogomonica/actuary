@@ -110,14 +110,14 @@ function sleep(ms) {
 
 // Call to server checks if data has been received on server side
 function checkNode(domain, nodeID){
-	url = domain + "/checkNode"
+	url = domain + "/results"
 	return new Promise((resolve, reject) => {
 		var x = new XMLHttpRequest();
-		x.open("POST", url);
+		x.open("Get", url + "?nodeID=" + nodeID + "&check=true") 
 		x.setRequestHeader('Content-type', 'text/html')
 		x.onload = () => resolve([String(x.responseText), nodeID, domain]);
 		x.onerror = () => reject([String(x.statusText), nodeID, domain]);
-		x.send(nodeID);
+		x.send();
 	});
 };
 
@@ -186,8 +186,6 @@ function printResults(passed, warned, skipped, info, nodeID){
 		document.getElementById("results-" + nodeID).style.display = 'block';
 		$("#header-results-" +nodeID).css({"font-weight": "bold", "text-transform": "uppercase"})
 		nodeSelected = this.id
-		console.log(nodeSelected)
-		console.log(nodeSelected.split("-")[2])
 		$("#test-details").text("Test Details for " + nodeSelected.split("-")[2] + ":")
 	});
 	$("#header-passed-" + nodeID).click(function(){
@@ -302,6 +300,6 @@ function getResults(domain, nodeID){
 			analyzeResults(data, nodeID)
 		}
 	}
-	x.open("Get", domain + "?nodeID=" + nodeID) 
+	x.open("Get", domain + "?nodeID=" + nodeID + "&check=false") 
 	x.send()
 }

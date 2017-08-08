@@ -101,12 +101,28 @@ var (
 					report.Mu.Unlock()
 				} else if r.Method == "GET" {
 					nodeID := r.URL.Query().Get("nodeID")
+					check := r.URL.Query().Get("check")
 					if nodeID != "" {
-						w.Header().Set("Content-Type", "application/json")
-						w.WriteHeader(http.StatusOK)
-						report.Mu.Lock()
-						w.Write(report.Outputs[nodeID])
-						report.Mu.Unlock()
+						//Determine whether or not a specified node has been processed -- ie if its results are ready to be displayed
+						if check == "true" {
+							w.Header().Set("Content-Type", "text/html")
+							found := false
+							for _, req := range reqList {
+								if string(req.NodeID) == string(nodeID) {
+									w.Write([]byte("true"))
+									found = true
+								}
+							}
+							if !found {
+								w.Write([]byte("false"))
+							}
+						} else {
+							w.Header().Set("Content-Type", "application/json")
+							w.WriteHeader(http.StatusOK)
+							report.Mu.Lock()
+							w.Write(report.Outputs[nodeID])
+							report.Mu.Unlock()
+						}
 					} else {
 						log.Fatalf("Node ID not entered")
 					}
@@ -124,30 +140,6 @@ var (
 				handler := http.FileServer(http.Dir(path))
 				handler.ServeHTTP(w, r)
 			})
-
-			// Determine whether or not a specified node has been processed -- ie if its results are ready to be displayed
-			mux.HandleFunc("/checkNode", func(w http.ResponseWriter, r *http.Request) {
-				w.Header().Set("Content-Type", "text/html")
-				w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
-				w.WriteHeader(http.StatusOK)
-				found := false
-				nodeID, err := ioutil.ReadAll(r.Body)
-				if err != nil {
-					log.Fatalf("Did not receive node ID: %v", err)
-				}
-				for _, req := range reqList {
-					if string(req.NodeID) == string(nodeID) {
-						w.Write([]byte("true"))
-						found = true
-					}
-				}
-				if !found {
-					w.Write([]byte("false"))
-				}
-			})
-			// Hardcoded server.crt and server.key
-			log.Printf("CERT %s", os.Getenv("TLS_CERT"))
-			log.Printf("KEY %s", os.Getenv("TLS_KEY"))
 
 			err = srv.ListenAndServeTLS(os.Getenv("TLS_CERT"), os.Getenv("TLS_KEY"))
 			if err != nil {
