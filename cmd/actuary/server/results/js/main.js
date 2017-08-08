@@ -292,7 +292,7 @@ function analyzeResults(response, nodeID){
 
 // Get the output of the specified node from the server
 function getResults(domain, nodeID){
-	domain = domain + "/results"
+	domain = domain + "/result"
 	var x = new XMLHttpRequest()
 	x.onreadystatechange = function(){
 		if (x.readyState == 4 && x.status == 200){

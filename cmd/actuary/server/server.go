@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"github.com/diogomonica/actuary/cmd/actuary/check"
+	"github.com/diogomonica/actuary/cmd/actuary/server/services"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/spf13/cobra"
@@ -26,6 +27,50 @@ func init() {
 type outputData struct {
 	Mu      *sync.Mutex
 	Outputs map[string][]byte
+}
+
+func AddMiddleware(h http.Handler, middleware ...func(http.Handler) http.Handler) http.Handler {
+	for _, mw := range middleware {
+		h = mw(h)
+	}
+	return h
+}
+
+func (report *outputData) getResults(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
+	if r.Method == "GET" {
+		nodeID := r.URL.Query().Get("nodeID")
+		if nodeID != "" {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			report.Mu.Lock()
+			w.Write(report.Outputs[nodeID])
+			report.Mu.Unlock()
+		} else {
+			log.Fatalf("Node ID not entered")
+		}
+	}
+}
+
+func (report *outputData) postResults(w http.ResponseWriter, r *http.Request, reqList *[]check.Request) {
+	w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
+	if r.Method == "POST" {
+		output, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			log.Fatalf("Error reading: %s", err)
+		}
+		var req check.Request
+		err = json.Unmarshal(output, &req)
+		if err != nil {
+			log.Fatalf("Error unmarshalling id: %s", err)
+		}
+		*reqList = append(*reqList, req)
+		nodeID := string(req.NodeID)
+		results := req.Results
+		report.Mu.Lock()
+		report.Outputs[nodeID] = results
+		report.Mu.Unlock()
+	}
 }
 
 var (
@@ -68,7 +113,16 @@ var (
 				TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
 			}
 
+			api := NewAPI(os.Getenv("TLS_CERT"), os.Getenv("TLS_KEY"))
+
+			// mux.Handle("/users", AddMiddleware(api.Users,
+			// 	api.Authenticate,
+			// 	api.Authorize(services.Permission("user_modify"))))
+
+			// mux.Handle("/tokens", api.Tokens)
+
 			// Send official list of nodes from docker client to browser
+			// http.Handle("/getNodeList", api.getNodeList)
 			mux.HandleFunc("/getNodeList", func(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("Content-Type", "text/html")
 				w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
@@ -79,55 +133,19 @@ var (
 				}
 				b.WriteTo(w)
 			})
+			// Submission of results: Where nodes send DATA from check.go
+			// Authorization of submission of results
+			postResults := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { report.postResults(w, r, &reqList) })
+			mux.Handle("/results", AddMiddleware(postResults,
+				//api.Authenticate,
+				api.Authorize(services.Permission("user_modify"))))
 
-			// Where nodes send DATA from check.go, where javascript requests receives specific node DATA
-			mux.HandleFunc("/results", func(w http.ResponseWriter, r *http.Request) {
-				w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
-				if r.Method == "POST" {
-					output, err := ioutil.ReadAll(r.Body)
-					if err != nil {
-						log.Fatalf("Error reading: %s", err)
-					}
-					var req check.Request
-					err = json.Unmarshal(output, &req)
-					if err != nil {
-						log.Fatalf("Error unmarshalling id: %s", err)
-					}
-					reqList = append(reqList, req)
-					nodeID := string(req.NodeID)
-					results := req.Results
-					report.Mu.Lock()
-					report.Outputs[nodeID] = results
-					report.Mu.Unlock()
-				} else if r.Method == "GET" {
-					nodeID := r.URL.Query().Get("nodeID")
-					check := r.URL.Query().Get("check")
-					if nodeID != "" {
-						//Determine whether or not a specified node has been processed -- ie if its results are ready to be displayed
-						if check == "true" {
-							w.Header().Set("Content-Type", "text/html")
-							found := false
-							for _, req := range reqList {
-								if string(req.NodeID) == string(nodeID) {
-									w.Write([]byte("true"))
-									found = true
-								}
-							}
-							if !found {
-								w.Write([]byte("false"))
-							}
-						} else {
-							w.Header().Set("Content-Type", "application/json")
-							w.WriteHeader(http.StatusOK)
-							report.Mu.Lock()
-							w.Write(report.Outputs[nodeID])
-							report.Mu.Unlock()
-						}
-					} else {
-						log.Fatalf("Node ID not entered")
-					}
-				}
-			})
+			// Requestion of results: where javascript requests receives specific node DATA
+			// Authorization of requesting of results
+			getResults := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { report.getResults(w, r) })
+			mux.Handle("/result", AddMiddleware(getResults,
+				//api.Authenticate,
+				api.Authorize(services.Permission("user_modify"))))
 
 			// Path to return css/js/html
 			mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -141,10 +159,31 @@ var (
 				handler.ServeHTTP(w, r)
 			})
 
+			// Determine whether or not a specified node has been processed -- ie if its results are ready to be displayed
+			mux.HandleFunc("/checkNode", func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", "text/html")
+				w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
+				w.WriteHeader(http.StatusOK)
+				found := false
+				nodeID, err := ioutil.ReadAll(r.Body)
+				if err != nil {
+					log.Fatalf("Did not receive node ID: %v", err)
+				}
+				for _, req := range reqList {
+					if string(req.NodeID) == string(nodeID) {
+						w.Write([]byte("true"))
+						found = true
+					}
+				}
+				if !found {
+					w.Write([]byte("false"))
+				}
+			})
 			err = srv.ListenAndServeTLS(os.Getenv("TLS_CERT"), os.Getenv("TLS_KEY"))
 			if err != nil {
 				log.Fatalf("ListenAndServeTLS: %s", err)
 			}
+
 			return nil
 		},
 	}
