@@ -292,14 +292,17 @@ function analyzeResults(response, nodeID){
 
 // Get the output of the specified node from the server
 function getResults(domain, nodeID){
+	var urlParams = new URLSearchParams(window.location.search)
+	var token = urlParams.get('token')
 	domain = domain + "/result"
 	var x = new XMLHttpRequest()
+	x.open("Get", domain + "?nodeID=" + nodeID) 
+	x.setRequestHeader('Authorization', 'Bearer ' + token)
 	x.onreadystatechange = function(){
 		if (x.readyState == 4 && x.status == 200){
 			var data = JSON.parse(x.responseText)
 			analyzeResults(data, nodeID)
 		}
 	}
-	x.open("Get", domain + "?nodeID=" + nodeID + "&check=false") 
 	x.send()
 }

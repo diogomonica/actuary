@@ -1,11 +1,13 @@
 package server
 
 import (
+	"crypto/rand"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/diogomonica/actuary/cmd/actuary/server/handlers"
 	"github.com/diogomonica/actuary/cmd/actuary/server/services"
 	"github.com/gorilla/context"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -18,16 +20,28 @@ type API struct {
 	Users         *handlers.Users
 }
 
+func randomize() []byte {
+	c := 32
+	b := make([]byte, c)
+	_, err := rand.Read(b)
+	if err != nil {
+		log.Fatalf("Could not randomize signing key: %v", err)
+	}
+	return b
+}
+
 // NewAPI creates a new API
 func NewAPI(certPath, keyPath string) *API {
+	var signingKey = randomize()
 	aclService := services.NewACLService()
-	tokenService := services.NewTokenService()
+	tokenService := services.NewTokenService(signingKey)
 	userService := services.NewUserService()
 
 	return &API{
-		AclService: aclService,
-		Tokens:     handlers.NewTokens(tokenService),
-		Users:      handlers.NewUsers(userService),
+		encryptionKey: signingKey,
+		AclService:    aclService,
+		Tokens:        handlers.NewTokens(tokenService),
+		Users:         handlers.NewUsers(userService),
 	}
 }
 
@@ -49,6 +63,7 @@ func (a *API) Authenticate(next http.Handler) http.Handler {
 			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 			return
 		}
+
 		// Now parse the token
 		parsedToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 			// Don't forget to validate the alg is what you expect:
@@ -67,34 +82,12 @@ func (a *API) Authenticate(next http.Handler) http.Handler {
 			// Everything worked! Set the user in the context.
 			context.Set(r, "user", parsedToken)
 			next.ServeHTTP(w, r)
-			fmt.Println("test")
+			return
 		}
 		// Token is invalid
 		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
 	})
-}
-
-// Authorize provides authorization middleware for our handlers
-func (a *API) Authorize(permissions ...services.Permission) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// TODO: Get User Information from Request
-			user := &services.User{
-				ID:        1,
-				FirstName: "Admin",
-				LastName:  "User",
-				Roles:     []string{services.AdministratorRole},
-			}
-			for _, permission := range permissions {
-				if err := a.AclService.CheckPermission(user, permission); err != nil {
-					http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
-					return
-				}
-			}
-			next.ServeHTTP(w, r)
-		})
-	}
 }
 
 // SecureHeaders adds secure headers to the API

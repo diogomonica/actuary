@@ -1,5 +1,9 @@
 package services
 
+import (
+	"log"
+)
+
 var users map[int]*User
 
 func init() {
@@ -61,6 +65,9 @@ func (s *userService) Create(u *User) error {
 }
 
 func (s *userService) Read(id int) (*User, error) {
+	log.Printf("USERS %v", users)
+	log.Printf("ID %v", id)
+	log.Printf("USERS AT ID %v", users[id])
 	return users[id], nil
 }
 

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Actuary</title>
+    <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <link rel = "stylesheet" type="text/css" href="stylesheets/main.css" >
+</head>
+
+<html>
+    <head>
+        <title>Actuary login </title>
+    </head>
+    <body>
+         <div class="jumbotron text-center">
+            <div class="row">
+                <h1>actuary login</h1>
+            </div>
+        </div>
+        <div class="row">  
+            <div class="col-sm-3 col-sm-offset-5" style="display: inline-block;">
+                <form name="login">
+                    <input class="input-box" id="pw-input" type="password" name="pswrd" placeholder="Enter Password" value=""/>
+                    <button class="input-box btn btn-info" type="button" onclick="check()" value="Login"> Login </button>
+                </form>
+
+            </div>
+        </div>
+        <div class="row">  
+            <div class="col-sm-3 col-sm-offset-5">
+                <p id="pwStatus">
+                </p>
+            </div>
+        </div>
+        <script language="javascript">
+            function check() { 
+                var url = window.location.href.split("/")[0] + "/token"
+                var pw = document.getElementById("pw-input").value
+                var x = new XMLHttpRequest()
+                x.open("Get", url) 
+                x.setRequestHeader('Authorization','Basic ' + btoa("defaultUser:" + pw))
+                x.onreadystatechange = function(){
+                    if (x.readyState == 4 && x.status == 200){
+                        var token = x.responseText
+                        window.location = window.location.href.split("/")[0] + "/results.html?token=" + token
+                    }else{
+                        $("#pwStatus").text("Incorrect password")
+                    }
+                }
+                x.send()
+            }
+        </script>
+    </body>
+</html> 

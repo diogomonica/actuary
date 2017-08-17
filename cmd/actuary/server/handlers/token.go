@@ -2,7 +2,11 @@ package handlers
 
 import (
 	"github.com/diogomonica/actuary/cmd/actuary/server/services"
+	"io/ioutil"
+	"log"
 	"net/http"
+	"os"
+	"strings"
 )
 
 // Tokens exposes an API to the tokens service
@@ -17,21 +21,41 @@ func NewTokens(s services.TokenService) *Tokens {
 
 // ServeHTTP will return tokens
 func (t *Tokens) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	switch req.Method {
-	case "GET":
-		// TODO: Take in login information
-		user := &services.User{
-			ID:        1,
-			FirstName: "Admin",
-			LastName:  "User",
-			Roles:     []string{services.AdministratorRole},
+	var pw string
+	var username string
+	var ok bool
+
+	w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
+	// Password for comparison
+	password, err := ioutil.ReadFile(os.Getenv("TOKEN_PASSWORD"))
+	username, pw, ok = req.BasicAuth()
+
+	pw = strings.TrimSpace(pw)
+	passwordString := strings.TrimSpace(string(password))
+
+	if err != nil {
+		log.Fatalf("Could not read password: %v", err)
+	}
+
+	// Compare passed in password and username from basic auth
+	if pw == passwordString && username == "defaultUser" && ok {
+		switch req.Method {
+		case "GET":
+			user := &services.User{
+				ID:        1,
+				FirstName: "Admin",
+				LastName:  "User",
+				Roles:     []string{services.AdministratorRole},
+			}
+			token, err := t.Service.Get(user)
+			if err != nil {
+				http.Error(w, "Failed to generate token", http.StatusInternalServerError)
+			}
+			w.Write([]byte(token))
+		default:
+			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		}
-		token, err := t.Service.Get(user)
-		if err != nil {
-			http.Error(w, "Failed to generate token", http.StatusInternalServerError)
-		}
-		w.Write([]byte(token))
-	default:
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+	} else {
+		http.Error(w, "Unauthorized request", http.StatusForbidden)
 	}
 }
