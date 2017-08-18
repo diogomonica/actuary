@@ -26,6 +26,8 @@ func CheckSeparatePartition(t Target) (res Result) {
 	bytes, err := ioutil.ReadFile(fpath)
 	if err != nil {
 		log.Printf("Cannot read fstab")
+		output := "Cannot read fstab"
+		res.Info(output)
 		return
 	}
 	lines := strings.Split(string(bytes), "\n")
@@ -36,7 +38,7 @@ func CheckSeparatePartition(t Target) (res Result) {
 			return
 		}
 	}
-	output := "Containers NOT in seperate partition"
+	output := "Containers NOT in separate partition"
 	res.Fail(output)
 	return
 }
@@ -87,7 +89,6 @@ func CheckDockerVersion(t Target) (res Result) {
 		log.Fatalf("Could not retrieve info for Docker host")
 	}
 	constraints, _ := version.NewConstraint(">= " + verConstr)
-
 	hostVersion, _ := version.NewVersion(info.Version)
 	if constraints.Check(hostVersion) {
 		res.Pass()
