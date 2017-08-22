@@ -15,9 +15,7 @@ import (
 // API holds the api handlers
 type API struct {
 	encryptionKey []byte
-	AclService    services.ACLService
 	Tokens        *handlers.Tokens
-	Users         *handlers.Users
 }
 
 func randomize() []byte {
@@ -33,15 +31,11 @@ func randomize() []byte {
 // NewAPI creates a new API
 func NewAPI(certPath, keyPath string) *API {
 	var signingKey = randomize()
-	aclService := services.NewACLService()
 	tokenService := services.NewTokenService(signingKey)
-	userService := services.NewUserService()
 
 	return &API{
 		encryptionKey: signingKey,
-		AclService:    aclService,
 		Tokens:        handlers.NewTokens(tokenService),
-		Users:         handlers.NewUsers(userService),
 	}
 }
 
@@ -87,13 +81,5 @@ func (a *API) Authenticate(next http.Handler) http.Handler {
 		// Token is invalid
 		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
-	})
-}
-
-// SecureHeaders adds secure headers to the API
-func (a *API) SecureHeaders(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// TODO: Add security headers here
-		next.ServeHTTP(w, r)
 	})
 }

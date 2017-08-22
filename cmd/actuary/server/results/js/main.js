@@ -110,15 +110,15 @@ function sleep(ms) {
 
 // Call to server checks if data has been received on server side
 function checkNode(domain, nodeID){
-	url = domain + "/results"
-	return new Promise((resolve, reject) => {
-		var x = new XMLHttpRequest();
-		x.open("Get", url + "?nodeID=" + nodeID + "&check=true") 
-		x.setRequestHeader('Content-type', 'text/html')
-		x.onload = () => resolve([String(x.responseText), nodeID, domain]);
-		x.onerror = () => reject([String(x.statusText), nodeID, domain]);
-		x.send();
-	});
+	url = domain + "/checkNode"
+ 	return new Promise((resolve, reject) => {
+ 		var x = new XMLHttpRequest();
+ 		x.open("POST", url);
+ 		x.setRequestHeader('Content-type', 'text/html')
+ 		x.onload = () => resolve([String(x.responseText), nodeID, domain]);
+ 		x.onerror = () => reject([String(x.statusText), nodeID, domain]);
+ 		x.send(nodeID);
+ 	});
 };
 
 // Get official list of nodes from server API call
@@ -290,19 +290,40 @@ function analyzeResults(response, nodeID){
 	printResults(passed, warned, skipped, info, nodeID)
 }
 
+function getCookie(cname) {
+    var name = cname + "=";
+    var decodedCookie = decodeURIComponent(document.cookie);
+    var ca = decodedCookie.split(';');
+    for(var i = 0; i <ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return "";
+}
+
 // Get the output of the specified node from the server
 function getResults(domain, nodeID){
 	var urlParams = new URLSearchParams(window.location.search)
 	var token = urlParams.get('token')
 	domain = domain + "/result"
 	var x = new XMLHttpRequest()
-	x.open("Get", domain + "?nodeID=" + nodeID) 
-	x.setRequestHeader('Authorization', 'Bearer ' + token)
-	x.onreadystatechange = function(){
-		if (x.readyState == 4 && x.status == 200){
-			var data = JSON.parse(x.responseText)
-			analyzeResults(data, nodeID)
+	x.open("Get", domain + "?nodeID=" + nodeID)
+	var token =  getCookie('token')
+	if (token != ""){
+		x.setRequestHeader('Authorization', 'Bearer ' + token)
+		x.onreadystatechange = function(){
+			if (x.readyState == 4 && x.status == 200){
+				var data = JSON.parse(x.responseText)
+				analyzeResults(data, nodeID)
+			}
 		}
+		x.send()
+	}else{
+		console.log("No token sent")
 	}
-	x.send()
 }

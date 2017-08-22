@@ -14,7 +14,7 @@ type Token string
 
 // TokenService provides a token
 type TokenService interface {
-	Get(u *User) (string, error)
+	Get() (string, error)
 }
 
 type tokenService struct {
@@ -27,13 +27,11 @@ func NewTokenService(key []byte) TokenService {
 }
 
 // Get retrieves a token for a user
-func (s *tokenService) Get(u *User) (string, error) {
+func (s *tokenService) Get() (string, error) {
 	// Create token
 	token := jwt.New(jwt.SigningMethodHS256)
 	// Set token claims
 	claims := token.Claims.(jwt.MapClaims)
-	claims["admin"] = true
-	claims["user"] = u
 	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
 	// Sign token with key
 	tokenString, err := token.SignedString(s.signingKey)

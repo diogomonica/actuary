@@ -39,7 +39,6 @@ func (report *outputData) getResults(w http.ResponseWriter, r *http.Request) {
 	nodeID := r.URL.Query().Get("nodeID")
 	if nodeID != "" {
 		w.Header().Set("Content-Type", "application/json")
-		w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
 		w.WriteHeader(http.StatusOK)
 		report.Mu.Lock()
 		w.Write(report.Outputs[nodeID])
@@ -50,7 +49,6 @@ func (report *outputData) getResults(w http.ResponseWriter, r *http.Request) {
 }
 
 func (report *outputData) postResults(w http.ResponseWriter, r *http.Request, reqList *[]check.Request) {
-	w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
 	output, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Fatalf("Error reading: %s", err)
@@ -115,7 +113,6 @@ var (
 			// Send official list of nodes from docker client to browser
 			mux.HandleFunc("/getNodeList", func(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("Content-Type", "text/html")
-				w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
 				w.WriteHeader(http.StatusOK)
 				var b bytes.Buffer
 				for _, node := range nodeList {
@@ -140,7 +137,6 @@ var (
 					log.Fatalf("Error getting current directory: %s", err)
 				}
 				path := filepath.Join(currentDir, htmlPath)
-				w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
 				handler := http.FileServer(http.Dir(path))
 				handler.ServeHTTP(w, r)
 			})
@@ -148,7 +144,6 @@ var (
 			// Determine whether or not a specified node has been processed -- ie if its results are ready to be displayed
 			mux.HandleFunc("/checkNode", func(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("Content-Type", "text/html")
-				w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
 				w.WriteHeader(http.StatusOK)
 				found := false
 				nodeID, err := ioutil.ReadAll(r.Body)

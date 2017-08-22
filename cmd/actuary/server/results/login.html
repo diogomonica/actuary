@@ -45,7 +45,8 @@
                 x.onreadystatechange = function(){
                     if (x.readyState == 4 && x.status == 200){
                         var token = x.responseText
-                        window.location = window.location.href.split("/")[0] + "/results.html?token=" + token
+                        document.cookie =  "token=" + token + "; path=/"
+                        window.location = window.location.href.split("/")[0] + "/results.html"
                     }else{
                         $("#pwStatus").text("Incorrect password")
                     }

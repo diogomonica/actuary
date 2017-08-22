@@ -41,13 +41,7 @@ func (t *Tokens) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if pw == passwordString && username == "defaultUser" && ok {
 		switch req.Method {
 		case "GET":
-			user := &services.User{
-				ID:        1,
-				FirstName: "Admin",
-				LastName:  "User",
-				Roles:     []string{services.AdministratorRole},
-			}
-			token, err := t.Service.Get(user)
+			token, err := t.Service.Get()
 			if err != nil {
 				http.Error(w, "Failed to generate token", http.StatusInternalServerError)
 			}
