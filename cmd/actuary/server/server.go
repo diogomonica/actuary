@@ -9,23 +9,18 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
+	"golang.org/x/sync/syncmap"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
-	"sync"
 )
 
 var htmlPath string
 
 func init() {
 	ServerCmd.Flags().StringVarP(&htmlPath, "htmlPath", "p", "/cmd/actuary/server/results", "Path to folder that holds html, js, css for browser -- relative to current working directory.")
-}
-
-type outputData struct {
-	Mu      *sync.Mutex
-	Outputs map[string][]byte
 }
 
 func AddMiddleware(h http.Handler, middleware ...func(http.Handler) http.Handler) http.Handler {
@@ -35,20 +30,23 @@ func AddMiddleware(h http.Handler, middleware ...func(http.Handler) http.Handler
 	return h
 }
 
-func (report *outputData) getResults(w http.ResponseWriter, r *http.Request) {
+func getResults(w http.ResponseWriter, r *http.Request, report *syncmap.Map) {
 	nodeID := r.URL.Query().Get("nodeID")
 	if nodeID != "" {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		report.Mu.Lock()
-		w.Write(report.Outputs[nodeID])
-		report.Mu.Unlock()
+		i, ok := report.Load(nodeID)
+		val := i.([]byte)
+		if !ok {
+			log.Fatalf("Could not load nodeID")
+		}
+		w.Write(val)
 	} else {
 		log.Fatalf("Node ID not entered")
 	}
 }
 
-func (report *outputData) postResults(w http.ResponseWriter, r *http.Request, reqList *[]check.Request) {
+func postResults(w http.ResponseWriter, r *http.Request, reqList *[]check.Request, report *syncmap.Map) {
 	output, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Fatalf("Error reading: %s", err)
@@ -61,9 +59,7 @@ func (report *outputData) postResults(w http.ResponseWriter, r *http.Request, re
 	*reqList = append(*reqList, req)
 	nodeID := string(req.NodeID)
 	results := req.Results
-	report.Mu.Lock()
-	report.Outputs[nodeID] = results
-	report.Mu.Unlock()
+	report.Store(nodeID, results)
 }
 
 var (
@@ -72,10 +68,10 @@ var (
 		Short: "Aggregate actuary output for swarm",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			mux := http.NewServeMux()
-			m := make(map[string][]byte)
-			var report = outputData{Mu: &sync.Mutex{}, Outputs: m}
+			//m := make(map[string][]byte)
+			report := syncmap.Map{}
+			//var report = outputData{Mu: &sync.Mutex{}, Outputs: m}
 			var reqList []check.Request
-
 			// Get list of all nodes in the swarm via Docker API call
 			// Used for comparison to see which nodes have yet to be processed
 			ctx := context.Background()
@@ -87,7 +83,6 @@ var (
 			if err != nil {
 				log.Fatalf("Could not get list of nodes: %s", err)
 			}
-
 			cfg := &tls.Config{
 				MinVersion:               tls.VersionTLS12,
 				CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
@@ -105,11 +100,8 @@ var (
 				TLSConfig:    cfg,
 				TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
 			}
-
 			api := NewAPI(os.Getenv("TLS_CERT"), os.Getenv("TLS_KEY"))
-
 			mux.Handle("/token", api.Tokens)
-
 			// Send official list of nodes from docker client to browser
 			mux.HandleFunc("/getNodeList", func(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("Content-Type", "text/html")
@@ -122,14 +114,12 @@ var (
 			})
 			// Submission of results: Where nodes send DATA from check.go
 			// Authorization of submission of results
-			postResults := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { report.postResults(w, r, &reqList) })
+			postResults := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { postResults(w, r, &reqList, &report) })
 			mux.Handle("/results", AddMiddleware(postResults, api.Authenticate))
-
 			// Request of results: where javascript requests receives specific node DATA
 			// Authorization of requesting of results
-			getResults := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { report.getResults(w, r) })
+			getResults := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { getResults(w, r, &report) })
 			mux.Handle("/result", AddMiddleware(getResults, api.Authenticate))
-
 			// Path to return css/js/html
 			mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 				currentDir, err := os.Getwd()
@@ -164,7 +154,6 @@ var (
 			if err != nil {
 				log.Fatalf("ListenAndServeTLS: %s", err)
 			}
-
 			return nil
 		},
 	}

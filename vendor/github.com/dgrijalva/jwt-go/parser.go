@@ -71,6 +71,7 @@ func (p *Parser) ParseWithClaims(tokenString string, claims Claims, keyFunc Keyf
 	} else {
 		return token, NewValidationError("signing method (alg) is unspecified.", ValidationErrorUnverifiable)
 	}
+
 	// Verify signing method is in the required set
 	if p.ValidMethods != nil {
 		var signingMethodValid = false

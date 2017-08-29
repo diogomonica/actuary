@@ -18,19 +18,19 @@ type API struct {
 	Tokens        *handlers.Tokens
 }
 
-func randomize() []byte {
+func getRandomBytes() []byte {
 	c := 32
 	b := make([]byte, c)
 	_, err := rand.Read(b)
 	if err != nil {
-		log.Fatalf("Could not randomize signing key: %v", err)
+		log.Fatalf("Failed when generating random bytes: %v", err)
 	}
 	return b
 }
 
 // NewAPI creates a new API
 func NewAPI(certPath, keyPath string) *API {
-	var signingKey = randomize()
+	var signingKey = getRandomBytes()
 	tokenService := services.NewTokenService(signingKey)
 
 	return &API{
