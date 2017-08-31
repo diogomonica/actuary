@@ -36,11 +36,12 @@ func getResults(w http.ResponseWriter, r *http.Request, report *syncmap.Map) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		i, ok := report.Load(nodeID)
-		val := i.([]byte)
-		if !ok {
+		if ok {
+			val := i.([]byte)
+			w.Write(val)
+		} else {
 			log.Fatalf("Could not load nodeID")
 		}
-		w.Write(val)
 	} else {
 		log.Fatalf("Node ID not entered")
 	}
@@ -68,9 +69,7 @@ var (
 		Short: "Aggregate actuary output for swarm",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			mux := http.NewServeMux()
-			//m := make(map[string][]byte)
 			report := syncmap.Map{}
-			//var report = outputData{Mu: &sync.Mutex{}, Outputs: m}
 			var reqList []check.Request
 			// Get list of all nodes in the swarm via Docker API call
 			// Used for comparison to see which nodes have yet to be processed
