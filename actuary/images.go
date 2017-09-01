@@ -25,7 +25,7 @@ func CheckContainerUser(t Target) (res Result) {
 	for _, container := range containers {
 		user := container.Info.Config.User
 		if user == "" {
-			rootContainers = append(rootContainers, container.ID)
+			rootContainers = append(rootContainers, container.ID+" ")
 		}
 	}
 	if len(rootContainers) == 0 {

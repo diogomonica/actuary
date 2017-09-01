@@ -160,7 +160,7 @@ func (l *ContainerList) runCheck(r *Result, f func(c ContainerInfo) bool, msg st
 	var badContainers []string
 	for _, container := range *l {
 		if f(container.Info) == false {
-			badContainers = append(badContainers, container.ID)
+			badContainers = append(badContainers, container.ID+" ")
 		}
 	}
 	if len(badContainers) == 0 {

@@ -5,6 +5,7 @@ services:
     environment: 
       TLS_KEY: /run/secrets/tls_key
       TLS_CERT: /run/secrets/tls_cert
+      TOKEN_PASSWORD: /run/secrets/token_password
     command: server
     deploy:
       replicas: 1
@@ -13,6 +14,7 @@ services:
     secrets:
       - tls_cert
       - tls_key
+      - token_password
     networks:
       - webnet
     ports:
@@ -25,7 +27,8 @@ services:
       NODE: "{{.Node.ID}}"
       X509_USER_KEY: /run/secrets/tls_key
       X509_USER_CERT: /run/secrets/tls_cert
-    command: ["check", "-f=cmd/actuary/mac-default.toml", "-s=https://server:8000/results"]
+      TOKEN_PASSWORD: /run/secrets/token_password
+    command: ["check", "-f=cmd/actuary/mac-default.toml", "-p=/go/src/github.com/diogomonica/actuary", "-s=https://server:8000/results", "--swarm=true", "-o=json"]
     deploy:
       mode: global
       resources:
@@ -37,10 +40,13 @@ services:
     secrets:
       - tls_cert
       - tls_key
+      - token_password
     networks:
       - webnet
-    volumes: 
+    volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/output:/go/src/github.com/diogomonica/actuary/output
+
 networks:
   webnet:
     driver: overlay
@@ -49,3 +55,6 @@ secrets:
     file: ./domain.crt
   tls_key: 
     file: ./domain.key
+  token_password:
+    file: ./token_password.txt  
+

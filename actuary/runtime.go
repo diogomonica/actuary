@@ -30,7 +30,7 @@ func CheckAppArmor(t Target) (res Result) {
 }
 
 func CheckSELinux(t Target) (res Result) {
-	res.Name = "5.1 Verify AppArmor Profile, if applicable"
+	res.Name = "5.2  - Ensure SELinux security options are set, if applicable"
 	if !t.Containers.Running() {
 		res.Skip("No running containers")
 		return

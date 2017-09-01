@@ -16,7 +16,7 @@ body {
 	padding-top: none;
 	width: 100%;
     overflow-y: scroll;  
-    overflow-x: visible;
+    overflow-x: hidden;
     height: 77vh;
 }
 
@@ -39,6 +39,7 @@ body {
 
 .data-element {
 	background-color: #eee;
+	font-size: small;
 }
 
 .output {
@@ -61,6 +62,15 @@ body {
 	color: red;
 }
 
+.node-data{
+	font-size: large;
+
+}
+
+.test-details{
+	font-weight: bold;
+}
+
 .tabContent {
 	display: none;
 }
@@ -71,5 +81,16 @@ body {
 
 ul {
 	list-style-type: disc;
-	font-size: large;
+}
+
+.input-box{
+	height: 3em;
+    font-size: medium;
+    border-radius: 3px;
+}
+
+#pwStatus{
+	font-style: italic;
+	color: red;
+	font-size: medium;
 }
