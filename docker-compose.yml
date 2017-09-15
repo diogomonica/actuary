@@ -5,6 +5,7 @@ services:
     environment: 
       TLS_KEY: /run/secrets/tls_key
       TLS_CERT: /run/secrets/tls_cert
+      TOKEN_PASSWORD: /run/secrets/token_password
     command: server
     deploy:
       replicas: 1
@@ -13,6 +14,7 @@ services:
     secrets:
       - tls_cert
       - tls_key
+      - token_password
     networks:
       - webnet
     ports:
@@ -25,6 +27,7 @@ services:
       NODE: "{{.Node.ID}}"
       X509_USER_KEY: /run/secrets/tls_key
       X509_USER_CERT: /run/secrets/tls_cert
+      TOKEN_PASSWORD: /run/secrets/token_password
     command: ["check", "-f=cmd/actuary/mac-default.toml", "-s=https://server:8000/results"]
     deploy:
       mode: global
@@ -37,6 +40,7 @@ services:
     secrets:
       - tls_cert
       - tls_key
+      - token_password
     networks:
       - webnet
     volumes: 
@@ -49,3 +53,5 @@ secrets:
     file: ./domain.crt
   tls_key: 
     file: ./domain.key
+  token_password:
+    file: ./token_password.txt

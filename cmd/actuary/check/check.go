@@ -9,11 +9,11 @@ import (
 	"github.com/diogomonica/actuary/oututils"
 	"github.com/diogomonica/actuary/profileutils"
 	"github.com/spf13/cobra"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"strings"
-	"time"
 )
 
 var profile string
@@ -56,6 +56,31 @@ func HttpClient() (client *http.Client) {
 	}
 	client = &http.Client{Transport: tr}
 	return
+}
+
+// Log in and retrieve token
+func basicAuth(client *http.Client) string {
+	req, err := http.NewRequest("GET", "https://server:8000/token", nil)
+	if err != nil {
+		log.Fatalf("Error generating request: %v", err)
+	}
+	var pw []byte
+	pw, err = ioutil.ReadFile(os.Getenv("TOKEN_PASSWORD"))
+	if err != nil {
+		log.Fatalf("Could not read password: %v", err)
+	}
+	req.SetBasicAuth("defaultUser", string(pw))
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatalf("Basic auth: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		log.Fatalf("Status code: %v", resp.StatusCode)
+	}
+	defer resp.Body.Close()
+	bodyText, err := ioutil.ReadAll(resp.Body)
+	s := string(bodyText)
+	return s
 }
 
 var (
@@ -139,12 +164,13 @@ var (
 				log.Fatalf("couldn't read req: %v", err)
 			}
 			reqPost.Header.Set("Content-Type", "application/json")
-
 			client := HttpClient()
 
-			time.Sleep(5000 * time.Millisecond)
-
+			token := basicAuth(client)
+			var bearer = "Bearer " + token
+			reqPost.Header.Add("authorization", bearer)
 			respPost, err := client.Do(reqPost)
+
 			if err != nil {
 				log.Fatalf("Could not send post request to client: %v", err)
 			}

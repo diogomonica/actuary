@@ -73,3 +73,15 @@ ul {
 	list-style-type: disc;
 	font-size: large;
 }
+
+.input-box {
+	height: 3em;
+    font-size: medium;
+    border-radius: 3px;
+}
+
+#pwStatus {
+	font-style: italic;
+	color: red;
+	font-size: medium;
+}
